@@ -3,6 +3,7 @@ import {Component} from "../component/component.js";
 export class ImageButton extends Component {
     constructor() {
         super();
+
         this.src = null;
         this.alt = "";
         this.href = "#";

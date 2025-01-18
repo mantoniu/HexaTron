@@ -4,6 +4,7 @@ import {CustomButton} from "../custom-button/custom-button.js";
 export class ModeSelector extends Component {
     constructor() {
         super();
+
         CustomButton.register();
     }
 
