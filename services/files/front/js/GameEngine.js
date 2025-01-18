@@ -10,10 +10,10 @@ export const GameType = {
 
 export class GameEngine {
     constructor(type) {
-        this.type = type;
+        this._type = type;
         let parameters = new Parameters();
         let player1 = new Player("0", "Player 1", "", parameters);
         let player2 = new Player("1", "Player 2", "", {});
-        this.game = new Game(9, 16, [player1, player2]);
+        this._game = new Game(9, 16, [player1, player2]);
     }
 }

@@ -10,20 +10,20 @@ export class Tile {
         this.takenId = "";
     }
 
-    set setValue(status) {
-        this.status = status;
+    set akenID(id) {
+        this._takenId = id;
     }
 
-    set setTakenID(id) {
-        this.takenId = id;
+    get status() {
+        return this._status;
     }
 
-    get getStatus() {
-        return this.status;
+    set status(status) {
+        this._status = status;
     }
 
-    get getTakenId() {
+    get takenId() {
         if (this.status !== Status.Taken) throw new Error("The Tile is not taken by a player");
-        return this.takenId;
+        return this._takenId;
     }
 }

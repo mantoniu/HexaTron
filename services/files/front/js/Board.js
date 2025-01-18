@@ -2,7 +2,7 @@ import { Status, Tile } from "./Tile.js";
 
 export class Board {
     constructor(row, column) {
-        this.tiles = [];
+        this._tiles = [];
         for (let i = 0; i <= row + 1; i++) {
             let line = [];
             for (let j = 0; j <= column + 1; j++) {
@@ -11,11 +11,11 @@ export class Board {
                 else
                     line.push(new Tile(Status.Vacant));
             }
-            this.tiles.push(line);
+            this._tiles.push(line);
         }
     }
 
-    get getTiles() {
-        return this.tiles;
+    get tiles() {
+        return this._tiles;
     }
 }
