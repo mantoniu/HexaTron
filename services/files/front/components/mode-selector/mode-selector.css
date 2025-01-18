@@ -4,6 +4,7 @@
     align-items: center;
     justify-content: center;
     height: 30rem;
+    width: 20rem;
 }
 
 h1 {
@@ -11,8 +12,8 @@ h1 {
 }
 
 .buttons{
+    width: 100%;
     display: flex;
-    min-width: 20rem;
     flex-direction: row;
     justify-content: space-between;
 }
