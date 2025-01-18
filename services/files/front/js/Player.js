@@ -1,24 +1,24 @@
 export class Player {
     constructor(id, name, profilePicturePath, parameters) {
-        this.id = id;
-        this.name = name;
-        this.profilePicturePath = profilePicturePath;
+        this._id = id;
+        this._name = name;
+        this._profilePicturePath = profilePicturePath;
         this.parameters = parameters;
     }
 
-    get getName() {
-        return this.name;
+    get name() {
+        return this._name;
     }
 
-    get getProfilePicturePath() {
-        return this.profilePicturePath;
+    get profilePicturePath() {
+        return this._profilePicturePath;
     }
 
-    set setParameters(parameters) {
-        this.parameters = parameters;
+    get parameters() {
+        return this._parameters;
     }
 
-    get getParameters() {
-        return this.parameters;
+    set parameters(parameters) {
+        this._parameters = parameters;
     }
 }

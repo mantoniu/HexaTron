@@ -1,14 +1,14 @@
 export class Parameters {
     constructor() {
-        this.keysPlayers = [["1", "2", "3", "4"], ["A", "Q", "D", "E"]];
-        this.colorsPlayers = ["#ff0000", "#40ff00"];
+        this._keysPlayers = [["1", "2", "3", "4"], ["A", "Q", "D", "E"]];
+        this._playersColors = ["#ff0000", "#40ff00"];
     }
 
-    get getColorsPlayers() {
-        return this.colorsPlayers;
+    get colorsPlayers() {
+        return this._playersColors;
     }
 
-    get getKeys() {
-        return this.keysPlayers;
+    get keys() {
+        return this._keysPlayers;
     }
 }

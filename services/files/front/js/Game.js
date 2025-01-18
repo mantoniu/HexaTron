@@ -2,20 +2,20 @@ import { Board } from "./Board.js";
 
 export class Game {
     constructor(row, column, players) {
-        this.board = new Board(row, column);
-        this.players = players;
-        this.playersPositions = [];
+        this._board = new Board(row, column);
+        this._players = players;
+        this._playersPositions = [];
     }
 
-    get getPlayers() {
-        return this.players;
+    get players() {
+        return this._players;
     }
 
-    get getPlayersPositions() {
-        return this.playersPositions;
+    get playersPositions() {
+        return this._playersPositions;
     }
 
-    get getBoard() {
-        return this.board;
+    get board() {
+        return this._board;
     }
 }
