@@ -7,11 +7,12 @@ export const Status = {
 export class Tile {
     constructor(status) {
         this.status = status;
-        this.takenId = "";
+        this.takenID = "";
     }
 
-    set akenID(id) {
-        this._takenId = id;
+    get takenID() {
+        if (this.status !== Status.Taken) throw new Error("The Tile is not taken by a player");
+        return this._takenID;
     }
 
     get status() {
@@ -22,8 +23,7 @@ export class Tile {
         this._status = status;
     }
 
-    get takenId() {
-        if (this.status !== Status.Taken) throw new Error("The Tile is not taken by a player");
-        return this._takenId;
+    set takenID(id) {
+        this._takenID = id;
     }
 }
