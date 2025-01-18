@@ -13,7 +13,8 @@ export class Component extends HTMLElement {
     }
 
     static register() {
-        customElements.define(this.elementName, this);
+        if (!customElements.get(this.elementName))
+            customElements.define(this.elementName, this);
     }
 
     async connectedCallback() {
