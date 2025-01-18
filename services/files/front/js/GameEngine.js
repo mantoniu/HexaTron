@@ -2,7 +2,7 @@ import { Game } from "./Game.js";
 import { Player } from "./Player.js";
 import { Parameters } from "./Parameters.js";
 
-export const GAME_TYPE = {
+export const GameType = {
     LOCAL: 0,
     IA: 1,
     RANKED: 2

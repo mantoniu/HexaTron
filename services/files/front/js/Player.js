@@ -1,5 +1,4 @@
 export class Player {
-
     constructor(id, name, profilePicturePath, parameters) {
         this.id = id;
         this.name = name;
@@ -22,5 +21,4 @@ export class Player {
     get getParameters() {
         return this.parameters;
     }
-
 }
