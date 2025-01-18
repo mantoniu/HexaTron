@@ -34,7 +34,7 @@ export class Component extends HTMLElement {
     }
 
     async fetchResource(type) {
-        const response = await fetch(`components/${this.constructor.elementName}/${this.constructor.elementName}.${type}`);
+        const response = await fetch(`/components/${this.constructor.elementName}/${this.constructor.elementName}.${type}`);
         if (!response.ok) {
             throw new Error(`Failed to load ${type.toUpperCase()} for component ${this.constructor.elementName}`);
         }
