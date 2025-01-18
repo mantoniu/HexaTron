@@ -1,0 +1,50 @@
+export class Component extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
+    static get elementName() {
+        return this.name
+            .replace(/([A-Z])/g, (match, letter, offset) =>
+                offset > 0 ? `-${letter}` : letter
+            )
+            .toLowerCase();
+    }
+
+    static register() {
+        customElements.define(this.elementName, this);
+    }
+
+    async connectedCallback() {
+        try {
+            await this.loadResources();
+        } catch (err) {
+            console.error(`Error in component ${this.constructor.elementName}:`, err);
+        }
+    }
+
+    async loadResources() {
+        const [html, css] = await Promise.all([
+            this.fetchResource('html'),
+            this.fetchResource('css')
+        ]);
+
+        this.render(html, css);
+    }
+
+    async fetchResource(type) {
+        const response = await fetch(`components/${this.constructor.elementName}/${this.constructor.elementName}.${type}`);
+        if (!response.ok) {
+            throw new Error(`Failed to load ${type.toUpperCase()} for component ${this.constructor.elementName}`);
+        }
+        return response.text();
+    }
+
+    render(html, css) {
+        this.shadowRoot.innerHTML = `
+            <style>${css}</style>
+            ${html}
+        `;
+    }
+}
