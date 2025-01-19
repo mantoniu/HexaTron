@@ -26,4 +26,25 @@ export class Tile {
     set takenID(id) {
         this._takenID = id;
     }
+
+    hexagonPath(posX, posY, size, context) {
+        context.beginPath();
+        let angle = 120 * Math.PI / 180;
+        for (let k = 0; k < 6; k++) {
+            context.lineTo(posX + Math.sin(angle) * size, posY - Math.cos(angle) * size);
+            angle = angle - 60 * Math.PI / 180;
+        }
+        context.closePath();
+    }
+
+    draw(posX, posY, size, context) {
+        this.hexagonPath(posX, posY, size, context);
+        context.stroke();
+    }
+
+    fillTile(posX, posY, size, context, color) {
+        context.fillStyle = color;
+        this.hexagonPath(posX, posY, size, context);
+        context.fill();
+    }
 }

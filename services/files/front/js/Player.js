@@ -10,6 +10,10 @@ export class Player {
         return this._name;
     }
 
+    get id() {
+        return this._id;
+    }
+
     get profilePicturePath() {
         return this._profilePicturePath;
     }
