@@ -28,8 +28,8 @@ export class Board {
         let size = sizeAccordingWidth > sizeAccordingHeight ? sizeAccordingHeight : sizeAccordingWidth;
         let dx = 2 * size * Math.sin(angle);
         let dy = (3 / 2) * size;
-        let gapX = sizeAccordingWidth > sizeAccordingHeight ? (width - dx * (this.tiles[0].length - 2)) / 2 : 0;
-        let gapY = sizeAccordingHeight > sizeAccordingWidth ? (height - (size * this.tiles.length - 2)) / 2 : 0;
+        let gapX = sizeAccordingWidth > sizeAccordingHeight ? (width - dx * (this.tiles[0].length - 1)) / 2 : 0;
+        let gapY = sizeAccordingHeight > sizeAccordingWidth ? (height - 3 * size * Math.floor((this.tiles.length - 2) / 2) - (this.tiles.length % 2 === 1 ? 2 * size : 0)) / 2 : 0;
         return [dx, dy, gapX, gapY, size];
     }
 
@@ -41,11 +41,13 @@ export class Board {
     }
 
     draw(context) {
+        context.strokeStyle = "black";
+        context.lineWidth = 1;
         let [dx, dy, gapX, gapY, size] = this.calculateUtils(context);
         for (let i = 1; i < this.tiles.length - 1; i++) {
             if (i % 2 === 1) {
                 for (let j = 0; j < this.tiles[i].length - 1; j++) {
-                    this.tiles[i][j].draw(gapX + dx * (j + 0.5), gapY + dy * (i - 1) + size, size, context);
+                    this.tiles[i][j].draw(gapX + dx * (j + 0.5), gapY + dy * (i - 1), size, context, j === 0);
                     if (i !== 0 && i !== this.tiles.length - 2)
                         this.drawLine(i, j, dx, dy, gapX, gapY, size, context);
                 }
@@ -55,6 +57,6 @@ export class Board {
 
     fillTile(x, y, color, context) {
         let [dx, dy, gapX, gapY, size] = this.calculateUtils(context);
-        this.tiles[x][y].fillTile(gapX + dx * (y - (x % 2 === 1 ? 0.5 : 0)), gapY + dy * (x - 1) + size, size, context, color);
+        this.tiles[x][y].fillTile(gapX + dx * (x - (y % 2 === 1 ? 0.5 : 0)), gapY + dy * (y - 1), size, context, color);
     }
 }
