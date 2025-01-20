@@ -22,4 +22,8 @@ export class GameEngine {
     fillTile(x, y, idPlayer) {
         this._game.board.fillTile(x, y, this._game.players[0].parameters._playersColors[0], this._canvas);
     }
+
+    redraw(callingContext) {
+        callingContext._game.board.draw(callingContext._canvas);
+    }
 }
