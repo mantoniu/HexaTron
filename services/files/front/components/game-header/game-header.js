@@ -1,5 +1,5 @@
 import { Component } from "../component/component.js";
-import { convertRemToPixels, resizeCanvas } from "../../js/Utils.js";
+import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex } from "../../js/Utils.js";
 
 export class GameHeader extends Component {
     async connectedCallback() {
@@ -12,8 +12,8 @@ export class GameHeader extends Component {
         window.removeEventListener("resize", resizeCanvas.bind(this, this, 0.15, 1, "header", this.draw, this));
     }
 
-    draw(callingContext) {
-        const canvas = callingContext.shadowRoot.getElementById("header");
+    calculateUtils() {
+        const canvas = this.shadowRoot.getElementById("header");
         const context = canvas.getContext("2d");
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -21,15 +21,29 @@ export class GameHeader extends Component {
         const pxSize = convertRemToPixels(1.5);
         context.font = pxSize + "px serif";
         const size = context.measureText("2").fontBoundingBoxAscent - context.measureText("2").fontBoundingBoxDescent;
+        return [context, width, height, size];
+    }
 
-        for (var k = 1; k < 4; k++) {
-            context.beginPath();
-            context.arc(k * width / 4, height / 2, size, 0, 2 * Math.PI, true);
-            context.stroke();
+    drawCircle(n, color, fill) {
+        const [context, width, height, size] = this.calculateUtils();
+        context.fillStyle = color;
+        context.beginPath();
+        context.arc(n * width / 4, height / 2, size, 0, 2 * Math.PI, true);
 
-            const center = context.measureText(k).width;
-            context.fillText(k, k * width / 4 - center / 2, height / 2 + size / 2);
+        fill ? context.fill() : context.stroke();
 
+        const backGroundRGB = hexToRGB(context.fillStyle);
+        const luminosityBackground = (backGroundRGB[0] * 299 + backGroundRGB[1] * 587 + backGroundRGB[2] * 114) / 1000;
+        context.fillStyle = rgbToHex([luminosityBackground < 128 ? 255 : 0, luminosityBackground < 128 ? 255 : 0, luminosityBackground < 128 ? 255 : 0]);
+
+        const center = context.measureText(n).width;
+        context.fillText(n, n * width / 4 - center / 2, height / 2 + size / 2);
+    }
+
+    draw(callingContext) {
+        const [context, width, height, size] = callingContext.calculateUtils();
+        for (let k = 1; k < 4; k++) {
+            callingContext.drawCircle(k, "#fff", false);
             if (k !== 3) {
                 context.beginPath();
                 context.moveTo(k * width / 4 + size, height / 2);
@@ -37,5 +51,9 @@ export class GameHeader extends Component {
                 context.stroke();
             }
         }
+    }
+
+    fillCircle(n, color) {
+        this.drawCircle(n, color, true);
     }
 }
