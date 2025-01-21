@@ -1,10 +1,53 @@
-import {Component} from "../component/component.js";
-import {ImageButton} from "../image-button/image-button.js";
+import { Component } from "../component/component.js";
+import { ImageButton } from "../image-button/image-button.js";
 
 export class HomeButton extends Component {
     constructor() {
         super();
 
         ImageButton.register();
+        this.floating = true;
+        this.hidden = false;
+    }
+
+    static get observedAttributes() {
+        return ["floating", "just-render"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        switch (name) {
+            case "floating":
+                this.floating = newValue === "true";
+                break;
+            case "just-render":
+                this.hidden = newValue === "true";
+                break;
+        }
+
+        this.update();
+    }
+
+    async connectedCallback() {
+        await super.connectedCallback();
+        this.update();
+    }
+
+    update() {
+        console.log(this.hidden, this.hidden === true);
+        if (this.hidden)
+            this.style.visibility = "hidden";
+        else {
+            if (!this.floating) {
+                this.style.position = "static";
+                this.style.display = "flex";
+                this.style.alignItems = "center";
+                this.style.margin = "0 0 0 20px";
+            } else {
+                this.style.position = "absolute";
+                this.style.top = 0;
+                this.style.left = 0;
+                this.style.margin = "20px 0 0 20px";
+            }
+        }
     }
 }
