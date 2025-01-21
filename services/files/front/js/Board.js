@@ -1,22 +1,42 @@
-import { Status, Tile } from "./Tile.js";
+import {Status, Tile} from "./Tile.js";
 
 export class Board {
     constructor(row, column) {
         this._tiles = [];
-        for (let i = 0; i <= row + 1; i++) {
+        this._row = row;
+        this._column = column;
+
+        this.initialize();
+    }
+
+    get rowNumber() {
+        return this.tiles.length;
+    }
+
+    get tiles() {
+        return this._tiles;
+    }
+
+    get columnNumber() {
+        return this.tiles[0].length;
+    }
+
+    initialize() {
+        this._tiles = [];
+        for (let i = 0; i <= this._row + 1; i++) {
             let line = [];
-            for (let j = 0; j <= column + 1; j++) {
-                if (i === 0 || i === row + 1 || j === 0 || j >= (i % 2 === 1 ? column + 1 : column))
-                    line.push(new Tile(Status.Wall));
+            for (let j = 0; j <= this._column + 1; j++) {
+                if (i === 0 || i === this._row + 1 || j === 0 || j >= (i % 2 === 1 ? this._column + 1 : this._column))
+                    line.push(new Tile(Status.WALL));
                 else
-                    line.push(new Tile(Status.Vacant));
+                    line.push(new Tile(Status.VACANT));
             }
             this._tiles.push(line);
         }
     }
 
-    get tiles() {
-        return this._tiles;
+    isVacant(position) {
+        return this.tiles[position[0]][position[1]].status === Status.VACANT;
     }
 
     calculateUtils(context) {
@@ -57,6 +77,7 @@ export class Board {
 
     fillTile(x, y, color, context) {
         let [dx, dy, gapX, gapY, size] = this.calculateUtils(context);
-        this.tiles[x][y].fillTile(gapX + dx * (x - (y % 2 === 1 ? 0.5 : 0)), gapY + dy * (y - 1), size, context, color);
+        this.tiles[y][x].fillTile(gapX + dx * (x - (y % 2 === 1 ? 0.5 : 0)), gapY + dy * (y - 1), size, context, color);
+        this.tiles[y][x].status = Status.TAKEN;
     }
 }
