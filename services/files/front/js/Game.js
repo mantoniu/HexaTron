@@ -1,4 +1,11 @@
-import { Board } from "./Board.js";
+import {Board} from "./Board.js";
+import {getRandomInt} from "./Utils.js";
+
+export const GameType = {
+    LOCAL: 0,
+    IA: 1,
+    RANKED: 2
+};
 
 export class Game {
     constructor(row, column, players) {
