@@ -1,7 +1,7 @@
 export const Status = {
-    Wall: -1,
-    Vacant: 0,
-    Taken: 1
+    WALL: -1,
+    VACANT: 0,
+    TAKEN: 1
 };
 
 export class Tile {
@@ -11,7 +11,7 @@ export class Tile {
     }
 
     get takenID() {
-        if (this.status !== Status.Taken) throw new Error("The Tile is not taken by a player");
+        if (this.status !== Status.TAKEN) throw new Error("The Tile is not taken by a player");
         return this._takenID;
     }
 
