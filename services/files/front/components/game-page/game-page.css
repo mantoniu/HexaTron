@@ -1,5 +1,6 @@
 header {
     height: 20%;
+    display: flex;
 }
 
 main {
