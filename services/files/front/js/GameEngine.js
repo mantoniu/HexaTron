@@ -24,8 +24,10 @@ export class GameEngine {
         this._movementsManagers.forEach(manager =>
             manager.initialize(this._game.getPlayerPosition(manager.playerId)));
 
-        for (let i = 0; i < this._game.players.length; i++)
-            this.fillTile(this._game.getPlayerPosition(this._game.players[i].id), this._colors[i]);
+        for (let i = 0; i < this._game.players.length; i++) {
+            let playerPosition = this._game.getPlayerPosition(this._game.players[i].id);
+            this._game.board.fillTile(playerPosition[1], playerPosition[0], this._colors[i], this._canvas);
+        }
     }
 
     initializeMovementsManagers() {
@@ -83,9 +85,5 @@ export class GameEngine {
         else if (winners.length === 1)
             console.log(`The winner of this round is: ${winners[0]}!`);
         else console.log(`It's a tie between players: ${winners.join(", ")}!`);
-    }
-
-    fillTile(position, color) {
-        this._game.board.fillTile(position[1], position[0], color, this._canvas);
     }
 }
