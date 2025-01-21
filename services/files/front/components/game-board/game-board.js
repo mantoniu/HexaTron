@@ -10,6 +10,12 @@ export class GameBoard extends Component {
         const context = canvas.getContext("2d");
         this.gameEngine = new GameEngine(GameType.LOCAL, context);
         window.addEventListener("resize", resizeCanvas.bind(this, this, 0.85, 0.80, "board", this.gameEngine.redraw, this.gameEngine));
+        const event = new CustomEvent("game-created", {
+            bubbles: true,
+            detail: { players: this.gameEngine._game.players }
+        });
+
+        this.dispatchEvent(event);
     }
 
     disconnectedCallback() {

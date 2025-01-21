@@ -24,5 +24,25 @@ export function rgbToHex([r, g, b]) {
     let green = g.toString(16).padStart(2, "0");
     let blue = b.toString(16).padStart(2, "0");
     return "#" + red + green + blue;
-
 }
+
+export async function waitForElm(context, id) {
+    return new Promise(resolve => {
+        if (context.shadowRoot.getElementById(id)) {
+            return resolve(context.shadowRoot.getElementById(id));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (context.shadowRoot.getElementById(id)) {
+                observer.disconnect();
+                resolve(context.shadowRoot.getElementById(id));
+            }
+        });
+
+        observer.observe(context.shadowRoot, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+

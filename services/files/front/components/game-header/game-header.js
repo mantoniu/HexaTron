@@ -1,5 +1,5 @@
 import { Component } from "../component/component.js";
-import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex } from "../../js/Utils.js";
+import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm } from "../../js/Utils.js";
 
 export class GameHeader extends Component {
     async connectedCallback() {
@@ -55,5 +55,22 @@ export class GameHeader extends Component {
 
     fillCircle(n, color) {
         this.drawCircle(n, color, true);
+    }
+
+    async receiveData(entry) {
+        for (let k = 1; k <= entry.length; k++) {
+            waitForElm(this, "namePlayer" + k).then((element) => {
+                element.innerText = entry[k - 1]._name;
+            });
+
+            waitForElm(this, "PpPlayer" + k).then((element) => {
+                if (element) {
+                    if (entry[k - 1]._profilePicturePath === "")
+                        element.src = "../../assets/profile.svg";
+                    else
+                        element.src = entry[k - 1]._profilePicturePath;
+                }
+            });
+        }
     }
 }
