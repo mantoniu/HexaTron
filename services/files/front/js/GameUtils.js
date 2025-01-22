@@ -7,6 +7,22 @@ export const Directions = {
     LEFT: 5
 };
 
+export const DISPLACEMENT_FUNCTIONS = [
+    getUpperLeftPosition,
+    getUpperRightPosition,
+    getRightPosition,
+    getLowerRightPosition,
+    getLowerLeftPosition,
+    getLeftPosition
+];
+
+export const defaultDisplacementConfiguration = (keys) => ({
+    [keys[0]]: Directions.UPPER_RIGHT,
+    [keys[1]]: Directions.UPPER_LEFT,
+    [keys[2]]: Directions.LOWER_RIGHT,
+    [keys[3]]: Directions.LOWER_LEFT
+});
+
 export function getUpperLeftPosition(position) {
     return [
         position[0] - 1,
