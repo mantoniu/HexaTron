@@ -75,9 +75,10 @@ export class Board {
         }
     }
 
-    fillTile(x, y, color, context) {
+    fillTile(i, j, color, context) {
+        console.log(i, j)
         let [dx, dy, gapX, gapY, size] = this.calculateUtils(context);
-        this.tiles[y][x].fillTile(gapX + dx * (x - (y % 2 === 1 ? 0.5 : 0)), gapY + dy * (y - 1), size, context, color);
-        this.tiles[y][x].status = Status.TAKEN;
+        this.tiles[i][j].fillTile(gapX + dx * (j - (i % 2 === 1 ? 0.5 : 0)), gapY + dy * (i - 1), size, context, color);
+        this.tiles[i][j].status = Status.TAKEN;
     }
 }

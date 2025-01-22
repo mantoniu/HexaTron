@@ -79,7 +79,7 @@ export class MovementManager {
         }
 
         if (this.isValidPosition(newPos)) {
-            this.fillTile(newPos, this._playerColor);
+            this._game.board.fillTile(newPos[0], newPos[1], this._playerColor, this._canvas);
             this._game.setPlayerPosition(this._playerId, newPos);
             return true;
         }
@@ -90,9 +90,5 @@ export class MovementManager {
     initialize(playerPosition) {
         this.comingDirection = playerPosition[1] === 1 ? Directions.RIGHT : Directions.LEFT;
         this._keyDisplacementsMapping = this.defaultDisplacementConfiguration(this._keys);
-    }
-
-    fillTile(position, color) {
-        this._game.board.fillTile(position[1], position[0], color, this._canvas);
     }
 }
