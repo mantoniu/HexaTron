@@ -60,16 +60,16 @@ export class Game {
     generatePossibleStartPositions() {
         let possibleRows = [];
 
-        for (let i = 1; i < this.board.rowNumber; i += 2)
+        for (let i = 1; i < this.board.rowCount; i += 2)
             possibleRows.push(i);
 
         const firstPlayerPos = [possibleRows[getRandomInt(possibleRows.length)], 1];
         const secondPlayerPos = [
-            this.board.rowNumber - firstPlayerPos[0] - 1,
-            this.board.columnNumber - 2
+            this.board.rowCount - firstPlayerPos[0] - 1,
+            this.board.columnCount - 2
         ];
         const thirdPlayerPos = [secondPlayerPos[0], 1];
-        const fourthPlayerPos = [firstPlayerPos[0], this.board.columnNumber - 2];
+        const fourthPlayerPos = [firstPlayerPos[0], this.board.columnCount - 2];
 
         return [firstPlayerPos, secondPlayerPos, thirdPlayerPos, fourthPlayerPos];
     }
