@@ -26,7 +26,7 @@ export class GameEngine {
 
         for (let i = 0; i < this._game.players.length; i++) {
             let playerPosition = this._game.getPlayerPosition(this._game.players[i].id);
-            this._game.board.fillTile(playerPosition[1], playerPosition[0], this._colors[i], this._canvas);
+            this._game.board.fillTile(playerPosition[0], playerPosition[1], this._colors[i], this._canvas);
         }
     }
 
