@@ -21,8 +21,7 @@ export class GameEngine {
         this._game.setPlayersStartPositions();
         this._game.draw(this._canvas);
 
-        this._movementsManagers.forEach(manager =>
-            manager.initialize(this._game.getPlayerPosition(manager.playerId)));
+        this._movementsManagers.forEach(manager => manager.initialize());
 
         for (let i = 0; i < this._game.players.length; i++) {
             let playerPosition = this._game.getPlayerPosition(this._game.players[i].id);
@@ -48,12 +47,10 @@ export class GameEngine {
 
     async start() {
         for (let round = 0; round < this._game.roundsCount; round++) {
-            console.log(`Starting round ${round}`);
             const result = await this.runRound();
             this.printResults(result);
             this._game.resetBoard(this._canvas);
         }
-        console.log("All rounds completed!");
     }
 
     runRound() {
@@ -81,9 +78,9 @@ export class GameEngine {
         }
 
         if (winners.length === 0)
-            console.log("All players have lost!");
+            alert("All players have lost!");
         else if (winners.length === 1)
-            console.log(`The winner of this round is: ${winners[0]}!`);
-        else console.log(`It's a tie between players: ${winners.join(", ")}!`);
+            alert(`The winner of this round is: ${winners[0]}!`);
+        else alert(`It's a tie between players: ${winners.join(", ")}!`);
     }
 }
