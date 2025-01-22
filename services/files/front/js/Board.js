@@ -9,16 +9,16 @@ export class Board {
         this.initialize();
     }
 
-    get rowNumber() {
-        return this.tiles.length;
+    get rowCount() {
+        return this._row + 2;
     }
 
     get tiles() {
         return this._tiles;
     }
 
-    get columnNumber() {
-        return this.tiles[0].length;
+    get columnCount() {
+        return this._column + 2;
     }
 
     initialize() {
