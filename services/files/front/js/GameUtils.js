@@ -7,6 +7,10 @@ export const Directions = {
     LEFT: 5
 };
 
+/**
+ * Array of position calculation functions for each direction
+ * @type {Array<(position: number[]) => number[]>}
+ */
 export const DISPLACEMENT_FUNCTIONS = [
     getUpperLeftPosition,
     getUpperRightPosition,
@@ -16,6 +20,11 @@ export const DISPLACEMENT_FUNCTIONS = [
     getLeftPosition
 ];
 
+/**
+ * Creates default key-to-direction mapping configuration
+ * @param {string[]} keys - Array of keyboard keys for directions
+ * @returns {Object.<string, number>} Mapping of keys to directions
+ */
 export const defaultDisplacementConfiguration = (keys) => ({
     [keys[0]]: Directions.UPPER_RIGHT,
     [keys[1]]: Directions.UPPER_LEFT,
@@ -23,6 +32,11 @@ export const defaultDisplacementConfiguration = (keys) => ({
     [keys[3]]: Directions.LOWER_LEFT
 });
 
+/**
+ * Calculates upper-left position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getUpperLeftPosition(position) {
     return [
         position[0] - 1,
