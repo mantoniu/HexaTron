@@ -7,11 +7,11 @@ export class HomeButton extends Component {
 
         ImageButton.register();
         this.floating = true;
-        this.hidden = false;
+        this.display = true;
     }
 
     static get observedAttributes() {
-        return ["floating", "just-render"];
+        return ["floating", "display"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -19,8 +19,8 @@ export class HomeButton extends Component {
             case "floating":
                 this.floating = newValue === "true";
                 break;
-            case "just-render":
-                this.hidden = newValue === "true";
+            case "display":
+                this.display = newValue === "true";
                 break;
         }
 
@@ -33,8 +33,7 @@ export class HomeButton extends Component {
     }
 
     update() {
-        console.log(this.hidden, this.hidden === true);
-        if (this.hidden)
+        if (!this.display)
             this.style.visibility = "hidden";
         else {
             if (!this.floating) {
