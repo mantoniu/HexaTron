@@ -1,3 +1,7 @@
+/**
+ * Enum for hexagonal grid movement directions
+ * @enum {number}
+ */
 export const Directions = {
     UPPER_LEFT: 0,
     UPPER_RIGHT: 1,
@@ -33,6 +37,17 @@ export const defaultDisplacementConfiguration = (keys) => ({
 });
 
 /**
+ * Compares two positions and checks if they are the same.
+ *
+ * @param {number[]} pos1 - The first position as an array [x, y].
+ * @param {number[]} pos2 - The second position as an array [x, y].
+ * @returns {boolean} - True if both positions have the same x and y coordinates, false otherwise.
+ */
+export function checkEqualsPositions(pos1, pos2) {
+    return pos1[1] === pos2[1] && pos1[0] === pos2[0];
+}
+
+/**
  * Calculates upper-left position in hexagonal grid
  * @param {[number, number]} position - Current [row, col] position
  * @returns {[number, number]} New [row, col] position
@@ -44,6 +59,11 @@ export function getUpperLeftPosition(position) {
     ];
 }
 
+/**
+ * Calculates upper-right position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getUpperRightPosition(position) {
     return [
         position[0] - 1,
@@ -51,6 +71,11 @@ export function getUpperRightPosition(position) {
     ];
 }
 
+/**
+ * Calculates left position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getLeftPosition(position) {
     return [
         position[0],
@@ -58,6 +83,11 @@ export function getLeftPosition(position) {
     ];
 }
 
+/**
+ * Calculates right position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getRightPosition(position) {
     return [
         position[0],
@@ -65,6 +95,11 @@ export function getRightPosition(position) {
     ];
 }
 
+/**
+ * Calculates lower-left position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getLowerLeftPosition(position) {
     return [
         position[0] + 1,
@@ -72,6 +107,11 @@ export function getLowerLeftPosition(position) {
     ];
 }
 
+/**
+ * Calculates lower-right position in hexagonal grid
+ * @param {[number, number]} position - Current [row, col] position
+ * @returns {[number, number]} New [row, col] position
+ */
 export function getLowerRightPosition(position) {
     return [
         position[0] + 1,
