@@ -20,7 +20,7 @@ export class Tile {
     static loadImage() {
         if (!Tile.bikeImage) {
             Tile.bikeImage = new Image();
-            Tile.bikeImage.src = "../../assets/space-ship.svg"
+            Tile.bikeImage.src = "../../assets/space-ship.svg";
             Tile.bikeImage.onload = () => Tile.imageLoaded = true;
             Tile.bikeImage.onerror = () => console.error("Failed to load the bike image.");
         }

@@ -10,7 +10,7 @@ export class GameEngine {
         switch (gameType) {
             case GameType.LOCAL:
                 this.initializeLocalGame(users[0], playersCount, rowNumber, columnNumber, roundsCount);
-                break
+                break;
             default:
                 throw new Error(`The ${gameType} game type is not yet supported.`);
         }
@@ -106,7 +106,7 @@ export class GameEngine {
                     resolve({status: "equality", equalities});
                 }
 
-                const winners = Object.keys(this._game.players).filter(playerId => playerId in validPositions)
+                const winners = Object.keys(this._game.players).filter(playerId => playerId in validPositions);
 
                 if (Object.keys(this._game.players).length !== Object.keys(validPositions).length) {
                     clearInterval(intervalId);
@@ -141,7 +141,7 @@ export class GameEngine {
             message = message.slice(0, -2);
             message += "\n";
         }
-        alert(message)
+        alert(message);
     }
 
     printResults(result) {
