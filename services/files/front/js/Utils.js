@@ -46,3 +46,6 @@ export async function waitForElm(context, id) {
     });
 }
 
+export function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
