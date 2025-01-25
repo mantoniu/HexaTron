@@ -32,6 +32,10 @@ export class Game {
         return this._type;
     }
 
+    getPlayer(playerId) {
+        return this.players[playerId];
+    }
+
     set playersPositions(playersPosition) {
         this._playersPositions = playersPosition;
     }
@@ -75,14 +79,14 @@ export class Game {
     }
 
     setPlayersStartPositions() {
-        if (this.players.length < 1 || this._players.length > 4)
-            throw new Error("Unsupported number of players. Only 2, 3, or 4 players are allowed.");
+        let playersLength = Object.keys(this.players).length;
+        if (playersLength < 1 || playersLength > 4)
+            throw new Error("Unsupported number of players.");
 
         let resultDict = {};
-
         let possiblesPositions = this.generatePossibleStartPositions();
 
-        for (let i = 0; i < this.players.length; i++)
+        for (let i = 0; i < playersLength; i++)
             resultDict[this.players[i].id] = possiblesPositions[i];
 
         this.playersPositions = resultDict;
