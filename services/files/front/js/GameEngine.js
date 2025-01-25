@@ -16,14 +16,13 @@ export class GameEngine {
         let player2 = new Player("1", "Player 2", "", {});
         this._game = new Game(9, 16, [player1, player2]);
         this._canvas = context;
-        this._game.board.draw(this._canvas);
     }
 
     fillTile(x, y, idPlayer) {
         this._game.board.fillTile(x, y, this._game.players[0].parameters._playersColors[0], this._canvas);
     }
 
-    redraw(callingContext) {
+    draw(callingContext) {
         callingContext._game.board.draw(callingContext._canvas);
     }
 }

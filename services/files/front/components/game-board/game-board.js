@@ -5,11 +5,15 @@ import { resizeCanvas } from "../../js/Utils.js";
 export class GameBoard extends Component {
     async connectedCallback() {
         await super.connectedCallback();
-        resizeCanvas(this, 0.85, 0.80, "board", null, null);
         const canvas = this.shadowRoot.getElementById("board");
         const context = canvas.getContext("2d");
         this.gameEngine = new GameEngine(GameType.LOCAL, context);
-        window.addEventListener("resize", resizeCanvas.bind(this, this, 0.85, 0.80, "board", this.gameEngine.redraw, this.gameEngine));
+
+        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.85, 0.80, "board", this.gameEngine.draw, this.gameEngine);
+        this.resizeCanvasFunction.call();
+
+        window.addEventListener("resize", this.resizeCanvasFunction);
+
         const event = new CustomEvent("game-created", {
             bubbles: true,
             detail: { players: this.gameEngine._game.players }
@@ -19,6 +23,6 @@ export class GameBoard extends Component {
     }
 
     disconnectedCallback() {
-        window.removeEventListener("resize", resizeCanvas.bind(this, this, 0.85, 0.80, "board", this.gameEngine.redraw, this.gameEngine));
+        window.removeEventListener("resize", this.resizeCanvasFunction);
     }
 }

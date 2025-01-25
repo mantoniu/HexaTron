@@ -4,12 +4,14 @@ import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm } from
 export class GameHeader extends Component {
     async connectedCallback() {
         await super.connectedCallback();
-        resizeCanvas(this, 0.2, 1, "header", this.draw, this);
-        window.addEventListener("resize", resizeCanvas.bind(this, this, 0.2, 1, "header", this.draw, this));
+        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.2, 1, "header", this.draw, this);
+        this.resizeCanvasFunction.call();
+
+        window.addEventListener("resize", this.resizeCanvasFunction);
     }
 
     disconnectedCallback() {
-        window.removeEventListener("resize", resizeCanvas.bind(this, this, 0.15, 1, "header", this.draw, this));
+        window.removeEventListener("resize", this.resizeCanvasFunction);
     }
 
     calculateUtils() {
@@ -59,11 +61,11 @@ export class GameHeader extends Component {
 
     async receiveData(entry) {
         for (let k = 1; k <= entry.length; k++) {
-            waitForElm(this, "namePlayer" + k).then((element) => {
+            waitForElm(this, "name-player" + k).then((element) => {
                 element.innerText = entry[k - 1]._name;
             });
 
-            waitForElm(this, "PpPlayer" + k).then((element) => {
+            waitForElm(this, "pp-player" + k).then((element) => {
                 if (element) {
                     if (entry[k - 1]._profilePicturePath === "")
                         element.src = "../../assets/profile.svg";
