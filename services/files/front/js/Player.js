@@ -1,28 +1,58 @@
+import {defaultDisplacementConfiguration, Directions} from "./GameUtils.js";
+
 export class Player {
-    constructor(id, name, profilePicturePath, parameters) {
+    constructor(id, name, color, keyConfiguration) {
         this._id = id;
+        this._color = color;
+        this._keys = keyConfiguration;
         this._name = name;
-        this._profilePicturePath = profilePicturePath;
-        this.parameters = parameters;
+        this.onAction = null;
+
+        this.setupListener();
     }
 
-    get name() {
-        return this._name;
+    get color() {
+        return this._color;
     }
 
     get id() {
         return this._id;
     }
 
-    get profilePicturePath() {
-        return this._profilePicturePath;
+    get name() {
+        return this._name;
     }
 
-    get parameters() {
-        return this._parameters;
+    initialize(defaultDirection) {
+        this._keyDisplacementsMapping = defaultDisplacementConfiguration(this._keys);
+        this.remapKeys(Directions.RIGHT - defaultDirection);
+
+        this.comingDirection = defaultDirection;
     }
 
-    set parameters(parameters) {
-        this._parameters = parameters;
+    setupListener() {
+        window.addEventListener('keydown', (event) => {
+            if (this._keys.includes(event.key.toLowerCase()))
+                this.onAction(this.id, this.computeDirection(event.key));
+        });
+    }
+
+    remapKeys(diff) {
+        for (let key of Object.keys(this._keyDisplacementsMapping))
+            this._keyDisplacementsMapping[key] = ((this._keyDisplacementsMapping[key] + diff) % 6 + 6) % 6;
+    }
+
+    updateKeyMapping(key) {
+        let diff = this._keyDisplacementsMapping[key] - this.comingDirection;
+        this.comingDirection = this._keyDisplacementsMapping[key];
+
+        this.remapKeys(diff);
+    }
+
+    computeDirection(key) {
+        const direction = this._keyDisplacementsMapping[key.toLowerCase()];
+        this.updateKeyMapping(key);
+
+        return direction;
     }
 }
