@@ -1,14 +1,19 @@
 import {defaultDisplacementConfiguration, Directions} from "./GameUtils.js";
 
 export class Player {
-    constructor(id, name, color, keyConfiguration) {
+    constructor(id, name, color, keyConfiguration, profilePicturePath) {
         this._id = id;
         this._color = color;
         this._keys = keyConfiguration;
         this._name = name;
         this.onAction = null;
+        this._profilePicturePath = profilePicturePath;
 
         this.setupListener();
+    }
+
+    get profilePicturePath() {
+        return this._profilePicturePath;
     }
 
     get color() {
@@ -39,7 +44,7 @@ export class Player {
 
     remapKeys(diff) {
         for (let key of Object.keys(this._keyDisplacementsMapping))
-            this._keyDisplacementsMapping[key] = ((this._keyDisplacementsMapping[key] + diff) % 6 + 6) % 6;
+            this._keyDisplacementsMapping[key] = ((this._keyDisplacementsMapping[key] + diff) + 6) % 6;
     }
 
     updateKeyMapping(key) {
