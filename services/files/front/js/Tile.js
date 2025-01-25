@@ -22,9 +22,7 @@ export class Tile {
             Tile.bikeImage = new Image();
             Tile.bikeImage.src = "../../assets/space-ship.svg"
             Tile.bikeImage.onload = () => Tile.imageLoaded = true;
-            Tile.bikeImage.onerror = () => {
-                console.error("Failed to load the bike image.");
-            };
+            Tile.bikeImage.onerror = () => console.error("Failed to load the bike image.");
         }
     }
 
