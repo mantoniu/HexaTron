@@ -3,7 +3,7 @@ export class User {
         this._id = id;
         this._name = name;
         this._profilePicturePath = profilePicturePath;
-        this.parameters = parameters;
+        this._parameters = parameters;
     }
 
     get name() {
