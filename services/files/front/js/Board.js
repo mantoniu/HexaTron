@@ -80,7 +80,7 @@ export class Board {
 
     fillTile(pos, color, direction, context, drawBike) {
         let dPos = [this._utils.gapX + this._utils.dx * (pos[1] - (pos[0] % 2 === 1 ? 0.5 : 0)), this._utils.gapY + this._utils.dy * (pos[0] - 1)];
-        this.tiles[pos[0]][pos[1]].fill(dPos, this._utils.size, context, color, direction, drawBike)
+        this.tiles[pos[0]][pos[1]].fill(dPos, this._utils.size, context, color, direction, drawBike);
     }
 
     update(previousPos, nextPos, color, context, direction) {
