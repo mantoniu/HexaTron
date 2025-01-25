@@ -1,6 +1,7 @@
 // The http module contains methods to handle http queries.
 const http = require('http');
 const httpProxy = require('http-proxy');
+const { addCors } = require("../helpers/cors");
 
 // We will need a proxy to send requests to the other services.
 const proxy = httpProxy.createProxyServer();
@@ -16,8 +17,11 @@ http.createServer(function (request, response) {
     });
 
     try {
+        //console.log(request.headers)
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
+            console.log("API");
+            proxy.web(request, response, { target: "http://127.0.0.1:8002" });
             //TODO: Add middlewares and call microservices depending on the request.
 
         // If it doesn't start by /api, then it's a request for a file.
