@@ -156,4 +156,8 @@ export class GameEngine {
                 throw Error(`The status ${result.status} is not yet supported`);
         }
     }
+
+    draw(callingContext) {
+        callingContext._game.board.draw(callingContext._canvas);
+    }
 }
