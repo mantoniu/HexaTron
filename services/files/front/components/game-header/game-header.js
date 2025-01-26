@@ -1,5 +1,6 @@
 import { Component } from "../component/component.js";
 import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm } from "../../js/Utils.js";
+import { CURRENT_USER } from "../../js/UserMock.js";
 
 export class GameHeader extends Component {
     async connectedCallback() {
@@ -60,17 +61,20 @@ export class GameHeader extends Component {
     }
 
     async receiveData(entry) {
-        for (let k = 1; k <= entry.length; k++) {
-            waitForElm(this, "name-player" + k).then((element) => {
-                element.innerText = entry[k - 1]._name;
+        const ids = Object.keys(entry);
+        let n = 1;
+        for (let k = 0; k < ids.length; k++) {
+            n = CURRENT_USER.id === ids[k] ? 1 : 2;
+            waitForElm(this, "name-player" + n).then((element) => {
+                element.innerText = entry[ids[k]]._name;
             });
 
-            waitForElm(this, "pp-player" + k).then((element) => {
+            waitForElm(this, "pp-player" + n).then((element) => {
                 if (element) {
-                    if (entry[k - 1]._profilePicturePath === "")
+                    if (entry[ids[k]]._profilePicturePath === undefined)
                         element.src = "../../assets/profile.svg";
                     else
-                        element.src = entry[k - 1]._profilePicturePath;
+                        element.src = entry[ids[k]]._profilePicturePath;
                 }
             });
         }

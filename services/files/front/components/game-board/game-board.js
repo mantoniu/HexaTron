@@ -1,11 +1,8 @@
 import { Component } from "../component/component.js";
-import { GameEngine, GameType } from "../../js/GameEngine.js";
+import { GameEngine } from "../../js/GameEngine.js";
+import { CURRENT_USER } from "../../js/UserMock.js";
+import { GameType } from "../../js/Game.js";
 import { resizeCanvas } from "../../js/Utils.js";
-import {Component} from "../component/component.js";
-import {GameEngine} from "../../js/GameEngine.js";
-import {CURRENT_USER} from "../../js/UserMock.js";
-import {GameType} from "../../js/Game.js";
-import {resizeCanvas} from "../../js/Utils.js";
 
 
 export class GameBoard extends Component {
