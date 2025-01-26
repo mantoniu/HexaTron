@@ -1,17 +1,61 @@
+import {Directions} from "./GameUtils.js";
+
 export const Status = {
-    Wall: -1,
-    Vacant: 0,
-    Taken: 1
+    WALL: -1,
+    VACANT: 0,
+    TAKEN: 1
 };
 
 export class Tile {
+    static bikeImage = null;
+    static imageLoaded = true;
+
     constructor(status) {
         this.status = status;
-        this.takenID = "";
+        this.takenID = null;
+
+        Tile.loadImage();
+    }
+
+    static loadImage() {
+        if (!Tile.bikeImage) {
+            Tile.bikeImage = new Image();
+            Tile.bikeImage.src = "../../assets/space-ship.svg";
+            Tile.bikeImage.onload = () => Tile.imageLoaded = true;
+            Tile.bikeImage.onerror = () => console.error("Failed to load the bike image.");
+        }
+    }
+
+    drawBike(posX, posY, size, context, direction) {
+        if (!Tile.bikeImage.complete || !Tile.imageLoaded) return;
+
+        context.save();
+        context.translate(posX, posY + size);
+
+        const rotationAngles = {
+            [Directions.UPPER_LEFT]: -Math.PI / 6,
+            [Directions.UPPER_RIGHT]: Math.PI / 6,
+            [Directions.RIGHT]: Math.PI / 2,
+            [Directions.LOWER_RIGHT]: Math.PI - Math.PI / 6,
+            [Directions.LOWER_LEFT]: -Math.PI + Math.PI / 6,
+            [Directions.LEFT]: -Math.PI / 2
+        };
+
+        context.rotate(rotationAngles[direction]);
+
+        context.drawImage(
+            Tile.bikeImage,
+            -size / 2,
+            -size / 2,
+            size,
+            size
+        );
+
+        context.restore();
     }
 
     get takenID() {
-        if (this.status !== Status.Taken) throw new Error("The Tile is not taken by a player");
+        if (this.status !== Status.TAKEN) throw new Error("The Tile is not taken by a player");
         return this._takenID;
     }
 
@@ -56,8 +100,11 @@ export class Tile {
             this.hexagonPath(posX, posY, size, context, [1, 1, 1, 1, 0, 1], false);
     }
 
-    fillTile(posX, posY, size, context, color) {
+    fill(pos, size, context, color, direction, drawBike) {
         context.fillStyle = color;
-        this.hexagonPath(posX, posY, size, context, [1, 1, 1, 1, 1, 1], true);
+        this.hexagonPath(pos[0], pos[1], size, context, [1, 1, 1, 1, 1, 1], true);
+
+        if (drawBike)
+            this.drawBike(pos[0], pos[1], size, context, direction);
     }
 }
