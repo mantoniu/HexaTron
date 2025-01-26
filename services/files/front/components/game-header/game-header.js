@@ -60,21 +60,18 @@ export class GameHeader extends Component {
         this.drawCircle(n, color, true);
     }
 
-    async receiveData(entry) {
-        const ids = Object.keys(entry);
+    async receiveData(players) {
+        const ids = Object.keys(players);
         let n = 1;
         for (let k = 0; k < ids.length; k++) {
             n = CURRENT_USER.id === ids[k] ? 1 : 2;
             waitForElm(this, "name-player" + n).then((element) => {
-                element.innerText = entry[ids[k]]._name;
+                element.innerText = players[ids[k]]._name;
             });
 
             waitForElm(this, "pp-player" + n).then((element) => {
                 if (element) {
-                    if (entry[ids[k]]._profilePicturePath === undefined)
-                        element.src = "../../assets/profile.svg";
-                    else
-                        element.src = entry[ids[k]]._profilePicturePath;
+                    element.src = players[ids[k]]._profilePicturePath ?? "../../assets/profile.svg";
                 }
             });
         }
