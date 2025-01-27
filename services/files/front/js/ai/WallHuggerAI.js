@@ -31,7 +31,7 @@ class Tree {
 
 export class WallHuggerAI extends AI {
 
-    constructor(id, name, color, playersState) {
+    constructor(id, name, color) {
         super(id, name, color, "../../assets/bot.svg", false);
         this.tree = null;
         this.moves = ["HEAVY_LEFT", "LIGHT_LEFT", "KEEP_GOING", "LIGHT_RIGHT", "HEAVY_RIGHT"];
@@ -58,21 +58,21 @@ export class WallHuggerAI extends AI {
     }
 
     concentricPath(center, radius, operation) {
-        console.log(this.board);
         let result = [];
         let hex = [center[0] + radius, center[1] - Math.floor((radius + center[0] % 2) / 2)];
         for (let side = 0; side < 6; side++) {
             for (let l = 0; l < radius; l++) {
-                console.log(hex, this.inGrid(hex), operation(hex), "test");
+                //console.log(hex, this.inGrid(hex), operation(hex), "test");
                 if (this.inGrid(hex)) {
                     var operationRes = operation(hex);
-                    if (operationRes !== null)
+                    if (operationRes !== null) {
                         result.push(operationRes);
+                    }
                 }
                 hex = this.neighbour(hex, side);
             }
         }
-        //console.log(result,"Circle",center)
+        console.log(result, "Circle", center);
         return result;
     }
 
@@ -80,7 +80,7 @@ export class WallHuggerAI extends AI {
         return this.concentricPath(position, 1, (p) => {
             if (this.board[p[0]][p[1]] !== 0 && this.board[p[0]][p[1]] !== 1) return p;
             return null;
-        }).length !== 0;
+        }).length;
     }
 
     possiblePosition(position) {
@@ -92,25 +92,33 @@ export class WallHuggerAI extends AI {
         return position[1] <= (position[0] % 2 === 0 ? this._column - 1 : this._column) && position[1] >= 0 && position[0] <= this._row && position[0] >= 0;
     }
 
-    WallsHeuristic() {
-        //let possible = this.possiblePosition(this.botPosition)
-        console.log(this.concentricPath(this.botPosition, 1, (x) => {
-            if (this.possiblePosition(x)) return x;
-            return null;
-        }), "Possible");
-        let withWall = this.concentricPath(this.botPosition, 1, (x) => {
-            if (this.possiblePosition(x) && this.wallAround(x)) return x;
-            return null;
-        });
-        console.log(withWall, Math.random() * (withWall.length), withWall.length, "Walls");
-        if (withWall.length !== 0)
-            return withWall[Math.floor(Math.random() * (withWall.length))];
-        else
+    maxWallsHeuristic() {
+        console.log(this.botPosition, "POS");
+        let hex = [this.botPosition[0] + 1, this.botPosition[1] - Math.floor((1 + this.botPosition[0] % 2) / 2)];
+        let max = 0;
+        let res = null;
+        for (let side = 0; side < 6; side++) {
+            if (this.inGrid(hex) && this.possiblePosition(hex)) {
+                let nbWall = this.wallAround(hex);
+                if (nbWall >= max) {
+                    console.log(hex, max, this.wallAround(hex), "NEW POTENTIALLY POS");
+                    res = hex;
+                    max = nbWall;
+                }
+            }
+            hex = this.neighbour(hex, side);
+        }
+        if (res !== null) {
+            console.log("NOT RANDOM");
+            return res;
+        } else {
+            console.log("RANDOM");
             return DISPLACEMENT_FUNCTIONS[Math.floor(Math.random() * DISPLACEMENT_FUNCTIONS.length)](this.botPosition);
+        }
     }
 
     getNextMove() {
-        let nextPosition = this.WallsHeuristic();
+        let nextPosition = this.maxWallsHeuristic();
         let p = [nextPosition[0] - this.botPosition[0], nextPosition[1] - this.botPosition[1]];
         let c = (3 * p[0] + p[1]) + 3;
         //return this.moves[c+(this.init-this.previous+6)%6]
