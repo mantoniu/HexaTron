@@ -1,9 +1,10 @@
 import {Board} from "./Board.js";
-import {getRandomInt} from "./Utils.js";
+import {getRandomInt} from "../Utils.js";
+import {Position} from "./Position.js";
 
 export const GameType = {
     LOCAL: 0,
-    IA: 1,
+    AI: 1,
     RANKED: 2
 };
 
@@ -67,13 +68,13 @@ export class Game {
         for (let i = 1; i < this.board.rowCount; i += 2)
             possibleRows.push(i);
 
-        const firstPlayerPos = [possibleRows[getRandomInt(possibleRows.length)], 1];
-        const secondPlayerPos = [
-            this.board.rowCount - firstPlayerPos[0] - 1,
+        const firstPlayerPos = new Position(possibleRows[getRandomInt(possibleRows.length)], 1);
+        const secondPlayerPos = new Position(
+            this.board.rowCount - firstPlayerPos.row - 1,
             this.board.columnCount - 2
-        ];
-        const thirdPlayerPos = [secondPlayerPos[0], 1];
-        const fourthPlayerPos = [firstPlayerPos[0], this.board.columnCount - 2];
+        );
+        const thirdPlayerPos = new Position(secondPlayerPos.row, 1);
+        const fourthPlayerPos = new Position(firstPlayerPos.row, this.board.columnCount - 2);
 
         return [firstPlayerPos, secondPlayerPos, thirdPlayerPos, fourthPlayerPos];
     }
