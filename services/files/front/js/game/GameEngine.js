@@ -1,6 +1,8 @@
 import {Game, GameType} from "./Game.js";
-import {Player} from "./Player.js";
-import {checkEqualsPositions, Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
+import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
+import {PlayerFactory} from "./PlayerFactory.js";
+import {PlayerState} from "../ai/PlayerState.js";
+import {LocalPlayer} from "./LocalPlayer.js";
 
 export class GameEngine {
     constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, context, choiceTime) {
@@ -9,33 +11,33 @@ export class GameEngine {
 
         switch (gameType) {
             case GameType.LOCAL:
-                this.initializeLocalGame(users[0], playersCount, rowNumber, columnNumber, roundsCount);
+            case GameType.AI:
+                this.initGame(users[0], gameType, playersCount, rowNumber, columnNumber, roundsCount);
                 break;
             default:
                 throw new Error(`The ${gameType} game type is not yet supported.`);
         }
     }
 
-    handlePlayerAction(playerId, direction) {
-        this._playersDirections[playerId] = direction;
-    }
+    initGame(user, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
+        let players = {["0"]: new LocalPlayer("0", user.name, user.parameters.playersColors[0], null, user.parameters.keys[0])};
 
-    initializeLocalGame(user, playersCount, rowNumber, columnNumber, roundsCount) {
-        let players = {["0"]: new Player("0", user.name, user.parameters.playersColors[0], user.parameters.keys[0])};
+        for (let i = 1; i < playersCount; i++) {
+            players[`${i}`] = PlayerFactory.createPlayer(
+                gameType,
+                `${i}`,
+                user.parameters.playersColors[i],
+                gameType === GameType.LOCAL ? user.parameters.keys[i] : null
+            );
+        }
 
-        for (let i = 1; i < playersCount; i++)
-            players[`${i}`] = new Player(`${i}`, `Guest ${i}`, user.parameters.playersColors[i], user.parameters.keys[i]);
-
-        Object.values(players).forEach(player =>
-            player.onAction = (id, direction) => this.handlePlayerAction(id, direction));
-
-        this._game = new Game(GameType.LOCAL, rowNumber, columnNumber, players, roundsCount);
+        this._game = new Game(gameType, rowNumber, columnNumber, players, roundsCount);
     }
 
     initializePlayersDirections() {
         this._playersDirections = {};
         for (let playerId of Object.keys(this._game.players))
-            this._playersDirections[playerId] = this._game.getPlayerPosition(playerId)[1] === 1 ? Directions.RIGHT : Directions.LEFT;
+            this._playersDirections[playerId] = this._game.getPlayerPosition(playerId).column === 1 ? Directions.RIGHT : Directions.LEFT;
     }
 
     initialize() {
@@ -45,8 +47,9 @@ export class GameEngine {
         this.initializePlayersDirections();
 
         for (let player of Object.values(this._game.players)) {
-            player.initialize(this._playersDirections[player.id]);
             let playerPosition = this._game.getPlayerPosition(player.id);
+            player.setup(this.getPlayerState(player));
+
             this._game.board.update(null, playerPosition, player.color, this._canvas, this._playersDirections[player.id]);
         }
     }
@@ -59,14 +62,23 @@ export class GameEngine {
         }
     }
 
+    getPlayerState(player) {
+        let playerPosition = this._game.getPlayerPosition(player.id);
+        let opponentPosition = Object.entries(this._game.playersPositions).find(([k, _]) => k !== player.id)?.[1];
+
+        return new PlayerState(playerPosition, opponentPosition);
+    }
+
     computeNewPositions() {
         let newPositions = {};
 
-        for (let playerId of Object.keys(this._game.players)) {
-            const direction = this._playersDirections[playerId];
-            const pos = DISPLACEMENT_FUNCTIONS[direction](this._game.getPlayerPosition(playerId));
+        for (let player of Object.values(this._game.players)) {
+            const direction = player.nextMove(this.getPlayerState(player)) ?? this._playersDirections[player.id];
+            this._playersDirections[player.id] = direction;
+
+            const pos = DISPLACEMENT_FUNCTIONS[direction](this._game.getPlayerPosition(player.id));
             if (this._game.board.checkPositionValidity(pos))
-                newPositions[playerId] = pos;
+                newPositions[player.id] = pos;
         }
 
         return newPositions;
@@ -81,7 +93,7 @@ export class GameEngine {
                 const playerId1 = playerIds[i];
                 const playerId2 = playerIds[j];
 
-                if (checkEqualsPositions(positions[playerId1], positions[playerId2])) {
+                if (positions[playerId1].equals(positions[playerId2])) {
                     if (!equals[positions[playerId1]])
                         equals[positions[playerId1]] = new Set([playerId1, playerId2]);
                     else
