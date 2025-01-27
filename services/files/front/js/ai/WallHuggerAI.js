@@ -29,28 +29,6 @@ class Tree {
     }
 }
 
-class Board {
-    constructor(row, column) {
-        this._board = [];
-        this._column = column + 2;
-        this._row = row + 2;
-        for (let i = 0; i <= row + 1; i++) {
-            let line = [];
-            for (let j = 0; j <= (i % 2 === 1 ? column + 1 : column); j++) {
-                if (i === 0 || i === row + 1 || j === 0 || j >= (i % 2 === 1 ? column + 1 : column))
-                    line.push(-1);
-                else
-                    line.push(0);
-            }
-            this._board.push(line);
-        }
-    }
-
-    inGrid(position) {
-        return position[1] <= (position[0] % 2 === 0 ? this._column - 1 : this._column) && position[1] >= 0 && position[0] <= this._row && position[0] >= 0;
-    }
-}
-
 export class WallHuggerAI extends AI {
 
     constructor(id, name, color, playersState) {
@@ -79,15 +57,18 @@ export class WallHuggerAI extends AI {
         return DISPLACEMENT_FUNCTIONS[side](position);
     }
 
-    makeCircle(center, radius, filter) {
+    concentricPath(center, radius, operation) {
         console.log(this.board);
         let result = [];
         let hex = [center[0] + radius, center[1] - Math.floor((radius + center[0] % 2) / 2)];
         for (let side = 0; side < 6; side++) {
             for (let l = 0; l < radius; l++) {
-                console.log(hex, this.inGrid(hex), filter(hex), "test");
-                if (this.inGrid(hex) && filter(hex))
-                    result.push(hex);
+                console.log(hex, this.inGrid(hex), operation(hex), "test");
+                if (this.inGrid(hex)) {
+                    var operationRes = operation(hex);
+                    if (operationRes !== null)
+                        result.push(operationRes);
+                }
                 hex = this.neighbour(hex, side);
             }
         }
@@ -96,7 +77,10 @@ export class WallHuggerAI extends AI {
     }
 
     wallAround(position) {
-        return this.makeCircle(position, 1, (p) => this.board[p[0]][p[1]] !== 0 && this.board[p[0]][p[1]] !== 1).length !== 0;
+        return this.concentricPath(position, 1, (p) => {
+            if (this.board[p[0]][p[1]] !== 0 && this.board[p[0]][p[1]] !== 1) return p;
+            return null;
+        }).length !== 0;
     }
 
     possiblePosition(position) {
@@ -104,10 +88,20 @@ export class WallHuggerAI extends AI {
         return this.board[position[0]][position[1]] === 0;
     }
 
+    inGrid(position) {
+        return position[1] <= (position[0] % 2 === 0 ? this._column - 1 : this._column) && position[1] >= 0 && position[0] <= this._row && position[0] >= 0;
+    }
+
     WallsHeuristic() {
         //let possible = this.possiblePosition(this.botPosition)
-        console.log(this.makeCircle(this.botPosition, 1, (x) => this.possiblePosition(x)), "Possible");
-        let withWall = this.makeCircle(this.botPosition, 1, (x) => this.possiblePosition(x) && this.wallAround(x));
+        console.log(this.concentricPath(this.botPosition, 1, (x) => {
+            if (this.possiblePosition(x)) return x;
+            return null;
+        }), "Possible");
+        let withWall = this.concentricPath(this.botPosition, 1, (x) => {
+            if (this.possiblePosition(x) && this.wallAround(x)) return x;
+            return null;
+        });
         console.log(withWall, Math.random() * (withWall.length), withWall.length, "Walls");
         if (withWall.length !== 0)
             return withWall[Math.floor(Math.random() * (withWall.length))];
@@ -123,8 +117,25 @@ export class WallHuggerAI extends AI {
         return nextPosition;
     }
 
+    createBoard(row, column) {
+        this.board = [];
+        this._column = column + 2;
+        this._row = row + 2;
+        for (let i = 0; i <= row + 1; i++) {
+            let line = [];
+            for (let j = 0; j <= (i % 2 === 1 ? column + 1 : column); j++) {
+                if (i === 0 || i === row + 1 || j === 0 || j >= (i % 2 === 1 ? column + 1 : column))
+                    line.push(-1);
+                else
+                    line.push(0);
+            }
+            this.board.push(line);
+        }
+    }
+
+
     setup(playersState) {
-        this.board = new Board(9, 16);
+        this.createBoard(9, 16);
         this.updatePlayerState(playersState);
         console.log(this.botPosition, "start");
         this.previous = this.botPosition[0] === 16 ? 2 : 4;
