@@ -100,11 +100,11 @@ export class Tile {
             this.hexagonPath(posX, posY, size, context, [1, 1, 1, 1, 0, 1], false);
     }
 
-    fill(pos, size, context, color, direction, drawBike) {
+    fill(position, size, context, color, direction, drawBike) {
         context.fillStyle = color;
-        this.hexagonPath(pos[0], pos[1], size, context, [1, 1, 1, 1, 1, 1], true);
+        this.hexagonPath(position[0], position[1], size, context, [1, 1, 1, 1, 1, 1], true);
 
         if (drawBike)
-            this.drawBike(pos[0], pos[1], size, context, direction);
+            this.drawBike(position[0], position[1], size, context, direction);
     }
 }
