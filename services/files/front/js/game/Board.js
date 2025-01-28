@@ -44,7 +44,13 @@ export class Board {
     }
 
     checkPositionValidity(position) {
-        return this.getTitle(position).status === Status.VACANT;
+        return (
+            position.row > 0 &&
+            position.row <= this.rowCount &&
+            position.column > 0 &&
+            position.column <= this.columnCount - (position.row % 2 === 0 ? 1 : 0) &&
+            this.getTitle(position).status === Status.VACANT
+        );
     }
 
     calculateUtils(context) {
