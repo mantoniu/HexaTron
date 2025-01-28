@@ -3,6 +3,7 @@ import {Position} from "./Position.js";
 /**
  * Enum for hexagonal grid movement directions
  * @enum {number}
+ * @readonly
  */
 export const Directions = {
     UPPER_LEFT: 0,
@@ -11,6 +12,19 @@ export const Directions = {
     LOWER_RIGHT: 3,
     LOWER_LEFT: 4,
     LEFT: 5
+};
+
+/**
+ * Hexagonal grid movement type descriptors
+ * @enum {string}
+ * @readonly
+ */
+export const MovementTypes = {
+    HEAVY_LEFT: "HEAVY_LEFT",
+    LIGHT_LEFT: "LIGHT_LEFT",
+    KEEP_GOING: "KEEP_GOING",
+    LIGHT_RIGHT: "LIGHT_RIGHT",
+    HEAVY_RIGHT: "HEAVY_RIGHT"
 };
 
 /**
@@ -29,14 +43,22 @@ export const DISPLACEMENT_FUNCTIONS = [
 /**
  * Creates default key-to-direction mapping configuration
  * @param {string[]} keys - Array of keyboard keys for directions
- * @returns {Object.<string, number>} Mapping of keys to directions
+ * @returns {Object.<string, MovementTypes>} Mapping of keys to directions
  */
-export const defaultDisplacementConfiguration = (keys) => ({
-    [keys[0]]: Directions.UPPER_RIGHT,
-    [keys[1]]: Directions.UPPER_LEFT,
-    [keys[2]]: Directions.LOWER_RIGHT,
-    [keys[3]]: Directions.LOWER_LEFT
+export const defaultMovementsConfiguration = (keys) => ({
+    [keys[0]]: MovementTypes.LIGHT_LEFT,
+    [keys[1]]: MovementTypes.HEAVY_LEFT,
+    [keys[2]]: MovementTypes.LIGHT_RIGHT,
+    [keys[3]]: MovementTypes.HEAVY_RIGHT
 });
+
+export const defaultMovementsMapping = {
+    [MovementTypes.HEAVY_LEFT]: Directions.UPPER_LEFT,
+    [MovementTypes.LIGHT_LEFT]: Directions.UPPER_RIGHT,
+    [MovementTypes.KEEP_GOING]: Directions.RIGHT,
+    [MovementTypes.LIGHT_RIGHT]: Directions.LOWER_RIGHT,
+    [MovementTypes.HEAVY_RIGHT]: Directions.LOWER_LEFT
+};
 
 /**
  * Calculates upper-left position in hexagonal grid

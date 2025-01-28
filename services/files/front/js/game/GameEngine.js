@@ -1,5 +1,5 @@
 import {Game, GameType} from "./Game.js";
-import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
+import {defaultMovementsMapping, Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
 import {PlayerFactory} from "./PlayerFactory.js";
 import {PlayerState} from "../ai/PlayerState.js";
 import {LocalPlayer} from "./LocalPlayer.js";
@@ -34,10 +34,29 @@ export class GameEngine {
         this._game = new Game(gameType, rowNumber, columnNumber, players, roundsCount);
     }
 
+    remapMovements(playerId, diff) {
+        for (const [inputKey, directionValue] of Object.entries(this._playersDirections[playerId].movementsMapping))
+            this._playersDirections[playerId].movementsMapping[inputKey] = (directionValue + diff + 6) % 6;
+    }
+
     initializePlayersDirections() {
         this._playersDirections = {};
-        for (let playerId of Object.keys(this._game.players))
-            this._playersDirections[playerId] = this._game.getPlayerPosition(playerId).column === 1 ? Directions.RIGHT : Directions.LEFT;
+        for (const playerId of Object.keys(this._game.players)) {
+            this._playersDirections[playerId] = {
+                movementsMapping: {...defaultMovementsMapping},
+                comingDirection: null
+            };
+
+            const playerColumn = Number(this._game.getPlayerPosition(playerId).column);
+            const defaultDirection = playerColumn === 1
+                ? Directions.RIGHT
+                : Directions.LEFT;
+
+            this._playersDirections[playerId].comingDirection = defaultDirection;
+            const rotationDiff = Directions.RIGHT - defaultDirection;
+
+            this.remapMovements(playerId, rotationDiff);
+        }
     }
 
     initialize() {
@@ -50,7 +69,7 @@ export class GameEngine {
             let playerPosition = this._game.getPlayerPosition(player.id);
             player.setup(this.getPlayerState(player));
 
-            this._game.board.update(null, playerPosition, player.color, this._canvas, this._playersDirections[player.id]);
+            this._game.board.update(null, playerPosition, player.color, this._canvas, this._playersDirections[player.id].comingDirection);
         }
     }
 
@@ -69,12 +88,23 @@ export class GameEngine {
         return new PlayerState(playerPosition, opponentPosition);
     }
 
+    updateDirectionMapping(playerId, direction) {
+        const newDirection = this._playersDirections[playerId].movementsMapping[direction];
+        const diff = newDirection - this._playersDirections[playerId].comingDirection;
+
+        this._playersDirections[playerId].comingDirection = newDirection;
+
+        this.remapMovements(playerId, diff);
+    }
+
     computeNewPositions() {
         let newPositions = {};
 
         for (let player of Object.values(this._game.players)) {
-            const direction = player.nextMove(this.getPlayerState(player)) ?? this._playersDirections[player.id];
-            this._playersDirections[player.id] = direction;
+            const movement = player.nextMove(this.getPlayerState(player));
+
+            const direction = this._playersDirections[player.id].movementsMapping[movement];
+            this.updateDirectionMapping(player.id, movement);
 
             const pos = DISPLACEMENT_FUNCTIONS[direction](this._game.getPlayerPosition(player.id));
 
@@ -131,7 +161,7 @@ export class GameEngine {
                 for (let playerId of Object.keys(validPositions)) {
                     let player = this._game.getPlayer(playerId);
 
-                    this._game.board.update(this._game.getPlayerPosition(player.id), validPositions[playerId], player.color, this._canvas, player.comingDirection);
+                    this._game.board.update(this._game.getPlayerPosition(player.id), validPositions[playerId], player.color, this._canvas, this._playersDirections[playerId].comingDirection);
                     this._game.setPlayerPosition(player.id, validPositions[playerId]);
                 }
             }, this._choiceTime);
