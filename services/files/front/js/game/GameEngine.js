@@ -1,13 +1,14 @@
 import {Game, GameType} from "./Game.js";
-import {defaultMovementsMapping, Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
+import {defaultMovementsMapping, Directions, DISPLACEMENT_FUNCTIONS, MovementTypes} from "./GameUtils.js";
 import {PlayerFactory} from "./PlayerFactory.js";
 import {PlayerState} from "../ai/PlayerState.js";
 import {LocalPlayer} from "./LocalPlayer.js";
 
 export class GameEngine {
-    constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, context, choiceTime) {
+    constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, context, choiceTimeout = 250, setupTimeout = 1000) {
         this._canvas = context;
-        this._choiceTime = choiceTime;
+        this._choiceTimeout = choiceTimeout;
+        this._setupTimeout = setupTimeout;
 
         switch (gameType) {
             case GameType.LOCAL:
@@ -59,18 +60,48 @@ export class GameEngine {
         }
     }
 
-    initialize() {
+    async wrapWithTimeout(methodCall, timeout, defaultValue, errorMessage) {
+        try {
+            return await Promise.race([
+                methodCall,
+                new Promise(resolve =>
+                    setTimeout(() => resolve(defaultValue), timeout)
+                )
+            ]);
+        } catch (e) {
+            console.error(errorMessage, e);
+            return defaultValue;
+        }
+    }
+
+    async initialize() {
         this._game.setPlayersStartPositions();
         this._game.draw(this._canvas);
 
         this.initializePlayersDirections();
 
-        for (let player of Object.values(this._game.players)) {
-            let playerPosition = this._game.getPlayerPosition(player.id);
-            player.setup(this.getPlayerState(player));
+        const setupPromises = [];
+        for (const player of Object.values(this._game.players)) {
+            const playerPosition = this._game.getPlayerPosition(player.id);
+            const setupPromise = this.wrapWithTimeout(
+                player.setup(this.getPlayerState(player)),
+                this._setupTimeout,
+                undefined,
+                `Setup timeout for player ${player.id}: `
+            );
 
-            this._game.board.update(null, playerPosition, player.color, this._canvas, this._playersDirections[player.id].comingDirection);
+            setupPromises.push(setupPromise.then(() => {
+                this._game.board.update(
+                    null,
+                    playerPosition,
+                    player.color,
+                    this._canvas,
+                    this._playersDirections[player.id].comingDirection
+                );
+            }));
         }
+
+        await Promise.all(setupPromises);
     }
 
     async start() {
@@ -97,20 +128,32 @@ export class GameEngine {
         this.remapMovements(playerId, diff);
     }
 
-    computeNewPositions() {
-        let newPositions = {};
+    async computeNewPositions() {
+        const movePromises = Object.values(this._game.players).map(player =>
+            this.wrapWithTimeout(
+                player.nextMove(this.getPlayerState(player)),
+                this._choiceTimeout,
+                MovementTypes.KEEP_GOING,
+                `Move timeout for player ${player.id}: `
+            )
+        );
 
-        for (let player of Object.values(this._game.players)) {
-            const movement = player.nextMove(this.getPlayerState(player));
+        const movements = await Promise.all(movePromises);
+        const newPositions = {};
 
+        movements.forEach((movement, i) => {
+            const player = Object.values(this._game.players)[i];
             const direction = this._playersDirections[player.id].movementsMapping[movement];
+
             this.updateDirectionMapping(player.id, movement);
 
-            const pos = DISPLACEMENT_FUNCTIONS[direction](this._game.getPlayerPosition(player.id));
+            const pos = DISPLACEMENT_FUNCTIONS[direction](
+                this._game.getPlayerPosition(player.id)
+            );
 
             if (this._game.board.checkPositionValidity(pos))
                 newPositions[player.id] = pos;
-        }
+        });
 
         return newPositions;
     }
@@ -136,36 +179,35 @@ export class GameEngine {
         return Object.keys(equals).length ? Object.values(equals) : null;
     }
 
-    runRound() {
-        return new Promise((resolve) => {
-            this.initialize();
-            let intervalId = setInterval(() => {
-                const validPositions = this.computeNewPositions();
+    async runRound() {
+        await this.initialize();
 
-                let equalities = this.checkEqualities(validPositions);
+        while (true) {
+            const validPositions = await this.computeNewPositions();
+            const equalities = this.checkEqualities(validPositions);
 
-                if (equalities) {
-                    clearInterval(intervalId);
-                    resolve({status: "equality", equalities});
-                    return;
-                }
+            if (equalities)
+                return {status: "equality", equalities};
 
-                const winners = Object.keys(this._game.players).filter(playerId => playerId in validPositions);
+            const remainingPlayers = Object.keys(validPositions);
+            if (remainingPlayers.length !== Object.keys(this._game.players).length) {
+                return {status: "round_end", winners: remainingPlayers};
+            }
 
-                if (Object.keys(this._game.players).length !== Object.keys(validPositions).length) {
-                    clearInterval(intervalId);
-                    resolve({status: "round_end", winners});
-                    return;
-                }
+            for (const playerId of remainingPlayers) {
+                const player = this._game.getPlayer(playerId);
+                const newPos = validPositions[playerId];
 
-                for (let playerId of Object.keys(validPositions)) {
-                    let player = this._game.getPlayer(playerId);
-
-                    this._game.board.update(this._game.getPlayerPosition(player.id), validPositions[playerId], player.color, this._canvas, this._playersDirections[playerId].comingDirection);
-                    this._game.setPlayerPosition(player.id, validPositions[playerId]);
-                }
-            }, this._choiceTime);
-        });
+                this._game.board.update(
+                    this._game.getPlayerPosition(playerId),
+                    newPos,
+                    player.color,
+                    this._canvas,
+                    this._playersDirections[playerId].comingDirection
+                );
+                this._game.setPlayerPosition(playerId, newPos);
+            }
+        }
     }
 
     printRoundEndResults(winners) {
