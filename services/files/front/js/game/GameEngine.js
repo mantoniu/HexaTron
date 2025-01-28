@@ -190,9 +190,8 @@ export class GameEngine {
                 return {status: "equality", equalities};
 
             const remainingPlayers = Object.keys(validPositions);
-            if (remainingPlayers.length !== Object.keys(this._game.players).length) {
+            if (remainingPlayers.length !== Object.keys(this._game.players).length)
                 return {status: "round_end", winners: remainingPlayers};
-            }
 
             for (const playerId of remainingPlayers) {
                 const player = this._game.getPlayer(playerId);
