@@ -15,7 +15,7 @@ export const Directions = {
 
 /**
  * Array of position calculation functions for each direction
- * @type {Array<(position: number[]) => number[]>}
+ * @type {Array<(position: Position) => Position>}
  */
 export const DISPLACEMENT_FUNCTIONS = [
     getUpperLeftPosition,
