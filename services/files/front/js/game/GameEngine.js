@@ -77,6 +77,7 @@ export class GameEngine {
             this._playersDirections[player.id] = direction;
 
             const pos = DISPLACEMENT_FUNCTIONS[direction](this._game.getPlayerPosition(player.id));
+
             if (this._game.board.checkPositionValidity(pos))
                 newPositions[player.id] = pos;
         }
@@ -116,6 +117,7 @@ export class GameEngine {
                 if (equalities) {
                     clearInterval(intervalId);
                     resolve({status: "equality", equalities});
+                    return;
                 }
 
                 const winners = Object.keys(this._game.players).filter(playerId => playerId in validPositions);
@@ -123,6 +125,7 @@ export class GameEngine {
                 if (Object.keys(this._game.players).length !== Object.keys(validPositions).length) {
                     clearInterval(intervalId);
                     resolve({status: "round_end", winners});
+                    return;
                 }
 
                 for (let playerId of Object.keys(validPositions)) {
