@@ -158,40 +158,47 @@ export class GameEngine {
         return newPositions;
     }
 
-    checkEqualities(positions) {
-        let equals = {};
-        const playerIds = Object.keys(positions);
+    identifyTies(positions) {
+        if (!Object.keys(positions).length)
+            return {ties: [Object.keys(this._game.players)], remainingPlayers: []};
 
+        let ties = new Map();
+        let involvedPlayers = new Set();
+
+        const playerIds = Object.keys(positions);
         for (let i = 0; i < playerIds.length; i++) {
             for (let j = i + 1; j < playerIds.length; j++) {
                 const playerId1 = playerIds[i];
                 const playerId2 = playerIds[j];
+                const posKey = JSON.stringify(positions[playerId1]);
 
                 if (positions[playerId1].equals(positions[playerId2])) {
-                    if (!equals[positions[playerId1]])
-                        equals[positions[playerId1]] = new Set([playerId1, playerId2]);
+                    if (!ties.has(posKey))
+                        ties.set(posKey, new Set([playerId1, playerId2]));
                     else
-                        equals[positions[playerId1]].add(playerId2);
+                        ties.get(posKey).add(playerId2);
+
+                    involvedPlayers.add(playerId1);
+                    involvedPlayers.add(playerId2);
                 }
             }
         }
 
-        return Object.keys(equals).length ? Object.values(equals) : null;
+        let remainingPlayers = playerIds.filter(playerId => !involvedPlayers.has(playerId));
+        return {ties: [...ties.values()], remainingPlayers};
     }
+
 
     async runRound() {
         await this.initialize();
 
         while (true) {
             const validPositions = await this.computeNewPositions();
-            const equalities = this.checkEqualities(validPositions);
 
-            if (equalities)
-                return {status: "equality", equalities};
+            const {ties, remainingPlayers} = this.identifyTies(validPositions);
 
-            const remainingPlayers = Object.keys(validPositions);
-            if (remainingPlayers.length !== Object.keys(this._game.players).length)
-                return {status: "round_end", winners: remainingPlayers};
+            if (ties.length > 0)
+                return {status: "tie", ties};
 
             for (const playerId of remainingPlayers) {
                 const player = this._game.getPlayer(playerId);
@@ -206,37 +213,32 @@ export class GameEngine {
                 );
                 this._game.setPlayerPosition(playerId, newPos);
             }
+
+            if (remainingPlayers.length === 1)
+                return {status: "round_end", winner: remainingPlayers[0]};
         }
     }
 
-    printRoundEndResults(winners) {
-        const winnersNames = winners.map(winnerId => this._game.getPlayer(winnerId).name);
-
-        if (winners.length === 0)
-            alert("All players have lost!");
-        else if (winners.length === 1)
-            alert(`The winner of this round is: ${winnersNames[0]}!`);
-        else alert(`It's a tie between players: ${winnersNames.join(", ")}!`);
+    printRoundEndResults(winnerId) {
+        alert(`The winner of this round is: ${this._game.players[winnerId].name}!`);
     }
 
-    printEqualityResults(equalities) {
-        let message = "";
-        for (const equality of equalities) {
-            message += "Equality between players: ";
-            equality.forEach(playerId => message += this._game.getPlayer(playerId).name + ", ");
-            message = message.slice(0, -2);
-            message += "\n";
-        }
+    printTiesResults(ties) {
+        const message = ties
+            .map(tie => "There is a tie between players: " + [...tie].map(playerId => this._game.getPlayer(playerId).name).join(", "))
+            .join("\n");
+
         alert(message);
     }
 
+
     printResults(result) {
         switch (result.status) {
-            case "equality":
-                this.printEqualityResults(result.equalities);
+            case "tie":
+                this.printTiesResults(result.ties);
                 break;
             case "round_end":
-                this.printRoundEndResults(result.winners);
+                this.printRoundEndResults(result.winner);
                 break;
             default:
                 throw Error(`The status ${result.status} is not yet supported`);
