@@ -200,8 +200,9 @@ export class GameEngine {
         while (true) {
             const validPositions = await this.computeNewPositions();
             const ties = this.identifyTies(validPositions);
+            const remainingIds = Object.keys(this._remainingPlayers);
 
-            if (ties.length > 0)
+            if (!remainingIds.length)
                 return {status: "tie", ties};
 
             for (const player of Object.values(this._remainingPlayers)) {
@@ -217,7 +218,6 @@ export class GameEngine {
                 this._game.setPlayerPosition(player.id, newPos);
             }
 
-            const remainingIds = Object.keys(this._remainingPlayers);
             if (remainingIds.length === 1)
                 return {status: "round_end", winner: remainingIds[0]};
         }
