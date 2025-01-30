@@ -62,18 +62,21 @@ export class GameEngine {
         }
     }
 
-    async wrapWithTimeout(methodCall, timeout, defaultValue, errorMessage) {
-        try {
-            return await Promise.race([
-                methodCall,
-                new Promise(resolve =>
-                    setTimeout(() => resolve(defaultValue), timeout)
-                )
-            ]);
-        } catch (e) {
-            console.error(errorMessage, e);
-            return defaultValue;
-        }
+    async wrapWithTimeout(methodCall, timeout, defaultValue) {
+        const resultPromise = Promise.race([
+            methodCall,
+            new Promise(resolve =>
+                setTimeout(() => resolve(defaultValue), timeout)
+            )
+        ]);
+
+        const minDelayPromise = new Promise(resolve =>
+            setTimeout(resolve, timeout)
+        );
+
+        const [result] = await Promise.all([resultPromise, minDelayPromise]);
+
+        return result;
     }
 
     async initialize() {
