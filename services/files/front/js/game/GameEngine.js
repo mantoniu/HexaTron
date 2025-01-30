@@ -9,6 +9,7 @@ export class GameEngine {
         this._canvas = context;
         this._choiceTimeout = choiceTimeout;
         this._setupTimeout = setupTimeout;
+        this._remainingPlayers = {};
 
         switch (gameType) {
             case GameType.LOCAL:
@@ -42,7 +43,8 @@ export class GameEngine {
 
     initializePlayersDirections() {
         this._playersDirections = {};
-        for (const playerId of Object.keys(this._game.players)) {
+
+        for (const playerId of Object.keys(this._remainingPlayers)) {
             this._playersDirections[playerId] = {
                 movementsMapping: {...defaultMovementsMapping},
                 comingDirection: null
@@ -77,11 +79,12 @@ export class GameEngine {
     async initialize() {
         this._game.setPlayersStartPositions();
         this._game.draw(this._canvas);
+        this._remainingPlayers = {...this._game.players};
 
         this.initializePlayersDirections();
 
         const setupPromises = [];
-        for (const player of Object.values(this._game.players)) {
+        for (const player of Object.values(this._remainingPlayers)) {
             const playerPosition = this._game.getPlayerPosition(player.id);
             const setupPromise = this.wrapWithTimeout(
                 player.setup(this.getPlayerState(player)),
@@ -114,7 +117,9 @@ export class GameEngine {
 
     getPlayerState(player) {
         let playerPosition = this._game.getPlayerPosition(player.id);
-        let opponentPosition = Object.entries(this._game.playersPositions).find(([k, _]) => k !== player.id)?.[1];
+        let opponentPosition = Object.keys(this._remainingPlayers)
+            .filter(playerId => playerId !== player.id)
+            .map(playerId => this._game.getPlayerPosition(playerId))[0];
 
         return new PlayerState(playerPosition, opponentPosition);
     }
@@ -129,7 +134,7 @@ export class GameEngine {
     }
 
     async computeNewPositions() {
-        const movePromises = Object.values(this._game.players).map(player =>
+        const movePromises = Object.values(this._remainingPlayers).map(player =>
             this.wrapWithTimeout(
                 player.nextMove(this.getPlayerState(player)),
                 this._choiceTimeout,
@@ -142,7 +147,7 @@ export class GameEngine {
         const newPositions = {};
 
         movements.forEach((movement, i) => {
-            const player = Object.values(this._game.players)[i];
+            const player = Object.values(this._remainingPlayers)[i];
             const direction = this._playersDirections[player.id].movementsMapping[movement];
 
             this.updateDirectionMapping(player.id, movement);
@@ -159,8 +164,11 @@ export class GameEngine {
     }
 
     identifyTies(positions) {
-        if (!Object.keys(positions).length)
-            return {ties: [Object.keys(this._game.players)], remainingPlayers: []};
+        if (!Object.keys(positions).length) {
+            const remainingPlayers = [Object.keys(this._remainingPlayers)];
+            this._remainingPlayers = {};
+            return remainingPlayers;
+        }
 
         let ties = new Map();
         let involvedPlayers = new Set();
@@ -184,43 +192,42 @@ export class GameEngine {
             }
         }
 
-        let remainingPlayers = playerIds.filter(playerId => !involvedPlayers.has(playerId));
-        return {ties: [...ties.values()], remainingPlayers};
+        this._remainingPlayers = Object.fromEntries(playerIds.filter(playerId => !involvedPlayers.has(playerId))
+            .map(id => [id, this._game.getPlayer(id)]));
+        return [...ties.values()];
     }
-
 
     async runRound() {
         await this.initialize();
 
         while (true) {
             const validPositions = await this.computeNewPositions();
-
-            const {ties, remainingPlayers} = this.identifyTies(validPositions);
+            const ties = this.identifyTies(validPositions);
 
             if (ties.length > 0)
                 return {status: "tie", ties};
 
-            for (const playerId of remainingPlayers) {
-                const player = this._game.getPlayer(playerId);
-                const newPos = validPositions[playerId];
+            for (const player of Object.values(this._remainingPlayers)) {
+                const newPos = validPositions[player.id];
 
                 this._game.board.update(
-                    this._game.getPlayerPosition(playerId),
+                    this._game.getPlayerPosition(player.id),
                     newPos,
                     player.color,
                     this._canvas,
-                    this._playersDirections[playerId].comingDirection
+                    this._playersDirections[player.id].comingDirection
                 );
-                this._game.setPlayerPosition(playerId, newPos);
+                this._game.setPlayerPosition(player.id, newPos);
             }
 
-            if (remainingPlayers.length === 1)
-                return {status: "round_end", winner: remainingPlayers[0]};
+            const remainingIds = Object.keys(this._remainingPlayers);
+            if (remainingIds.length === 1)
+                return {status: "round_end", winner: remainingIds[0]};
         }
     }
 
     printRoundEndResults(winnerId) {
-        alert(`The winner of this round is: ${this._game.players[winnerId].name}!`);
+        alert(`The winner of this round is: ${this._remainingPlayers[winnerId].name}!`);
     }
 
     printTiesResults(ties) {
@@ -230,7 +237,6 @@ export class GameEngine {
 
         alert(message);
     }
-
 
     printResults(result) {
         switch (result.status) {
