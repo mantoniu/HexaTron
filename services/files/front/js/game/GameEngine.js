@@ -37,25 +37,21 @@ export class GameEngine {
     }
 
     remapMovements(playerId, diff) {
-        for (const [inputKey, directionValue] of Object.entries(this._playersDirections[playerId].movementsMapping))
-            this._playersDirections[playerId].movementsMapping[inputKey] = (directionValue + diff + 6) % 6;
+        for (const [inputKey, directionValue] of Object.entries(this._playersMovements[playerId]))
+            this._playersMovements[playerId][inputKey] = (directionValue + diff + 6) % 6;
     }
 
     initializePlayersDirections() {
-        this._playersDirections = {};
+        this._playersMovements = {};
 
         for (const playerId of Object.keys(this._remainingPlayers)) {
-            this._playersDirections[playerId] = {
-                movementsMapping: {...defaultMovementsMapping},
-                comingDirection: null
-            };
+            this._playersMovements[playerId] = {...defaultMovementsMapping};
 
             const playerColumn = Number(this._game.getPlayerPosition(playerId).column);
             const defaultDirection = playerColumn === 1
                 ? Directions.RIGHT
                 : Directions.LEFT;
 
-            this._playersDirections[playerId].comingDirection = defaultDirection;
             const rotationDiff = Directions.RIGHT - defaultDirection;
 
             this.remapMovements(playerId, rotationDiff);
@@ -102,7 +98,7 @@ export class GameEngine {
                     playerPosition,
                     player.color,
                     this._canvas,
-                    this._playersDirections[player.id].comingDirection
+                    this._playersMovements[player.id][MovementTypes.KEEP_GOING]
                 );
             }));
         }
@@ -128,10 +124,8 @@ export class GameEngine {
     }
 
     updateDirectionMapping(playerId, direction) {
-        const newDirection = this._playersDirections[playerId].movementsMapping[direction];
-        const diff = newDirection - this._playersDirections[playerId].comingDirection;
-
-        this._playersDirections[playerId].comingDirection = newDirection;
+        const newDirection = this._playersMovements[playerId][direction];
+        const diff = newDirection - this._playersMovements[playerId][MovementTypes.KEEP_GOING];
 
         this.remapMovements(playerId, diff);
     }
@@ -151,7 +145,7 @@ export class GameEngine {
 
         movements.forEach((movement, i) => {
             const player = Object.values(this._remainingPlayers)[i];
-            const direction = this._playersDirections[player.id].movementsMapping[movement];
+            const direction = this._playersMovements[player.id][movement];
 
             this.updateDirectionMapping(player.id, movement);
 
@@ -218,7 +212,7 @@ export class GameEngine {
                     newPos,
                     player.color,
                     this._canvas,
-                    this._playersDirections[player.id].comingDirection
+                    this._playersMovements[player.id][MovementTypes.KEEP_GOING]
                 );
                 this._game.setPlayerPosition(player.id, newPos);
             }
