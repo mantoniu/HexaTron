@@ -21,6 +21,14 @@ export class Board {
         return this._column + 2;
     }
 
+    getTitle(position) {
+        return this._tiles[position.row][position.column];
+    }
+
+    setTitleStatus(position, status) {
+        this.getTitle(position).status = status;
+    }
+
     initialize() {
         this._tiles = [];
         for (let i = 0; i <= this._row + 1; i++) {
@@ -36,9 +44,13 @@ export class Board {
     }
 
     checkPositionValidity(position) {
-        return this.tiles[position[0]][position[1]].status === Status.VACANT
-            && (position[1] < this.columnCount - 1 && position[1] > 0)
-            && (position[0] < this.rowCount - 1 && position[0] > 0);
+        return (
+            position.row > 0 &&
+            position.row <= this.rowCount &&
+            position.column > 0 &&
+            position.column <= this.columnCount - (position.row % 2 === 0 ? 1 : 0) &&
+            this.getTitle(position).status === Status.VACANT
+        );
     }
 
     calculateUtils(context) {
@@ -79,16 +91,16 @@ export class Board {
     }
 
     fillTile(pos, color, direction, context, drawBike) {
-        let dPos = [this._utils.gapX + this._utils.dx * (pos[1] - (pos[0] % 2 === 1 ? 0.5 : 0)), this._utils.gapY + this._utils.dy * (pos[0] - 1)];
-        this.tiles[pos[0]][pos[1]].fill(dPos, this._utils.size, context, color, direction, drawBike);
+        let dPos = [this._utils.gapX + this._utils.dx * (pos.column - (pos.row % 2 === 1 ? 0.5 : 0)), this._utils.gapY + this._utils.dy * (pos.row - 1)];
+        this.getTitle(pos).fill(dPos, this._utils.size, context, color, direction, drawBike);
     }
 
-    update(previousPos, nextPos, color, context, direction) {
-        this.fillTile(nextPos, color, direction, context, true);
+    update(prevPosition, nextPosition, color, context, direction) {
+        this.fillTile(nextPosition, color, direction, context, true);
 
-        if (previousPos)
-            this.fillTile(previousPos, color, direction, context, false);
+        if (prevPosition)
+            this.fillTile(prevPosition, color, direction, context, false);
 
-        this.tiles[nextPos[0]][nextPos[1]].status = Status.TAKEN;
+        this.setTitleStatus(nextPosition, Status.TAKEN);
     }
 }
