@@ -10,7 +10,7 @@ export class GameBoard extends Component {
         await super.connectedCallback();
         const canvas = this.shadowRoot.getElementById("board");
         const context = canvas.getContext("2d");
-        this.gameEngine = new GameEngine([CURRENT_USER], GameType.LOCAL, 9, 16, 3, 2, context);
+        this.gameEngine = new GameEngine([CURRENT_USER], GameType.AI, 9, 16, 3, 2, context);
 
         this.resizeCanvasFunction = resizeCanvas.bind(this, 0.85, 0.80, "board", this.gameEngine.draw, this.gameEngine);
         this.resizeCanvasFunction.call();
