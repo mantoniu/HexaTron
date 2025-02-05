@@ -219,24 +219,22 @@ function voronoiHeuristic(botPosition, opponentPosition) {
 
 function miniMax(maxDepth) {
     let position = JSON.stringify([tabPosToGraph(_botPosition), tabPosToGraph(_opponentPosition)]);
-
+    let queue = [position];
+    let elementsToRestore = {};
+    //TODO check si tester position => wall hugger si sur deux côtéséparer pas intéressant (problème points clé dans le graphe
     tree = {};
     tree[position] = {"Parent": null, "Childs": [], "Score": -Infinity, "Next Position": null, "Depth": 0, "Visited": 0};
 
-    let queue = [position];
-    let elementsToRestore = {};
-    //console.log(position,structuredClone(tree),structuredClone(graph),...queue)
     while (queue.length > 0) {
-        //console.log(queue, tree)
-        //console.log(queue[queue.length-1])
+        // If the positions of both players are the same, it is not a good move.
         if (JSON.parse(queue[queue.length - 1])[0] === JSON.parse(queue[queue.length - 1])[1]) {
-            tree[queue[queue.length - 1]].Score = ((tree[queue[queue.length - 1]].depth) % 2 === 0 ? Infinity : -Infinity);
+            tree[queue[queue.length - 1]].Score = ((tree[queue[queue.length - 1]].depth) % 2 === 0 ? Infinity - 1 : -Infinity + 1);
             queue.pop();
-        } else if (tree[queue[queue.length - 1]].Depth !== maxDepth && tree[queue[queue.length - 1]].Visited < 1) { // &&  graph[JSON.parse(queue[queue.length-1])[tree[queue[queue.length-1]].Depth%2]].length !== 0){
-
+        }
+        // Otherwise, the children of the current node in the tree are created according to the possible positions around the current one to be evaluated.
+        else if (tree[queue[queue.length - 1]].Depth !== maxDepth && tree[queue[queue.length - 1]].Visited < 1) { // &&  graph[JSON.parse(queue[queue.length-1])[tree[queue[queue.length-1]].Depth%2]].length !== 0){
             let depth = tree[queue[queue.length - 1]].Depth;
 
-            //console.log(graph,queue[queue.length-1],"CHILD")
             let children = [...Array.from(graph[JSON.parse(queue[queue.length - 1])[depth % 2]]).map(
                 el => {
                     if (depth % 2 === 0)
@@ -245,7 +243,7 @@ function miniMax(maxDepth) {
                         return JSON.stringify([JSON.parse(queue[queue.length - 1])[0], el]);
                 })
             ];
-            //console.log(children,"CHILD2")
+
             for (const child of children) {
                 tree[child] = {
                     "Parent": queue[queue.length - 1],
@@ -260,26 +258,21 @@ function miniMax(maxDepth) {
             tree[queue[queue.length - 1]].Childs = children;
             tree[queue[queue.length - 1]].Visited = 1;
 
-
-            //console.log(queue[queue.length-1],queue)
+            // The neighbors of the current position are stored to restore the graph representation of the board's status later.
             elementsToRestore[JSON.parse(queue[queue.length - 1])[depth % 2]] = graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
+
+            // The current node's position is deleted from the graph representation of the board's status because, after this move, it is no longer accessible.
             for (const p of graph[JSON.parse(queue[queue.length - 1])[depth % 2]]) {
-                //console.log(p,structuredClone(graph),...queue,depth, "DELETE CHILDS")
                 graph[p].delete(JSON.parse(queue[queue.length - 1])[depth % 2]);
             }
-            //console.log(JSON.parse(queue[queue.length-1])[depth%2],queue[queue.length-1],elementsToRestore[JSON.parse(queue[queue.length-1])[depth%2]],"DELETE")
+
             delete graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
-            //console.log(JSON.parse(queue[queue.length-1])[depth%2],structuredClone(graph),depth, "DELETE")
             queue = queue.concat(children);
         } else {
-
             if (tree[queue[queue.length - 1]].Depth === maxDepth) {//} || graph[JSON.parse(queue[queue.length-1])[tree[queue[queue.length-1]].Depth%2]] === 0){
                 tree[queue[queue.length - 1]].Score = evaluation(JSON.parse(queue[queue.length - 1]), tree[queue[queue.length - 1]].Depth);
-
             } else {
-
                 for (const child of tree[queue[queue.length - 1]].Childs) {
-                    //console.log(structuredClone(tree),tree[queue[queue.length-1]].Childs, child,"test")
                     if (tree[queue[queue.length - 1]].Depth % 2 === 0 && tree[queue[queue.length - 1]].Score < tree[child].Score) {
                         tree[queue[queue.length - 1]].Score = tree[child].Score;
                         tree[queue[queue.length - 1]]["Next Position"] = child;
@@ -291,27 +284,29 @@ function miniMax(maxDepth) {
                 }
 
 
-                //console.log(tree[queue[queue.length-1]],queue[queue.length-1],JSON.parse(queue[queue.length-1])[tree[queue[queue.length-1]].Depth%2],elementsToRestore,"To RESTORE")
+                // Restoration of the graph representing the board's status before the position was added to the tree.
                 let restore = elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
-                delete elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
                 let key = JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2];
+
+                delete elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
+
                 graph[key] = restore;
                 for (const restoreKey of restore) {
-                    //console.log(restoreKey,...graph[restoreKey],"RESTORATION CHILD")
                     graph[restoreKey].add(key);
                 }
-                //console.log(key,restore,"restauration")
             }
             queue.pop();
         }
 
     }
-    //console.log(tree,JSON.parse(tree[position]["Next Position"]),"MINIMAX")
     return JSON.parse(tree[position]["Next Position"]);
 }
 
 function evaluation(position, depth) {
     let voronoiResult = voronoiHeuristic(graphToTabPos(position[0]), graphToTabPos(position[1]));
+    if (voronoiResult[1] === 1 && voronoiResult[0][0] < voronoiResult[0][1]) {
+        return depth % 2 === 0 ? Infinity - 1 : -Infinity + 1;
+    }
     return voronoiResult[0][0] - voronoiResult[0][1];
 }
 
@@ -331,8 +326,11 @@ function updatePlayerState(playersState) {
 }
 
 function getNextMove() {
-    let resMinimax = miniMax(7);
+    let resMinimax = miniMax(5);
     console.log(resMinimax);
+    if (resMinimax === null) {
+        return "KEEP_GOING";
+    }
     let nextPosition = graphToTabPos(resMinimax[0]);
 
     let deltaPositions = [nextPosition[0] - _botPosition[0], nextPosition[1] - _botPosition[1]];
