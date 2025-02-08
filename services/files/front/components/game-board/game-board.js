@@ -16,10 +16,6 @@ export class GameBoard extends Component {
 
         this.resizeCanvasFunction();
 
-        window.addEventListener("resize", this.resizeCanvasFunction);
-    }
-
-    disconnectedCallback() {
-        window.removeEventListener("resize", this.resizeCanvasFunction);
+        this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
     }
 }
