@@ -97,6 +97,7 @@ export class GameEngine {
                     null,
                     playerPosition,
                     player.color,
+                    player.color,
                     this._canvas,
                     this._playersMovements[player.id][MovementTypes.KEEP_GOING]
                 );
@@ -220,31 +221,6 @@ export class GameEngine {
 
             if (remainingIds.length === 1)
                 return {status: "round_end", winner: remainingIds[0]};
-        }
-    }
-
-    printRoundEndResults(winnerId) {
-        alert(`The winner of this round is: ${this._remainingPlayers[winnerId].name}!`);
-    }
-
-    printTiesResults(ties) {
-        const message = ties
-            .map(tie => "There is a tie between players: " + [...tie].map(playerId => this._game.getPlayer(playerId).name).join(", "))
-            .join("\n");
-
-        alert(message);
-    }
-
-    printResults(result) {
-        switch (result.status) {
-            case "tie":
-                this.printTiesResults(result.ties);
-                break;
-            case "round_end":
-                this.printRoundEndResults(result.winner);
-                break;
-            default:
-                throw Error(`The status ${result.status} is not yet supported`);
         }
     }
 
