@@ -1,8 +1,8 @@
 const {Player} = require("./Player.js");
 
 class RemotePlayer extends Player {
-    constructor(id, name, profilePicturePath) {
-        super(id, name, profilePicturePath);
+    constructor(id, name) {
+        super(id, name);
         this._currentResolve = null;
     }
 
