@@ -47,7 +47,7 @@ const gameServiceSocket = Client('http://localhost:8002');
 const gameNamespace = ioServer.of("/game");
 
 const servicesNamespaces = {
-    game: {
+    Game: {
         namespace: gameNamespace,
         socket: gameServiceSocket,
     }
