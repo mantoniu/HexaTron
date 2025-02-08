@@ -292,7 +292,7 @@ function getNextMove() {
     return moves[indexMoveInDefaultConfiguration];
 }
 
-export function setup(playersState) {
+function setup(playersState) {
     return new Promise((resolve) => {
         round = 0;
         createBoard(9, 16);
@@ -303,7 +303,7 @@ export function setup(playersState) {
     });
 }
 
-export function nextMove(playersState) {
+function nextMove(playersState) {
     return new Promise((resolve) => {
         round++;
         updatePlayerState(playersState);
@@ -311,3 +311,6 @@ export function nextMove(playersState) {
         resolve(nextMove);
     });
 }
+
+exports.setup = setup;
+exports.nextMove = nextMove;
