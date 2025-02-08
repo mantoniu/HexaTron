@@ -1,7 +1,15 @@
 const http = require('http');
 const {Server} = require('socket.io');
 const GameEngine = require("./game/GameEngine.js");
-const Player = require("./game/Player");
+const {Player} = require("./game/Player");
+const {GAME_END, CREATED} = require("./game/GameStatus");
+
+const ErrorTypes = {
+    GAME_NOT_FOUND: 'GAME_NOT_FOUND',
+    PLAYER_NOT_FOUND: 'PLAYER_NOT_FOUND',
+    INVALID_INPUT: 'INVALID_INPUT',
+    GAME_CREATION_FAILED: 'GAME_CREATION_FAILED',
+};
 
 const server = http.createServer();
 
@@ -12,7 +20,7 @@ const io = new Server(server, {
     }
 });
 
-const activeGames = new Map(); // { gameId => { game: GameEngine, players: Set<socketId> } }
+const activeGames = new Map(); // { gameId => { game-component: GameEngine, players: Set<socketId> } }
 const socketGameId = new Map(); // socketId -> gameId
 
 function handleEvent(gatewaySocket, gameId, eventName, eventData) {
@@ -25,8 +33,43 @@ function handleEvent(gatewaySocket, gameId, eventName, eventData) {
         room: Array.from(activeGames.get(gameId).room)
     });
 
-    if (eventName === "refreshStatus" && eventData.status === "end")
+    if (eventName === "refreshStatus" && eventData.status === GAME_END)
         activeGames.delete(gameId);
+}
+
+function validateGameInput(data) {
+    const {gameType, rowNumber, columnNumber, roundsCount, playersCount, users} = data;
+
+    if (gameType == null || !rowNumber || !columnNumber || !roundsCount || !playersCount || !users) {
+        throw {
+            type: ErrorTypes.INVALID_INPUT,
+            message: "Missing required game parameters"
+        };
+    }
+
+    if (rowNumber <= 0 || columnNumber <= 0 || roundsCount <= 0 || playersCount <= 0) {
+        throw {
+            type: ErrorTypes.INVALID_INPUT,
+            message: "Invalid game dimensions or parameters"
+        };
+    }
+
+    if (!Array.isArray(users) || users.length === 0) {
+        throw {
+            type: ErrorTypes.INVALID_INPUT,
+            message: "Invalid users data"
+        };
+    }
+}
+
+function sendError(socket, errorType, message, room = null) {
+    socket.emit("error", {
+        eventData: {
+            type: errorType,
+            message: message,
+        },
+        room
+    });
 }
 
 io.on('connection', (gatewaySocket) => {
@@ -55,47 +98,69 @@ io.on('connection', (gatewaySocket) => {
     });
 
     gatewaySocket.on("start", (data) => {
-        const {gameType, rowNumber, columnNumber, roundsCount, playersCount, users} = data.args[0];
-        //TODO check if the data is correct
-        const players = users.map(user => new Player(user.id, user.name, data.socketId));
+        try {
+            validateGameInput(data.args[0]);
+            const {gameType, rowNumber, columnNumber, roundsCount, playersCount, users} = data.args[0];
+            const players = users.map(user => new Player(user.id, user.name, data.socketId));
 
-        const newGame = new GameEngine(
-            players,
-            gameType,
-            rowNumber,
-            columnNumber,
-            roundsCount,
-            playersCount,
-            (gameId, eventName, eventData) => handleEvent(gatewaySocket, gameId, eventName, eventData)
-        );
+            const newGame = new GameEngine(
+                players,
+                gameType,
+                rowNumber,
+                columnNumber,
+                roundsCount,
+                playersCount,
+                (gameId, eventName, eventData) => handleEvent(gatewaySocket, gameId, eventName, eventData)
+            );
 
-        activeGames.set(newGame.id, {
-            game: newGame,
-            room: new Set([data.socketId])
-        });
+            activeGames.set(newGame.id, {
+                game: newGame,
+                room: new Set([data.socketId])
+            });
 
-        socketGameId.set(data.socketId, newGame.id);
+            socketGameId.set(data.socketId, newGame.id);
+            newGame.start().then();
 
-        newGame.start().then();
+            gatewaySocket.emit("refreshStatus", {
+                eventData: {
+                    status: CREATED,
+                    data: {id: newGame.id, players: newGame.game.players}
+                },
+                room: [data.socketId]
+            });
 
-        gatewaySocket.emit("refreshStatus", {
-            eventData: {
-                status: "gameCreated",
-                data: {id: newGame.id}
-            },
-            room: [data.socketId]
-        });
+        } catch ({type, message}) {
+            console.log(type, message);
+            sendError(
+                gatewaySocket,
+                type || ErrorTypes.GAME_CREATION_FAILED,
+                message,
+                [data.socketId]
+            );
+        }
     });
 
     gatewaySocket.on("nextMove", (data) => {
         const {gameId, playerId, move} = data.args[0];
-        const gameData = activeGames.get(gameId);
 
-        if (gameData) {
-            const player = gameData.game.game.players[playerId];
-            if (player)
-                player.resolveMove(move);
+        if (!gameId || !playerId || move === undefined) {
+            sendError(gatewaySocket, ErrorTypes.INVALID_INPUT, "Missing required move parameters");
+            return;
         }
+
+        const gameData = activeGames.get(gameId);
+        if (!gameData) {
+            sendError(gatewaySocket, ErrorTypes.GAME_NOT_FOUND, "Game not found");
+            return;
+        }
+
+        const player = gameData.game.game.players[playerId];
+        if (!player) {
+            sendError(gatewaySocket, ErrorTypes.PLAYER_NOT_FOUND, "Player not found");
+            return;
+        }
+
+        player.resolveMove(move);
     });
 });
 
