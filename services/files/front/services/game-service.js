@@ -20,21 +20,36 @@ export class GameService {
         this._context = null;
         this._socket = io(`http://${window.location.hostname}:8000/game`);
 
-        this._socket.on("connect", () => {
+        this.socket.on("connect", () => {
             console.log("user connected " + this._socket.id);
         });
 
         this._listeners = {};
         this.setupListeners();
+
+        window.addEventListener("routeChange", () => this.handleRouteChange());
+
         GameService._instance = this;
+    }
+
+    get socket() {
+        if (!this._socket.connected)
+            this._socket.connect();
+        return this._socket;
+    }
+
+    reset() {
+        this._game = null;
+        this._context = null;
+        this._socket.disconnect();
     }
 
     set context(context) {
         this._context = context;
     }
 
-    get socket() {
-        return this._socket;
+    handleRouteChange() {
+        this.reset();
     }
 
     get game() {
@@ -52,6 +67,18 @@ export class GameService {
         return GameService._instance;
     }
 
+    off(eventName, callback) {
+        if (this._listeners[eventName]) {
+            this._listeners[eventName] = this._listeners[eventName].filter(
+                cb => cb !== callback
+            );
+
+            if (this._listeners[eventName].length === 0) {
+                delete this._listeners[eventName];
+            }
+        }
+    }
+
     on(eventName, callback) {
         if (!this._listeners[eventName]) {
             this._listeners[eventName] = [];
@@ -66,7 +93,7 @@ export class GameService {
     }
 
     setupListeners() {
-        this._socket.on("refreshStatus", (receivedData) => {
+        this.socket.on("refreshStatus", (receivedData) => {
             const {status, data} = receivedData;
 
             if (!this.game) {
@@ -112,7 +139,7 @@ export class GameService {
     }
 
     errorListener() {
-        this._socket.on("error", ({type, message}) => {
+        this.socket.on("error", ({type, message}) => {
             console.error(`${type} -> ${message}`);
         });
     }
@@ -137,7 +164,7 @@ export class GameService {
 
         this._game = new Game(gameType, rowNumber, columnNumber, users, roundsCount, context);
 
-        this._socket.emit("start", {
+        this.socket.emit("start", {
             gameType,
             rowNumber,
             columnNumber,
@@ -153,6 +180,6 @@ export class GameService {
     }
 
     nextMove(playerId, move) {
-        this._socket.emit("nextMove", {gameId: this.game.id, playerId, move});
+        this.socket.emit("nextMove", {gameId: this.game.id, playerId, move});
     }
 }

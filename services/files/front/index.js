@@ -17,10 +17,8 @@ function navigateTo(url) {
     if (routes[url]) {
         history.pushState({path: url}, "", url);
         document.getElementById("outlet").innerHTML = routes[url];
-
-        updateActiveLink();
     } else {
-        document.getElementById("outlet").innerHTML = "<h1>404 - Page non trouvée</h1>";
+        document.getElementById("outlet").innerHTML = "<h1>404 - Not found</h1>";
     }
 }
 
@@ -29,14 +27,19 @@ window.addEventListener("navigate", (event) => {
     navigateTo(route);
 });
 
-window.onpopstate = () => {
-    document.getElementById("outlet").innerHTML = routes[window.location.pathname] || "<h1>404 - Page non trouvée</h1>";
-};
-
-function updateActiveLink() {
-    document.querySelectorAll(".nav-link").forEach(button => {
-        button.classList.toggle("active", button.getAttribute("data-route") === window.location.pathname);
-    });
+function updateView() {
+    const route = window.location.pathname;
+    if (routes[route]) {
+        document.getElementById("outlet").innerHTML = routes[route];
+    } else {
+        document.getElementById("outlet").innerHTML = "<h1>404 - Not found</h1>";
+    }
 }
 
-navigateTo(window.location.pathname);
+window.onpopstate = () => {
+    updateView();
+    const routeChangeEvent = new CustomEvent("routeChange");
+    window.dispatchEvent(routeChangeEvent);
+};
+
+updateView();
