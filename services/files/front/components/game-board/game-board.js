@@ -12,17 +12,23 @@ export class GameBoard extends Component {
         const context = canvas.getContext("2d");
         this.gameEngine = new GameEngine([CURRENT_USER], GameType.LOCAL, 9, 16, 3, 2, context);
 
-        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.85, 0.80, "board", this.gameEngine.draw, this.gameEngine);
-        this.resizeCanvasFunction.call();
+        let curPlayer = new LocalPlayer("0", "Test 1", "red", "", CURRENT_USER.parameters.keys[0]);
+        let player = new LocalPlayer("1", "Test 2", "blue", "", CURRENT_USER.parameters.keys[1]);
+        GameService.getInstance().startGame(GameType.LOCAL, 9, 16, [curPlayer, player], 3, context);
 
-        window.addEventListener("resize", this.resizeCanvasFunction);
+        const resizeCanvasFunction = () => {
+            resizeCanvas.call(
+                this,
+                0.85,
+                0.80,
+                "board",
+                () => GameService.getInstance().draw()
+            );
+        };
 
-        const event = new CustomEvent("game-created", {
-            bubbles: true,
-            detail: { players: this.gameEngine._game.players }
-        });
+        resizeCanvasFunction();
 
-        this.dispatchEvent(event);
+        window.addEventListener("resize", resizeCanvasFunction);
 
         await this.gameEngine.start();
     }

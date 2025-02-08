@@ -1,14 +1,25 @@
-import { Component } from "../component/component.js";
-import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm } from "../../js/Utils.js";
-import { CURRENT_USER } from "../../js/UserMock.js";
+import {Component} from "../component/component.js";
+import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/Utils.js";
+import {CURRENT_USER} from "../../js/UserMock.js";
+import {GameService} from "../../services/game-service.js";
 
 export class GameHeader extends Component {
     async connectedCallback() {
         await super.connectedCallback();
-        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.2, 1, "header", this.draw, this);
-        this.resizeCanvasFunction.call();
 
-        window.addEventListener("resize", this.resizeCanvasFunction);
+        const resizeCanvasFunction = () => {
+            resizeCanvas.call(
+                this,
+                0.2,
+                1,
+                "header",
+                () => GameService.getInstance().draw()
+            );
+        };
+
+        resizeCanvasFunction();
+
+        window.addEventListener("resize", resizeCanvasFunction);
     }
 
     disconnectedCallback() {
