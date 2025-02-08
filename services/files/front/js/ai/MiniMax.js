@@ -8,34 +8,8 @@ let row = 0;
 const init = 5;
 let previous = 0;
 let graph = {};
-
-class Tree {
-    constructor(positions) {
-        this._positions = positions;
-        this._children = [];
-        this._score = 0;
-    }
-
-    get score() {
-        return this._score;
-    }
-
-    set score(score) {
-        return this._score;
-    }
-
-    get positions() {
-        return this._positions;
-    }
-
-    get children() {
-        return this._children;
-    }
-
-    set children(children) {
-        this._children = children;
-    }
-}
+let tree = {};
+let round = 0;
 
 function getUpperLeftPosition(position) {
     return [
@@ -88,7 +62,6 @@ const DISPLACEMENT_FUNCTIONS = [
     getLeftPosition
 ];
 
-
 function neighbour(position, side) {
     return DISPLACEMENT_FUNCTIONS[side](position);
 }
@@ -99,7 +72,7 @@ function concentricPath(center, radius, operation) {
     for (let side = 0; side < 6; side++) {
         for (let l = 0; l < radius; l++) {
             if (inGrid(hex)) {
-                var operationRes = operation(hex);
+                const operationRes = operation(hex);
                 if (operationRes !== null) {
                     result.push(operationRes);
                 }
@@ -143,10 +116,6 @@ function createGraph() {
     }
 }
 
-function wallAroundInGraph(position) {
-    return 6 - graph[position].size;
-}
-
 function tabPosToGraph(position) {
     return position[0] * column + position[1];
 }
@@ -156,65 +125,31 @@ function graphToTabPos(position) {
 }
 
 
-function maxWallsHeuristic(position) {
-    console.log(_botPosition, "POS");
-    //let hex = [this.botPosition[0] + 1, this.botPosition[1] - Math.floor((1 + this.botPosition[0] % 2) / 2)];
-    let max = 0;
-    let res = [];
-    for (let hex of graph[tabPosToGraph(position)]) {
-        console.log(hex);
-        let nbWall = wallAroundInGraph(hex);
-        if (nbWall > max) {
-            //console.log(hex, max, this.wallAround(hex), "NEW POTENTIALLY POS");
-            res = [graphToTabPos(hex)];
-            max = nbWall;
-        }
-        //TODO modify this part
-        if (nbWall > max) {
-            //console.log(hex, max, this.wallAround(hex), "NEW POTENTIALLY POS");
-            res.push(graphToTabPos(hex));
-            max = nbWall;
-        }
-    }
-    //TODO check if wall = real wall / opponent streak or bot streak and adapt behavior
-    if (res.length !== 0) {
-        console.log("NOT RANDOM");
-        return res;
-    } else {
-        console.log("RANDOM");
-        //If the bot arrive it this situation, it is surrounded and can't move anymore
-        return [DISPLACEMENT_FUNCTIONS[(previous + 3) % 6](_botPosition)];
-    }
-}
-
 function voronoiHeuristic(botPosition, opponentPosition) {
-    console.log(graph, "Start Voronoi");
     let sameComponent = false;
     let results = [0, 0];
     let closer = {};
     let arg = [tabPosToGraph(botPosition), tabPosToGraph(opponentPosition)];
+
     for (let i = 0; i < arg.length; i++) {
         if (closer.hasOwnProperty(arg[i])) {
             results[closer[arg[i]][0]]--;
         }
         closer[arg[i]] = [i, 0];
+
         let front = 0;
         let tail = 1;
         let queue = [arg[i]];
+
         while (front !== tail) {
-            if (queue[front] === arg[(i + 1) % arg.length])
-                sameComponent = true;
-            //console.log(i,front,queue[front], graph[queue[front]], closer[queue[front]][1] + 1 )
             for (let v of graph[queue[front]]) {
-                if (v !== arg[i]) {
+                if (!arg.includes(v)) {
                     if (!closer.hasOwnProperty(v)) {
                         queue.push(v);
                         closer[v] = [i, closer[queue[front]][1] + 1];
-                        //console.log("First")
                         results[i]++;
                         tail++;
                     } else if (closer[v][1] > closer[queue[front]][1] + 1) {
-                        //console.log("Changement")
                         queue.push(v);
                         results[closer[v][0]]--;
                         closer[v] = [i, closer[queue[front]][1] + 1];
@@ -224,70 +159,137 @@ function voronoiHeuristic(botPosition, opponentPosition) {
                         results[closer[v][0]]--;
                         closer[v] = [-1, 0];
                     }
-                    //console.log(v,closer[v],closer[queue[front]][1] + 1)
-                }
+                } else
+                    sameComponent = sameComponent || v !== arg[i];
             }
             front++;
         }
     }
-    localStorage.setItem("result_voronoi", JSON.stringify(closer));
-    console.log(graph);
-    localStorage.setItem("graph", JSON.stringify(graph));
-    //console.log(closer,"Closer")
-
-    //console.log(results,"End Voronoi")
     return [results, sameComponent];
 }
 
+function miniMax(maxDepth) {
+    let position = JSON.stringify([tabPosToGraph(_botPosition), tabPosToGraph(_opponentPosition)]);
+
+    tree = {};
+    tree[position] = {"Parent": null, "Childs": [], "Score": -Infinity, "Next Position": null, "Depth": 0, "Visited": 0};
+
+    let queue = [position];
+    let elementsToRestore = {};
+    while (queue.length > 0) {
+        // If the positions of both players are the same, it is not a good move.
+        if (JSON.parse(queue[queue.length - 1])[0] === JSON.parse(queue[queue.length - 1])[1]) {
+            tree[queue[queue.length - 1]].Score = ((tree[queue[queue.length - 1]].depth) % 2 === 0 ? Infinity : -Infinity);
+            queue.pop();
+        }
+        // Otherwise, the children of the current node in the tree are created according to the possible positions around the current one to be evaluated.
+        else if (tree[queue[queue.length - 1]].Depth !== maxDepth && tree[queue[queue.length - 1]].Visited < 1) {
+            let depth = tree[queue[queue.length - 1]].Depth;
+
+            let children = [...Array.from(graph[JSON.parse(queue[queue.length - 1])[depth % 2]]).map(
+                el => {
+                    if (depth % 2 === 0)
+                        return JSON.stringify([el, JSON.parse(queue[queue.length - 1])[1]]);
+                    else
+                        return JSON.stringify([JSON.parse(queue[queue.length - 1])[0], el]);
+                })
+            ];
+
+            for (const child of children) {
+                tree[child] = {
+                    "Parent": queue[queue.length - 1],
+                    "Childs": [],
+                    "Score": ((depth + 1) % 2 === 0 ? -Infinity : Infinity),
+                    "Next Position": null,
+                    "Depth": tree[queue[queue.length - 1]].Depth + 1,
+                    "Visited": 0
+                };
+            }
+
+            tree[queue[queue.length - 1]].Childs = children;
+            tree[queue[queue.length - 1]].Visited = 1;
+
+            // The neighbors of the current position are stored to restore the graph representation of the board's status later.
+            elementsToRestore[JSON.parse(queue[queue.length - 1])[depth % 2]] = graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
+
+            // The current node's position is deleted from the graph representation of the board's status because, after this move, it is no longer accessible.
+            for (const p of graph[JSON.parse(queue[queue.length - 1])[depth % 2]]) {
+                graph[p].delete(JSON.parse(queue[queue.length - 1])[depth % 2]);
+            }
+            delete graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
+            queue = queue.concat(children);
+        } else {
+
+            if (tree[queue[queue.length - 1]].Depth === maxDepth) {
+                tree[queue[queue.length - 1]].Score = evaluation(JSON.parse(queue[queue.length - 1]), tree[queue[queue.length - 1]].Depth);
+            } else {
+                for (const child of tree[queue[queue.length - 1]].Childs) {
+                    if (tree[queue[queue.length - 1]].Depth % 2 === 0 && tree[queue[queue.length - 1]].Score < tree[child].Score) {
+                        tree[queue[queue.length - 1]].Score = tree[child].Score;
+                        tree[queue[queue.length - 1]]["Next Position"] = child;
+                    } else if (tree[queue[queue.length - 1]].Depth % 2 === 1 && tree[queue[queue.length - 1]].Score > tree[child].Score) {
+                        tree[queue[queue.length - 1]].Score = tree[child].Score;
+                        tree[queue[queue.length - 1]]["Next Position"] = child;
+                    }
+                    delete tree[child];
+                }
+
+                // Restoration of the graph representing the board's status before the position was added to the tree.
+                let restore = elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
+                let key = JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2];
+
+                delete elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
+
+                graph[key] = restore;
+                for (const restoreKey of restore) {
+                    graph[restoreKey].add(key);
+                }
+            }
+            queue.pop();
+        }
+
+    }
+    return JSON.parse(tree[position]["Next Position"]);
+}
+
+function evaluation(position) {
+    let voronoiResult = voronoiHeuristic(graphToTabPos(position[0]), graphToTabPos(position[1]));
+    return voronoiResult[0][0] - voronoiResult[0][1];
+}
+
 function updatePlayerState(playersState) {
+    if (round > 1) {
+        for (const position of [tabPosToGraph(_botPosition), tabPosToGraph(_opponentPosition)]) {
+            for (const p of graph[position]) {
+                graph[p].delete(position);
+            }
+            delete graph[position];
+        }
+    }
     _botPosition = [playersState["playerPosition"]["row"], playersState["playerPosition"]["column"]];
     _opponentPosition = [playersState["opponentPosition"]["row"], playersState["opponentPosition"]["column"]];
     board[_botPosition[0]][_botPosition[1]] = 1;
     board[_opponentPosition[0]][_opponentPosition[1]] = 2;
-
-    for (const position of [tabPosToGraph(_botPosition), tabPosToGraph(_opponentPosition)]) {
-        for (const p of graph[position]) {
-            graph[p].delete(position);
-        }
-    }
 }
 
 function getNextMove() {
-    let nextPosition = maxWallsHeuristic(_botPosition)[0];
-    let voronoi = voronoiHeuristic(_botPosition, _opponentPosition);
+    let resMinimax = miniMax(5);
+    if (resMinimax === null) {
+        return "KEEP_GOING";
+    }
+    let nextPosition = graphToTabPos(resMinimax[0]);
     let deltaPositions = [nextPosition[0] - _botPosition[0], nextPosition[1] - _botPosition[1]];
     let moveInActualConfiguration = (3 * deltaPositions[0] + deltaPositions[1]) + 3 + ((deltaPositions[0] !== 0 && _botPosition[0] % 2 !== 0) ? 1 : 0);
     let indexMoveInDefaultConfiguration = ((dictMovesIndex[moveInActualConfiguration] + (init - previous)) + 6) % 6;
+
     previous = ((dictMovesIndex[moveInActualConfiguration] - 3) + 6) % 6;
+
     return moves[indexMoveInDefaultConfiguration];
 }
 
-/*    getNextMove() {
-        let nextPositions = this.maxWallsHeuristic(this.botPosition);
-        let nextPosition = 0;
-        if (nextPositions.length !== 1) {
-            let mini = 16 * 9;
-            for (let pos in nextPositions) {
-                let res = this.voronoiHeuristic(this.tabPosToGraph(this.botPosition), this.tabPosToGraph(this.opponentPosition));
-                if (res[0][1] <= mini) {
-                    nextPosition = pos;
-                    mini = res[0][1];
-                }
-            }
-        } else
-            nextPosition = nextPositions[0];
-
-
-        let p = [nextPosition[0] - this.botPosition[0], nextPosition[1] - this.botPosition[1]];
-        let c = (3 * p[0] + p[1]) + 3;
-        //return this.moves[c+(this.init-this.previous+6)%6]
-        return nextPosition;
-    }
- */
-
-
 export function setup(playersState) {
     return new Promise((resolve) => {
+        round = 0;
         createBoard(9, 16);
         createGraph();
         updatePlayerState(playersState);
@@ -297,14 +299,10 @@ export function setup(playersState) {
 }
 
 export function nextMove(playersState) {
-    console.log("Next Round");
     return new Promise((resolve) => {
+        round++;
         updatePlayerState(playersState);
-        resolve(getNextMove());
+        let nextMove = getNextMove();
+        resolve(nextMove);
     });
 }
-
-/*
-exports.setup = setup;
-exports.nextMove = nextMove;
- */
