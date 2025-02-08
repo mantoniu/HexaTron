@@ -7,13 +7,7 @@ export class ModeSelector extends Component {
         super();
 
         CustomButton.register();
-        this.gameCreationListener();
-    }
-
-    gameCreationListener() {
-        GameService.getInstance().on(GameStatus.CREATED, () => {
-            window.dispatchEvent(new CustomEvent("navigate", {detail: {route: "/game"}}));
-        });
+        this._gameCreatedHandler = null;
     }
 
     async connectedCallback() {
