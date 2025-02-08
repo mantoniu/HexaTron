@@ -120,8 +120,8 @@ function maxWallsHeuristic() {
     if (res !== null) {
         return res;
     } else {
-        //The Bot is not supposed to go here
-        return DISPLACEMENT_FUNCTIONS[Math.floor(Math.random() * DISPLACEMENT_FUNCTIONS.length)](botPosition);
+        //If the bot arrive it this situation, it is surrounded and can't move anymore
+        return DISPLACEMENT_FUNCTIONS[(previous + 3) % 6](botPosition);
     }
 }
 
@@ -131,6 +131,7 @@ function getNextMove() {
     let moveInActualConfiguration = (3 * deltaPositions[0] + deltaPositions[1]) + 3 + ((deltaPositions[0] !== 0 && botPosition[0] % 2 !== 0) ? 1 : 0);
     let indexMoveInDefaultConfiguration = ((dictMovesIndex[moveInActualConfiguration] + (init - previous)) + 6) % 6;
     previous = ((dictMovesIndex[moveInActualConfiguration] - 3) + 6) % 6;
+    console.log(botPosition, nextPosition, moves[indexMoveInDefaultConfiguration]);
     return moves[indexMoveInDefaultConfiguration];
 }
 
