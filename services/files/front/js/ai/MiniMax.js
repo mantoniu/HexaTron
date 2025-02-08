@@ -171,81 +171,89 @@ function voronoiHeuristic(botPosition, opponentPosition) {
 function miniMax(maxDepth) {
     let position = JSON.stringify([tabPosToGraph(_botPosition), tabPosToGraph(_opponentPosition)]);
 
+    if (concentricPath(_botPosition, 1, possiblePosition).filter(x => x).length === 0) {
+        return [tabPosToGraph(DISPLACEMENT_FUNCTIONS[(previous + 3) % 6](_botPosition)), tabPosToGraph(_opponentPosition)];
+    }
+
     tree = {};
     tree[position] = {"Parent": null, "Childs": [], "Score": -Infinity, "Next Position": null, "Depth": 0, "Visited": 0};
 
-    let queue = [position];
+    let stack = [position];
     let elementsToRestore = {};
-    while (queue.length > 0) {
+    while (stack.length > 0) {
         // If the positions of both players are the same, it is not a good move.
-        if (JSON.parse(queue[queue.length - 1])[0] === JSON.parse(queue[queue.length - 1])[1]) {
-            tree[queue[queue.length - 1]].Score = ((tree[queue[queue.length - 1]].depth) % 2 === 0 ? Infinity : -Infinity);
-            queue.pop();
+        if (JSON.parse(stack[stack.length - 1])[0] === JSON.parse(stack[stack.length - 1])[1]) {
+            tree[stack[stack.length - 1]].Score = ((tree[stack[stack.length - 1]].depth) % 2 === 0 ? Number.MAX_VALUE : -Number.MAX_VALUE);
+            stack.pop();
         }
         // Otherwise, the children of the current node in the tree are created according to the possible positions around the current one to be evaluated.
-        else if (tree[queue[queue.length - 1]].Depth !== maxDepth && tree[queue[queue.length - 1]].Visited < 1) {
-            let depth = tree[queue[queue.length - 1]].Depth;
+        else if (tree[stack[stack.length - 1]].Depth !== maxDepth && tree[stack[stack.length - 1]].Visited < 1) {
+            let depth = tree[stack[stack.length - 1]].Depth;
 
-            let children = [...Array.from(graph[JSON.parse(queue[queue.length - 1])[depth % 2]]).map(
+            let children = [...Array.from(graph[JSON.parse(stack[stack.length - 1])[depth % 2]]).map(
                 el => {
                     if (depth % 2 === 0)
-                        return JSON.stringify([el, JSON.parse(queue[queue.length - 1])[1]]);
+                        return JSON.stringify([el, JSON.parse(stack[stack.length - 1])[1]]);
                     else
-                        return JSON.stringify([JSON.parse(queue[queue.length - 1])[0], el]);
+                        return JSON.stringify([JSON.parse(stack[stack.length - 1])[0], el]);
                 })
             ];
 
             for (const child of children) {
                 tree[child] = {
-                    "Parent": queue[queue.length - 1],
+                    "Parent": stack[stack.length - 1],
                     "Childs": [],
                     "Score": ((depth + 1) % 2 === 0 ? -Infinity : Infinity),
                     "Next Position": null,
-                    "Depth": tree[queue[queue.length - 1]].Depth + 1,
+                    "Depth": tree[stack[stack.length - 1]].Depth + 1,
                     "Visited": 0
                 };
             }
 
-            tree[queue[queue.length - 1]].Childs = children;
-            tree[queue[queue.length - 1]].Visited = 1;
+            tree[stack[stack.length - 1]].Childs = children;
+            tree[stack[stack.length - 1]].Visited = 1;
 
             // The neighbors of the current position are stored to restore the graph representation of the board's status later.
-            elementsToRestore[JSON.parse(queue[queue.length - 1])[depth % 2]] = graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
+            elementsToRestore[JSON.parse(stack[stack.length - 1])[depth % 2]] = graph[JSON.parse(stack[stack.length - 1])[depth % 2]];
 
             // The current node's position is deleted from the graph representation of the board's status because, after this move, it is no longer accessible.
-            for (const p of graph[JSON.parse(queue[queue.length - 1])[depth % 2]]) {
-                graph[p].delete(JSON.parse(queue[queue.length - 1])[depth % 2]);
+            for (const p of graph[JSON.parse(stack[stack.length - 1])[depth % 2]]) {
+                graph[p].delete(JSON.parse(stack[stack.length - 1])[depth % 2]);
             }
-            delete graph[JSON.parse(queue[queue.length - 1])[depth % 2]];
-            queue = queue.concat(children);
+            delete graph[JSON.parse(stack[stack.length - 1])[depth % 2]];
+            stack = stack.concat(children);
         } else {
 
-            if (tree[queue[queue.length - 1]].Depth === maxDepth) {
-                tree[queue[queue.length - 1]].Score = evaluation(JSON.parse(queue[queue.length - 1]), tree[queue[queue.length - 1]].Depth);
+            if (tree[stack[stack.length - 1]].Depth === maxDepth) {
+                tree[stack[stack.length - 1]].Score = evaluation(JSON.parse(stack[stack.length - 1]));//, tree[queue[queue.length - 1]].Depth);
             } else {
-                for (const child of tree[queue[queue.length - 1]].Childs) {
-                    if (tree[queue[queue.length - 1]].Depth % 2 === 0 && tree[queue[queue.length - 1]].Score < tree[child].Score) {
-                        tree[queue[queue.length - 1]].Score = tree[child].Score;
-                        tree[queue[queue.length - 1]]["Next Position"] = child;
-                    } else if (tree[queue[queue.length - 1]].Depth % 2 === 1 && tree[queue[queue.length - 1]].Score > tree[child].Score) {
-                        tree[queue[queue.length - 1]].Score = tree[child].Score;
-                        tree[queue[queue.length - 1]]["Next Position"] = child;
+                for (const child of tree[stack[stack.length - 1]].Childs) {
+                    if (tree[stack[stack.length - 1]].Depth % 2 === 0 && tree[stack[stack.length - 1]].Score < tree[child].Score) {
+                        tree[stack[stack.length - 1]].Score = tree[child].Score;
+                        tree[stack[stack.length - 1]]["Next Position"] = child;
+                    } else if (tree[stack[stack.length - 1]].Depth % 2 === 1 && tree[stack[stack.length - 1]].Score > tree[child].Score) {
+                        tree[stack[stack.length - 1]].Score = tree[child].Score;
+                        tree[stack[stack.length - 1]]["Next Position"] = child;
                     }
                     delete tree[child];
                 }
 
                 // Restoration of the graph representing the board's status before the position was added to the tree.
-                let restore = elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
-                let key = JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2];
+                let restore = elementsToRestore[JSON.parse(stack[stack.length - 1])[tree[stack[stack.length - 1]].Depth % 2]];
+                let key = JSON.parse(stack[stack.length - 1])[tree[stack[stack.length - 1]].Depth % 2];
 
-                delete elementsToRestore[JSON.parse(queue[queue.length - 1])[tree[queue[queue.length - 1]].Depth % 2]];
+                delete elementsToRestore[JSON.parse(stack[stack.length - 1])[tree[stack[stack.length - 1]].Depth % 2]];
 
                 graph[key] = restore;
                 for (const restoreKey of restore) {
                     graph[restoreKey].add(key);
                 }
+
+                if (tree[stack[stack.length - 1]].Childs.length === 0) {
+                    tree[stack[stack.length - 1]].Score = evaluation(JSON.parse(stack[stack.length - 1]));
+                }
             }
-            queue.pop();
+            stack.pop();
         }
 
     }
@@ -274,9 +282,6 @@ function updatePlayerState(playersState) {
 
 function getNextMove() {
     let resMinimax = miniMax(5);
-    if (resMinimax === null) {
-        return "KEEP_GOING";
-    }
     let nextPosition = graphToTabPos(resMinimax[0]);
     let deltaPositions = [nextPosition[0] - _botPosition[0], nextPosition[1] - _botPosition[1]];
     let moveInActualConfiguration = (3 * deltaPositions[0] + deltaPositions[1]) + 3 + ((deltaPositions[0] !== 0 && _botPosition[0] % 2 !== 0) ? 1 : 0);
