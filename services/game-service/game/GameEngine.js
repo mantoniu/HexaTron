@@ -218,8 +218,13 @@ class GameEngine {
         return this._disconnectedPlayers.size === nonAIPlayers.length;
     }
 
+    async wait(delay = 5000) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
     async start() {
-        for (let round = 0; (round < this._game.roundsCount) && !this.endGame(); round++) {
+        await this.wait(1000);
+        for (let round = 0; (round < this._game.roundsCount) && !this.isGameEmpty(); round++) {
             const result = await this.runRound();
             this.emitGameUpdate({status: ROUND_END, data: result});
             this._game.resetBoard();
