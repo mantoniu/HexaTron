@@ -1,5 +1,6 @@
 import {Component} from '../component/component.js';
 import {CustomButton} from "../custom-button/custom-button.js";
+import {GameService, GameStatus} from "../../services/game-service.js";
 
 export class ModeSelector extends Component {
     constructor() {
@@ -18,7 +19,14 @@ export class ModeSelector extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.shadowRoot.getElementById("friendly").addEventListener("click",
-            () => window.location.assign("/components/game-page/game-page.html"));
+        setTimeout(() => {
+            this.shadowRoot.querySelectorAll("custom-button").forEach(button => {
+                button.addEventListener("click", () => {
+                    const gameType = Number(button.getAttribute("game-type"));
+
+                    GameService.getInstance().startGame(gameType, 9, 16, 3, 2);
+                });
+            });
+        }, 0);
     }
 }
