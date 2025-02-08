@@ -24,7 +24,6 @@ const activeGames = new Map(); // { gameId => { game-component: GameEngine, play
 const socketGameId = new Map(); // socketId -> gameId
 
 function handleEvent(gatewaySocket, gameId, eventName, eventData) {
-    console.log(gameId, eventName, eventData);
     if (!activeGames.has(gameId))
         return;
 
