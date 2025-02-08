@@ -1,3 +1,8 @@
+const PlayerType = {
+    NORMAL: 0,
+    AI: 1,
+};
+
 class Player {
     constructor(id, name, socketId) {
         this._id = id;
@@ -5,8 +10,8 @@ class Player {
         this._socketId = socketId;
     }
 
-    get color() {
-        return this._color;
+    get playerType() {
+        return PlayerType.NORMAL;
     }
 
     get id() {
@@ -22,4 +27,4 @@ class Player {
     }
 }
 
-module.exports = Player;
+module.exports = {Player, PlayerType};

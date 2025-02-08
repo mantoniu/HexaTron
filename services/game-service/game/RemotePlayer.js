@@ -1,4 +1,4 @@
-const Player = require("./Player.js");
+const {Player} = require("./Player.js");
 
 class RemotePlayer extends Player {
     constructor(id, name, profilePicturePath) {
@@ -16,7 +16,6 @@ class RemotePlayer extends Player {
     }
 
     resolveMove(move) {
-        console.log("MOVE", move);
         if (this._currentResolve) {
             this._currentResolve(move);
             this._currentResolve = null;
