@@ -39,13 +39,11 @@ class GameEngine {
     initGame(users, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
         let players = Object.fromEntries(users.map(user => [user.id, new RemotePlayer(user.id, user.name, user.socketId)]));
 
-        for (let i = users.length; i < playersCount; i++) {
-            players[`${i}`] = createPlayer(
-                gameType,
-                `${i}`,
-                user.parameters.playersColors[i],
-                gameType === GameType.LOCAL ? user.parameters.keys[i] : null
-            );
+        if (gameType === GameType.AI) {
+            for (let i = users.length; i < playersCount; i++) {
+                let id = crypto.randomUUID();
+                players[id] = new MinMaxAI(id, `MinMaxAI ${i}`);
+            }
         }
 
         this._game = new Game(gameType, rowNumber, columnNumber, players, roundsCount);
