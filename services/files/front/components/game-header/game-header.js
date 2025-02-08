@@ -7,19 +7,14 @@ export class GameHeader extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        const resizeCanvasFunction = () => {
-            resizeCanvas.call(
-                this,
-                0.2,
-                1,
-                "header",
-                () => GameService.getInstance().draw()
-            );
+        this.resizeCanvasFunction = () => {
+            resizeCanvas.call(this, 0.2, 1, "header", () => this.draw(this));
         };
 
-        resizeCanvasFunction();
+        this.resizeCanvasFunction();
 
-        window.addEventListener("resize", resizeCanvasFunction);
+        this.receiveData(GameService.getInstance().game.players);
+        window.addEventListener("resize", this.resizeCanvasFunction);
     }
 
     disconnectedCallback() {
@@ -82,7 +77,7 @@ export class GameHeader extends Component {
 
             waitForElm(this, "pp-player" + n).then((element) => {
                 if (element) {
-                    element.src = players[ids[k]]._profilePicturePath ?? "../../assets/profile.svg";
+                    element.src = "../../assets/profile.svg";
                 }
             });
         }
