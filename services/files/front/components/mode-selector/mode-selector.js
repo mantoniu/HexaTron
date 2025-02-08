@@ -28,5 +28,6 @@ export class ModeSelector extends Component {
                 });
             });
         }, 0);
+            this.addAutoCleanListener(button, 'click', handler);
     }
 }

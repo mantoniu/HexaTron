@@ -14,11 +14,7 @@ export class GameHeader extends Component {
         this.resizeCanvasFunction();
 
         this.receiveData(GameService.getInstance().game.players);
-        window.addEventListener("resize", this.resizeCanvasFunction);
-    }
-
-    disconnectedCallback() {
-        window.removeEventListener("resize", this.resizeCanvasFunction);
+        this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
     }
 
     calculateUtils() {
