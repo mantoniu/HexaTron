@@ -11,9 +11,8 @@ export const GameType = {
 };
 
 export class Game {
-    constructor(type, rowNumber, columnNumber, players, roundsCount, context) {
+    constructor(type, rowNumber, columnNumber, players, roundsCount) {
         this._id = null;
-        this._context = context;
         this._type = type;
         this._board = new Board(rowNumber, columnNumber);
         this._players = players;
@@ -31,6 +30,10 @@ export class Game {
 
     get players() {
         return this._players;
+    }
+
+    set players(players) {
+        this._players = players;
     }
 
     get roundsCount() {
@@ -67,7 +70,10 @@ export class Game {
         return displacementResults.find(({result}) => result.equals(newPosition)).index;
     }
 
-    refreshBoard(playersPosition) {
+    refreshBoard(playersPosition, context) {
+        if (!context)
+            return;
+
         Object.entries(playersPosition).forEach(([player, position], i) => {
             const curPosition = new Position(...Object.values(position));
             const prevPosition = this._playersPositions[player];
@@ -76,7 +82,7 @@ export class Game {
                 prevPosition,
                 curPosition,
                 CURRENT_USER.parameters.playersColors[i],
-                this._context,
+                context,
                 this.obtainDirection(prevPosition, curPosition)
             );
 
@@ -97,14 +103,17 @@ export class Game {
         return this._board;
     }
 
-    resetBoard() {
+    resetBoard(context) {
         this._board.initialize();
-        this._context.reset();
-        this.draw();
+        context.reset();
+        this.draw(context);
     }
 
-    draw() {
-        this.board.draw(this._context);
+    draw(context) {
+        if (!context)
+            return;
+
+        this.board.draw(context);
     }
 
     generatePossibleStartPositions() {
