@@ -3,6 +3,7 @@ const createPlayer = require("./PlayerFactory.js");
 const RemotePlayer = require("./RemotePlayer.js");
 const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils.js");
 const PlayerState = require("./PlayerState.js");
+const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
 
 class GameEngine {
     constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, eventHandler, choiceTimeout = 250, setupTimeout = 1000) {
@@ -92,7 +93,7 @@ class GameEngine {
         this._game.setPlayersStartPositions();
 
         this.emitGameUpdate({
-            status: "newPositions",
+            status: POSITIONS_UPDATED,
             data: {newPositions: this.game.playersPositions}
         });
 
@@ -211,10 +212,10 @@ class GameEngine {
     async start() {
         for (let round = 0; (round < this._game.roundsCount) && !this.endGame(); round++) {
             const result = await this.runRound();
-            this.emitGameUpdate({status: "roundEnd", data: result});
-            this._game.resetBoard(this._canvas);
+            this.emitGameUpdate({status: ROUND_END, data: result});
+            this._game.resetBoard();
         }
-        this.emitGameUpdate({status: "end"});
+        this.emitGameUpdate({status: GAME_END});
     }
 
     async runRound() {
@@ -235,7 +236,7 @@ class GameEngine {
             }
 
             this.emitGameUpdate({
-                status: "newPositions",
+                status: POSITIONS_UPDATED,
                 data: {newPositions: this.game.playersPositions}
             });
 
