@@ -1,16 +1,17 @@
 import {AI} from "./AI.js";
-import {nextMove, setup} from "./MiniMax.js";
+import {MiniMaxClass} from "./MiniMaxClass.js";
 
 export class MiniMaxAI extends AI {
     constructor(id, name, color) {
         super(id, name, color, "../../assets/bot.svg", false);
+        this.bot = new MiniMaxClass();
     }
 
     setup(playerState) {
-        return setup(playerState);
+        return this.bot.setup(playerState);
     }
 
     nextMove(playerState) {
-        return nextMove(playerState);
+        return this.bot.nextMove(playerState);
     }
 }
