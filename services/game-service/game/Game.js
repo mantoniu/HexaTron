@@ -82,14 +82,14 @@ class Game {
         if (playersLength < 1 || playersLength > 4)
             throw new Error("Unsupported number of players.");
 
-        let resultDict = {};
-        let possiblesPositions = this.generatePossibleStartPositions();
+        let possiblePositions = this.generatePossibleStartPositions();
+        let playerIds = Object.keys(this.players);
 
-        for (let i = 0; i < playersLength; i++)
-            resultDict[this.players[i].id] = possiblesPositions[i];
-
-        this.playersPositions = resultDict;
+        this.playersPositions = Object.fromEntries(
+            playerIds.map((playerId, index) => [playerId, possiblePositions[index]])
+        );
     }
+
 }
 
 module.exports = {Game, GameType};
