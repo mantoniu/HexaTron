@@ -96,6 +96,9 @@ export class Board {
     }
 
     update(prevPosition, nextPosition, color, context, direction) {
+        if (!context)
+            return;
+
         this.fillTile(nextPosition, color, direction, context, true);
 
         if (prevPosition)
