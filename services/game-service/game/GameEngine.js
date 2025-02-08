@@ -1,5 +1,4 @@
 const {GameType, Game} = require("./Game.js");
-const createPlayer = require("./PlayerFactory.js");
 const RemotePlayer = require("./RemotePlayer.js");
 const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils.js");
 const PlayerState = require("./PlayerState.js");
@@ -209,11 +208,14 @@ class GameEngine {
 
     disconnectPlayer(playerId) {
         this._disconnectedPlayers.add(playerId);
-        return this.endGame();
+        return this.isGameEmpty();
     }
 
-    endGame() {
-        return this._disconnectedPlayers.size === Object.keys(this.game.players).length;
+    isGameEmpty() {
+        const nonAIPlayers = Object.values(this.game.players)
+            .filter(player => player.playerType !== PlayerType.AI);
+
+        return this._disconnectedPlayers.size === nonAIPlayers.length;
     }
 
     async start() {
