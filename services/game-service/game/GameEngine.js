@@ -3,6 +3,8 @@ const createPlayer = require("./PlayerFactory.js");
 const RemotePlayer = require("./RemotePlayer.js");
 const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils.js");
 const PlayerState = require("./PlayerState.js");
+const MinMaxAI = require("./ai/MinMaxAI");
+const {PlayerType} = require("./Player");
 const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
 
 class GameEngine {
@@ -16,12 +18,14 @@ class GameEngine {
         this._disconnectedPlayers = new Set();
 
         switch (gameType) {
-            case GameType.LOCAL:
             case GameType.AI:
+            case GameType.LOCAL:
                 this.initGame(users, gameType, playersCount, rowNumber, columnNumber, roundsCount);
                 break;
             default:
-                throw new Error(`The ${gameType} game type is not yet supported.`);
+                throw {
+                    message: `The game type ${gameType} is not yet supported`
+                };
         }
     }
 
@@ -38,6 +42,9 @@ class GameEngine {
     }
 
     initGame(users, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
+        if (users.length > playersCount)
+            throw new Error(`Too many users for this game. Maximum allowed: ${playersCount}, received: ${users.length}`);
+
         let players = Object.fromEntries(users.map(user => [user.id, new RemotePlayer(user.id, user.name, user.socketId)]));
 
         if (gameType === GameType.AI) {
