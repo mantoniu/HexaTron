@@ -40,7 +40,7 @@ function getLowerRightPosition(position) {
     ];
 }
 
-export const DISPLACEMENT_FUNCTIONS = [
+const DISPLACEMENT_FUNCTIONS = [
     getUpperLeftPosition,
     getUpperRightPosition,
     getRightPosition,
@@ -49,6 +49,8 @@ export const DISPLACEMENT_FUNCTIONS = [
     getLeftPosition
 ];
 
-export function neighbour(position, side) {
+function neighbour(position, side) {
     return DISPLACEMENT_FUNCTIONS[side](position);
 }
+
+module.exports = {DISPLACEMENT_FUNCTIONS, neighbour};

@@ -1,10 +1,10 @@
-const {GameType, Game} = require("./Game.js");
-const RemotePlayer = require("./RemotePlayer.js");
-const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils.js");
-const PlayerState = require("./PlayerState.js");
-const MinMaxAI = require("./ai/MinMaxAI");
+const {GameType, Game} = require("./Game");
+const RemotePlayer = require("./RemotePlayer");
+const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils");
+const PlayerState = require("./PlayerState");
 const {PlayerType} = require("./Player");
 const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
+const MiniMaxAI = require("./ai/MiniMaxAI");
 
 class GameEngine {
     constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, eventHandler, choiceTimeout = 250, setupTimeout = 1000) {
@@ -49,7 +49,7 @@ class GameEngine {
         if (gameType === GameType.AI) {
             for (let i = users.length; i < playersCount; i++) {
                 let id = crypto.randomUUID();
-                players[id] = new MinMaxAI(id, `MinMaxAI ${i}`);
+                players[id] = new MiniMaxAI(id, `MinMaxAI ${i}`);
             }
         }
 

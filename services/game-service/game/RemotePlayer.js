@@ -1,4 +1,4 @@
-const {Player} = require("./Player.js");
+const {Player} = require("./Player");
 
 class RemotePlayer extends Player {
     constructor(id, name) {
