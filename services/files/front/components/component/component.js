@@ -2,6 +2,7 @@ export class Component extends HTMLElement {
     constructor() {
         super();
 
+        this._listeners = new Set();
         this.attachShadow({ mode: 'open' });
     }
 
@@ -48,5 +49,17 @@ export class Component extends HTMLElement {
             <style>${css}</style>
             ${html}
         `;
+    }
+
+    addAutoCleanListener(target, event, handler) {
+        target.addEventListener(event, handler);
+        this._listeners.add({target, event, handler});
+    }
+
+    disconnectedCallback() {
+        this._listeners.forEach(({target, event, handler}) => {
+            target.removeEventListener(event, handler);
+        });
+        this._listeners.clear();
     }
 }

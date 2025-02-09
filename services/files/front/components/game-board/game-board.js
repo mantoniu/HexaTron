@@ -1,33 +1,21 @@
 import {Component} from "../component/component.js";
-import {GameEngine} from "../../js/game/GameEngine.js";
-import {CURRENT_USER} from "../../js/UserMock.js";
-import {GameType} from "../../js/game/Game.js";
 import {resizeCanvas} from "../../js/Utils.js";
-
+import {GameService} from "../../services/game-service.js";
 
 export class GameBoard extends Component {
     async connectedCallback() {
         await super.connectedCallback();
         const canvas = this.shadowRoot.getElementById("board");
-        const context = canvas.getContext("2d");
-        this.gameEngine = new GameEngine([CURRENT_USER], GameType.AI, 9, 16, 3, 2, context);
+        GameService.getInstance().context = canvas.getContext("2d");
 
-        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.85, 0.80, "board", this.gameEngine.draw, this.gameEngine);
-        this.resizeCanvasFunction.call();
+        this.resizeCanvasFunction = () => {
+            resizeCanvas.call(this, 0.85, 0.80, "board",
+                () => GameService.getInstance().draw()
+            );
+        };
 
-        window.addEventListener("resize", this.resizeCanvasFunction);
+        this.resizeCanvasFunction();
 
-        const event = new CustomEvent("game-created", {
-            bubbles: true,
-            detail: { players: this.gameEngine._game.players }
-        });
-
-        this.dispatchEvent(event);
-
-        await this.gameEngine.start();
-    }
-
-    disconnectedCallback() {
-        window.removeEventListener("resize", this.resizeCanvasFunction);
+        this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
     }
 }

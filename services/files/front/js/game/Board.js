@@ -21,12 +21,12 @@ export class Board {
         return this._column + 2;
     }
 
-    getTitle(position) {
+    getTile(position) {
         return this._tiles[position.row][position.column];
     }
 
-    setTitleStatus(position, status) {
-        this.getTitle(position).status = status;
+    setTileStatus(position, status) {
+        this.getTile(position).status = status;
     }
 
     initialize() {
@@ -41,16 +41,6 @@ export class Board {
             }
             this._tiles.push(line);
         }
-    }
-
-    checkPositionValidity(position) {
-        return (
-            position.row > 0 &&
-            position.row <= this.rowCount &&
-            position.column > 0 &&
-            position.column <= this.columnCount - (position.row % 2 === 0 ? 1 : 0) &&
-            this.getTitle(position).status === Status.VACANT
-        );
     }
 
     calculateUtils(context) {
@@ -92,15 +82,18 @@ export class Board {
 
     fillTile(pos, color, direction, context, drawBike) {
         let dPos = [this._utils.gapX + this._utils.dx * (pos.column - (pos.row % 2 === 1 ? 0.5 : 0)), this._utils.gapY + this._utils.dy * (pos.row - 1)];
-        this.getTitle(pos).fill(dPos, this._utils.size, context, color, direction, drawBike);
+        this.getTile(pos).fill(dPos, this._utils.size, context, color, direction, drawBike);
     }
 
     update(prevPosition, nextPosition, color, context, direction) {
+        if (!context)
+            return;
+
         this.fillTile(nextPosition, color, direction, context, true);
 
         if (prevPosition)
             this.fillTile(prevPosition, color, direction, context, false);
 
-        this.setTitleStatus(nextPosition, Status.TAKEN);
+        this.setTileStatus(nextPosition, Status.TAKEN);
     }
 }

@@ -1,4 +1,4 @@
-export class PlayerState {
+class PlayerState {
     constructor(playerPosition, opponentPosition) {
         this._playerPosition = playerPosition;
         this._opponentPosition = opponentPosition;
@@ -12,3 +12,5 @@ export class PlayerState {
         return this._opponentPosition;
     }
 }
+
+module.exports = PlayerState;

@@ -1,13 +1,15 @@
 {
-  "name": "fileserver",
+  "name": "game-service",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "back/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./index.js"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "",
+  "dependencies": {
+    "socket.io": "^4.7.4"
+  }
 }

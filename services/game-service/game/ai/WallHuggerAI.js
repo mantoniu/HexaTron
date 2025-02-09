@@ -1,9 +1,9 @@
-import {AI} from "./AI.js";
-import {DISPLACEMENT_FUNCTIONS, neighbour} from "./AIUtils.js";
+const AI = require("AI");
+const {DISPLACEMENT_FUNCTIONS, neighbour} = require("AIUtils");
 
-export class WallHuggerAI extends AI {
-    constructor(id, name, color) {
-        super(id, name, color, "../../assets/bot.svg", false);
+class WallHuggerAI extends AI {
+    constructor(id, name) {
+        super(id, name);
     }
 
     wallAround(position) {
@@ -56,3 +56,5 @@ export class WallHuggerAI extends AI {
         });
     }
 }
+
+module.exports = WallHuggerAI;

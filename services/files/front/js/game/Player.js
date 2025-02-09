@@ -1,17 +1,7 @@
 export class Player {
-    constructor(id, name, color, keyConfiguration, profilePicturePath) {
+    constructor(id, name) {
         this._id = id;
-        this._color = color;
         this._name = name;
-        this._profilePicturePath = profilePicturePath;
-    }
-
-    get profilePicturePath() {
-        return this._profilePicturePath;
-    }
-
-    get color() {
-        return this._color;
     }
 
     get id() {

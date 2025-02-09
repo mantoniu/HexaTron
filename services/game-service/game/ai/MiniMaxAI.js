@@ -1,10 +1,9 @@
-import {AI} from "./AI.js";
-import {DISPLACEMENT_FUNCTIONS} from "./AIUtils.js";
+const AI = require("./AI");
+const {DISPLACEMENT_FUNCTIONS} = require("./AIUtils");
 
-export class MiniMaxAI extends AI {
-
-    constructor(id, name, color) {
-        super(id, name, color, "../../assets/bot.svg", false);
+class MiniMaxAI extends AI {
+    constructor(id, name) {
+        super(id, name);
         this.graph = {};
         this.tree = {};
         this.round = 0;
@@ -206,3 +205,5 @@ export class MiniMaxAI extends AI {
         });
     }
 }
+
+module.exports = MiniMaxAI;
