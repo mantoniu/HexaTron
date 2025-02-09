@@ -25,16 +25,10 @@ export const User = {
         minLength: 3,
         maxLength: 100
     },
-    email: {
-        bsonType: "string",
-        pattern: "^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$"
-    },
-    age: {
-        bsonType: "int",
-        minimum: 18,
-        maximum: 120
-    },
     parameters: {
         bsonType: Parameters
+    },
+    password: {
+        bsonType: "string"
     }
 };
