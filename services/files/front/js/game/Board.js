@@ -43,16 +43,6 @@ export class Board {
         }
     }
 
-    checkPositionValidity(position) {
-        return (
-            position.row > 0 &&
-            position.row <= this.rowCount &&
-            position.column > 0 &&
-            position.column <= this.columnCount - (position.row % 2 === 0 ? 1 : 0) &&
-            this.getTile(position).status === Status.VACANT
-        );
-    }
-
     calculateUtils(context) {
         let width = context.canvas.clientWidth;
         let height = context.canvas.clientHeight;
