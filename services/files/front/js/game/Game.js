@@ -1,5 +1,4 @@
 import {Board} from "./Board.js";
-import {getRandomInt} from "../Utils.js";
 import {Position} from "./Position.js";
 import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
 import {CURRENT_USER} from "../UserMock.js";
@@ -114,61 +113,5 @@ export class Game {
             return;
 
         this.board.draw(context);
-    }
-
-    generatePossibleStartPositions() {
-        let possibleRows = [];
-
-        for (let i = 1; i < this.board.rowCount; i += 2)
-            possibleRows.push(i);
-
-        const firstPlayerPos = new Position(possibleRows[getRandomInt(possibleRows.length)], 1);
-        const secondPlayerPos = new Position(
-            this.board.rowCount - firstPlayerPos.row - 1,
-            this.board.columnCount - 2
-        );
-        const thirdPlayerPos = new Position(secondPlayerPos.row, 1);
-        const fourthPlayerPos = new Position(firstPlayerPos.row, this.board.columnCount - 2);
-
-        return [firstPlayerPos, secondPlayerPos, thirdPlayerPos, fourthPlayerPos];
-    }
-
-    setPlayersStartPositions() {
-        let playersLength = Object.keys(this.players).length;
-        if (playersLength < 1 || playersLength > 4)
-            throw new Error("Unsupported number of players.");
-
-        let resultDict = {};
-        let possiblesPositions = this.generatePossibleStartPositions();
-
-        for (let i = 0; i < playersLength; i++)
-            resultDict[this.players[i].id] = possiblesPositions[i];
-
-        this.playersPositions = resultDict;
-    }
-
-    printRoundEndResults(name) {
-        console.log(`The winner of this round is: ${name}!`);
-    }
-
-    printTiesResults(ties) {
-        const message = ties
-            .map(tie => "There is a tie between players: " + [...tie].join(", "))
-            .join("\n");
-
-        console.log(message);
-    }
-
-    printResults(result) {
-        switch (result.status) {
-            case "tie":
-                this.printTiesResults(result.ties);
-                break;
-            case "winner":
-                this.printRoundEndResults(result.winner);
-                break;
-            default:
-                throw Error(`The status ${result.status} is not yet supported`);
-        }
     }
 }
