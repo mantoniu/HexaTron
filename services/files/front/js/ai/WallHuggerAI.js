@@ -39,7 +39,6 @@ export class WallHuggerAI extends AI {
         return this.getMoveFromPosition(this.maxWallsHeuristic());
     }
 
-
     setup(playersState) {
         return new Promise((resolve) => {
             this.createBoard(9, 16);

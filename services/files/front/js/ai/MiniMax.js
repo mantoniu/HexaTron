@@ -124,7 +124,6 @@ function graphToTabPos(position) {
     return [~~(position / column), position % column];
 }
 
-
 function voronoiHeuristic(botPosition, opponentPosition) {
     let sameComponent = false;
     let results = [0, 0];
