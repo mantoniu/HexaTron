@@ -1,8 +1,8 @@
-import { Parameters } from "./Parameters.js";
-import { User } from "./User.js";
+import {Parameters} from "./Parameters.js";
+import {User} from "./User.js";
 
 export const CURRENT_USER = new User(
-    "1",
+    "0",
     "John Doe",
     "",
     new Parameters()

@@ -1,9 +1,9 @@
-import {Player} from "../game/Player.js";
-import {neighbour} from "./AIUtils.js";
+const {neighbour} = require("./AIUtils");
+const {Player} = require("../Player");
 
-export class AI extends Player {
-    constructor(id, name, color) {
-        super(id, name, color, null, null);
+class AI extends Player {
+    constructor(id, name) {
+        super(id, name);
         this.board = [];
         this.column = 0;
         this.row = 0;
@@ -73,3 +73,5 @@ export class AI extends Player {
         return this.moves[indexMoveInDefaultConfiguration];
     }
 }
+
+module.exports = AI;

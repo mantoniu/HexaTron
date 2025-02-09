@@ -1,36 +1,56 @@
-import {Game, GameType} from "./Game.js";
-import {defaultMovementsMapping, Directions, DISPLACEMENT_FUNCTIONS, MovementTypes} from "./GameUtils.js";
-import {PlayerFactory} from "./PlayerFactory.js";
-import {PlayerState} from "../ai/PlayerState.js";
-import {LocalPlayer} from "./LocalPlayer.js";
+const {GameType, Game} = require("./Game");
+const RemotePlayer = require("./RemotePlayer");
+const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils");
+const PlayerState = require("./PlayerState");
+const {PlayerType} = require("./Player");
+const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
+const MiniMaxAI = require("./ai/MiniMaxAI");
 
-export class GameEngine {
-    constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, context, choiceTimeout = 250, setupTimeout = 1000) {
-        this._canvas = context;
+class GameEngine {
+    constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, eventHandler, choiceTimeout = 250, setupTimeout = 1000) {
+        this._eventHandler = eventHandler;
+        this._id = crypto.randomUUID();
+        this._playersCount = playersCount;
         this._choiceTimeout = choiceTimeout;
         this._setupTimeout = setupTimeout;
         this._remainingPlayers = {};
+        this._disconnectedPlayers = new Set();
 
         switch (gameType) {
-            case GameType.LOCAL:
             case GameType.AI:
-                this.initGame(users[0], gameType, playersCount, rowNumber, columnNumber, roundsCount);
+            case GameType.LOCAL:
+                this.initGame(users, gameType, playersCount, rowNumber, columnNumber, roundsCount);
                 break;
             default:
-                throw new Error(`The ${gameType} game type is not yet supported.`);
+                throw {
+                    message: `The game type ${gameType} is not yet supported`
+                };
         }
     }
 
-    initGame(user, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
-        let players = {["0"]: new LocalPlayer("0", user.name, user.parameters.playersColors[0], null, user.parameters.keys[0])};
+    get id() {
+        return this._id;
+    }
 
-        for (let i = 1; i < playersCount; i++) {
-            players[`${i}`] = PlayerFactory.createPlayer(
-                gameType,
-                `${i}`,
-                user.parameters.playersColors[i],
-                gameType === GameType.LOCAL ? user.parameters.keys[i] : null
-            );
+    get playersCount() {
+        return this._playersCount;
+    }
+
+    get game() {
+        return this._game;
+    }
+
+    initGame(users, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
+        if (users.length > playersCount)
+            throw new Error(`Too many users for this game. Maximum allowed: ${playersCount}, received: ${users.length}`);
+
+        let players = Object.fromEntries(users.map(user => [user.id, new RemotePlayer(user.id, user.name, user.socketId)]));
+
+        if (gameType === GameType.AI) {
+            for (let i = users.length; i < playersCount; i++) {
+                let id = crypto.randomUUID();
+                players[id] = new MiniMaxAI(id, `MinMaxAI ${i}`);
+            }
         }
 
         this._game = new Game(gameType, rowNumber, columnNumber, players, roundsCount);
@@ -77,7 +97,12 @@ export class GameEngine {
 
     async initialize() {
         this._game.setPlayersStartPositions();
-        this._game.draw(this._canvas);
+
+        this.emitGameUpdate({
+            status: POSITIONS_UPDATED,
+            data: {newPositions: this.game.playersPositions}
+        });
+
         this._remainingPlayers = {...this._game.players};
 
         this.initializePlayersDirections();
@@ -93,25 +118,11 @@ export class GameEngine {
             );
 
             setupPromises.push(setupPromise.then(() => {
-                this._game.board.update(
-                    null,
-                    playerPosition,
-                    player.color,
-                    this._canvas,
-                    this._playersMovements[player.id][MovementTypes.KEEP_GOING]
-                );
+                this._game.setPlayerPosition(player.id, playerPosition);
             }));
         }
 
         await Promise.all(setupPromises);
-    }
-
-    async start() {
-        for (let round = 0; round < this._game.roundsCount; round++) {
-            const result = await this.runRound();
-            this.printResults(result);
-            this._game.resetBoard(this._canvas);
-        }
     }
 
     getPlayerState(player) {
@@ -191,7 +202,39 @@ export class GameEngine {
 
         this._remainingPlayers = Object.fromEntries(playerIds.filter(playerId => !involvedPlayers.has(playerId))
             .map(id => [id, this._game.getPlayer(id)]));
-        return [...ties.values()];
+
+        return [...ties.values()].map(set => [...set]);
+    }
+
+    disconnectPlayer(playerId) {
+        this._disconnectedPlayers.add(playerId);
+        return this.isGameEmpty();
+    }
+
+    isGameEmpty() {
+        const nonAIPlayers = Object.values(this.game.players)
+            .filter(player => player.playerType !== PlayerType.AI);
+
+        return this._disconnectedPlayers.size === nonAIPlayers.length;
+    }
+
+    async wait(delay = 5000) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    async start() {
+        await this.wait(1000);
+        for (let round = 0; (round < this._game.roundsCount) && !this.isGameEmpty(); round++) {
+            const result = await this.runRound();
+            this.emitGameUpdate({
+                status: ROUND_END, data: {
+                    ...result,
+                    round: round
+                }
+            });
+            this._game.resetBoard();
+        }
+        this.emitGameUpdate({status: GAME_END});
     }
 
     async runRound() {
@@ -208,47 +251,23 @@ export class GameEngine {
             for (const player of Object.values(this._remainingPlayers)) {
                 const newPos = validPositions[player.id];
 
-                this._game.board.update(
-                    this._game.getPlayerPosition(player.id),
-                    newPos,
-                    player.color,
-                    this._canvas,
-                    this._playersMovements[player.id][MovementTypes.KEEP_GOING]
-                );
                 this._game.setPlayerPosition(player.id, newPos);
             }
 
-            if (remainingIds.length === 1)
-                return {status: "round_end", winner: remainingIds[0]};
+            this.emitGameUpdate({
+                status: POSITIONS_UPDATED,
+                data: {newPositions: this.game.playersPositions}
+            });
+
+            if (remainingIds.length === 1) {
+                return {status: "winner", winner: remainingIds[0]};
+            }
         }
     }
 
-    printRoundEndResults(winnerId) {
-        alert(`The winner of this round is: ${this._remainingPlayers[winnerId].name}!`);
-    }
-
-    printTiesResults(ties) {
-        const message = ties
-            .map(tie => "There is a tie between players: " + [...tie].map(playerId => this._game.getPlayer(playerId).name).join(", "))
-            .join("\n");
-
-        alert(message);
-    }
-
-    printResults(result) {
-        switch (result.status) {
-            case "tie":
-                this.printTiesResults(result.ties);
-                break;
-            case "round_end":
-                this.printRoundEndResults(result.winner);
-                break;
-            default:
-                throw Error(`The status ${result.status} is not yet supported`);
-        }
-    }
-
-    draw(callingContext) {
-        callingContext._game.board.draw(callingContext._canvas);
+    emitGameUpdate(data) {
+        this._eventHandler(this.id, "refreshStatus", data);
     }
 }
+
+module.exports = GameEngine;

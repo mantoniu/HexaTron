@@ -1,18 +1,41 @@
-import { Component } from "../component/component.js";
-import { convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm } from "../../js/Utils.js";
-import { CURRENT_USER } from "../../js/UserMock.js";
+import {Component} from "../component/component.js";
+import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/Utils.js";
+import {CURRENT_USER} from "../../js/UserMock.js";
+import {GameService, GameStatus} from "../../services/game-service.js";
 
 export class GameHeader extends Component {
+    constructor() {
+        super();
+        this._roundEndHandler = null;
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
-        this.resizeCanvasFunction = resizeCanvas.bind(this, 0.2, 1, "header", this.draw, this);
-        this.resizeCanvasFunction.call();
 
-        window.addEventListener("resize", this.resizeCanvasFunction);
+        this.resizeCanvasFunction = () => {
+            resizeCanvas.call(this, 0.2, 1, "header", () => this.draw(this));
+        };
+
+        this.resizeCanvasFunction();
+
+        this.receiveData(GameService.getInstance().game.players);
+        this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
+
+        this._roundEndHandler = (data) => {
+            if (data.status === "winner") {
+                const colorIndex = +(data.winner !== CURRENT_USER.id);
+                this.fillCircle(data.round + 1, CURRENT_USER.parameters.playersColors[colorIndex]);
+            }
+        };
+
+        GameService.getInstance().on(GameStatus.ROUND_END, this._roundEndHandler);
     }
 
     disconnectedCallback() {
-        window.removeEventListener("resize", this.resizeCanvasFunction);
+        super.disconnectedCallback();
+
+        if (this._roundEndHandler)
+            GameService.getInstance().off(GameStatus.ROUND_END, this._roundEndHandler);
     }
 
     calculateUtils() {
@@ -71,7 +94,7 @@ export class GameHeader extends Component {
 
             waitForElm(this, "pp-player" + n).then((element) => {
                 if (element) {
-                    element.src = players[ids[k]]._profilePicturePath ?? "../../assets/profile.svg";
+                    element.src = "../../assets/profile.svg";
                 }
             });
         }

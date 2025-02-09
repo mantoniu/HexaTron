@@ -1,11 +1,10 @@
-export function resizeCanvas(percentWidth, percentHeight, id, drawingFunction, callingContext) {
+export function resizeCanvas(percentWidth, percentHeight, id, drawingFunction) {
     const rect = this.getBoundingClientRect();
     const canvas = this.shadowRoot.getElementById(id);
     canvas.setAttribute("width", (rect.width * percentWidth).toString());
     canvas.setAttribute("height", (rect.height * percentHeight).toString());
-    if (drawingFunction !== null) {
-        drawingFunction(callingContext);
-    }
+    if (drawingFunction)
+        drawingFunction();
 }
 
 export function convertRemToPixels(rem) {
@@ -32,7 +31,7 @@ export async function waitForElm(context, id) {
             return resolve(context.shadowRoot.getElementById(id));
         }
 
-        const observer = new MutationObserver(mutations => {
+        const observer = new MutationObserver(() => {
             if (context.shadowRoot.getElementById(id)) {
                 observer.disconnect();
                 resolve(context.shadowRoot.getElementById(id));
