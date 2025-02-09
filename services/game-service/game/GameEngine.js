@@ -226,7 +226,12 @@ class GameEngine {
         await this.wait(1000);
         for (let round = 0; (round < this._game.roundsCount) && !this.isGameEmpty(); round++) {
             const result = await this.runRound();
-            this.emitGameUpdate({status: ROUND_END, data: result});
+            this.emitGameUpdate({
+                status: ROUND_END, data: {
+                    ...result,
+                    round: round
+                }
+            });
             this._game.resetBoard();
         }
         this.emitGameUpdate({status: GAME_END});
