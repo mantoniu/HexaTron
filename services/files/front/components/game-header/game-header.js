@@ -1,9 +1,14 @@
 import {Component} from "../component/component.js";
 import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/Utils.js";
 import {CURRENT_USER} from "../../js/UserMock.js";
-import {GameService} from "../../services/game-service.js";
+import {GameService, GameStatus} from "../../services/game-service.js";
 
 export class GameHeader extends Component {
+    constructor() {
+        super();
+        this._roundEndHandler = null;
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
 
@@ -15,6 +20,22 @@ export class GameHeader extends Component {
 
         this.receiveData(GameService.getInstance().game.players);
         this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
+
+        this._roundEndHandler = (data) => {
+            if (data.status === "winner") {
+                const colorIndex = +(data.winner !== CURRENT_USER.id);
+                this.fillCircle(data.round + 1, CURRENT_USER.parameters.playersColors[colorIndex]);
+            }
+        };
+
+        GameService.getInstance().on(GameStatus.ROUND_END, this._roundEndHandler);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+
+        if (this._roundEndHandler)
+            GameService.getInstance().off(GameStatus.ROUND_END, this._roundEndHandler);
     }
 
     calculateUtils() {

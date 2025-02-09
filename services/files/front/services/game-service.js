@@ -133,7 +133,7 @@ export class GameService {
     }
 
     handleRoundEnd(data) {
-        this.game.printResults(data);
+        this.emit(GameStatus.ROUND_END, data);
         this.game.resetBoard(this._context);
         this.game.playersPositions = [];
     }
@@ -145,7 +145,7 @@ export class GameService {
     }
 
     handleGameEnd() {
-        console.log("The game is finished");
+        alert("The game is finished");
         this._game = null;
         this._context = null;
     }
