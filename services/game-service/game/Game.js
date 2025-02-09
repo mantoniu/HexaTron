@@ -1,6 +1,6 @@
-const Board = require("./Board.js");
-const Position = require("./Position.js");
-const {getRandomInt} = require("./Utils.js");
+const Board = require("./Board");
+const Position = require("./Position");
+const {getRandomInt} = require("./Utils");
 const {Status} = require("./Tile");
 
 const GameType = {
