@@ -145,7 +145,7 @@ export class GameService {
     }
 
     handleGameEnd() {
-        alert("The game is finished");
+        window.location.href = "/";
         this._game = null;
         this._context = null;
     }
