@@ -1,5 +1,5 @@
-import { Component } from "../component/component.js";
-import { ImageButton } from "../image-button/image-button.js";
+import {Component} from "../component/component.js";
+import {ImageButton} from "../image-button/image-button.js";
 
 export class HomeButton extends Component {
     constructor() {
@@ -29,7 +29,9 @@ export class HomeButton extends Component {
 
     async connectedCallback() {
         await super.connectedCallback();
+
         this.update();
+        this.addAutoCleanListener(this.shadowRoot.querySelector("image-button"), "click", () => window.location.href = "/");
     }
 
     update() {
