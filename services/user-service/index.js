@@ -21,10 +21,24 @@ function getIDInRequest(request) {
 }
 
 http.createServer(function (request, response) {
+    if (request.method === "OPTIONS") {
+        response.writeHead(204, {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        });
+        response.end();
+        return;
+    }
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+    response.setHeader("Access-Control-Allow-Credentials", true);
 
     let apiCall = request.url.split("/").filter(function (elem) {
         return elem !== "..";
     });
+    console.log(apiCall[3].split("?")[0] === "register", request.method);
     let body = "";
     if (request.method === "POST") {
         request.on("data", chunk => {
@@ -33,6 +47,7 @@ http.createServer(function (request, response) {
         switch (apiCall[3].split("?")[0]) {
             case "register":
                 request.on("end", async () => {
+                    console.log("test");
                     try {
                         const userData = JSON.parse(body);
                         const newUser = await addUser(userData);

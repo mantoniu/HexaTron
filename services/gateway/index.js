@@ -53,6 +53,9 @@ const server = http.createServer(function (request, response) {
                         proxy.web(request, response, {target: `http://127.0.0.1:8003`});
                     });
                 }
+            } else {
+                response.statusCode = 400;
+                response.end();
             }
         // If it doesn't start by /api, then it's a request for a file.
         } else {
