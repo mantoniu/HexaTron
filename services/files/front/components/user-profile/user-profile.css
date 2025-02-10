@@ -1,0 +1,36 @@
+.user-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+img {
+    width: 9rem;
+}
+
+.inline {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.inline form-input {
+    display: none;
+}
+
+#username-input {
+    display: none;
+}
+
+#password-inputs {
+    display: none;
+}
+
+.password-edit {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}

@@ -15,7 +15,7 @@ const server = http.createServer();
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:8000"],
+        origin: [process.env.GATEWAY_URL],
         methods: ["GET", "POST"]
     }
 });

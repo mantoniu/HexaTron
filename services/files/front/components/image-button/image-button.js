@@ -6,20 +6,16 @@ export class ImageButton extends Component {
 
         this.src = null;
         this.alt = "";
-        this.href = "#";
     }
 
     static get observedAttributes() {
-        return ['src', 'href', 'alt'];
+        return ['src', 'alt'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch (name) {
             case "src":
                 this.src = newValue;
-                break;
-            case "href":
-                this.href = newValue;
                 break;
             case "alt":
                 this.alt = newValue;
@@ -44,13 +40,10 @@ export class ImageButton extends Component {
 
     update() {
         const imgElement = this.shadowRoot.querySelector('img');
-        const linkElement = this.shadowRoot.querySelector('a');
+
         if (imgElement) {
             imgElement.setAttribute('src', this.src);
             imgElement.setAttribute('alt', this.alt);
         }
-
-        if (linkElement)
-            linkElement.setAttribute('href', this.href);
     }
 }
