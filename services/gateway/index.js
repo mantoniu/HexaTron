@@ -12,6 +12,9 @@ const jwtRefreshSecretKey = process.env.REFRESH_TOKEN_SECRET;
 const proxy = httpProxy.createProxyServer();
 
 function checkAuthentication(req, res, access, next) {
+    if (req.method === 'OPTIONS') {
+        return next({userID: ""});
+    }
     const token = req.headers["authorization"].split(" ")[1];
     if (!token) {
         res.statusCode = 401;
@@ -45,9 +48,14 @@ const server = http.createServer(function (request, response) {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
             if (filePath[2] === "user") {
+                console.log(request.url);
                 if (publicRoutes.includes(filePath[3].split("?")[0])) {
                     proxy.web(request, response, {target: `http://127.0.0.1:8003`});
                 } else {
+                    response.setHeader("Access-Control-Allow-Origin", "*");
+                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+                    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+                    response.setHeader("Access-Control-Allow-Credentials", true);
                     checkAuthentication(request, response, filePath[3] !== "refreshToken", (token) => {
                         request.headers["x-user-id"] = token.userID;
                         proxy.web(request, response, {target: `http://127.0.0.1:8003`});

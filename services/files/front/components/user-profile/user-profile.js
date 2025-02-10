@@ -38,6 +38,26 @@ export class UserProfile extends BaseAuth {
 
         this.setupEventListeners(elements);
         this.updateUserData(elements);
+
+        this._logoutHandler = () => window.location.href = "/";
+
+        this._usernameChangedHandler = (username) => {
+            if (elements.username && username) {
+                elements.username.innerText = username;
+            }
+        };
+
+        UserService.getInstance().on("logout", this._logoutHandler);
+        UserService.getInstance().on("editUsername", this._usernameChangedHandler);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+
+        if (this._usernameChangedHandler)
+            UserService.getInstance().off("editUsername", this._usernameChangedHandler);
+        if (this._logoutHandler)
+            UserService.getInstance().off("logout", this._logoutHandler);
     }
 
     initializeElements() {
@@ -135,7 +155,7 @@ export class UserProfile extends BaseAuth {
                     passwordDiv.classList.replace("password-edit", "inline");
                     button.setAttribute("src", "./assets/edit.svg");
                     this.editingPassword = false;
-                    UserService.getInstance().editPassword(inputsData["new-password-input"], inputsData["confirm-password-input"]);
+                    UserService.getInstance().editPassword(inputsData["current-password-input"], inputsData["confirm-password-input"]);
                 }
             }
         }

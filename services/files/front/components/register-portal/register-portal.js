@@ -10,6 +10,20 @@ export class RegisterPortal extends BaseAuth {
         SubmitButton.register();
     }
 
+    async connectedCallback() {
+        await super.connectedCallback();
+
+        this._registerHandler = () => {
+            this.dispatchEvent(new CustomEvent("changeContent", {
+                bubbles: true,
+                composed: true,
+                detail: "profile",
+            }));
+        };
+
+        UserService.getInstance().on("register", this._registerHandler);
+    }
+
     checkValidity() {
         const requiredValidity = super.checkValidity();
 
@@ -32,5 +46,12 @@ export class RegisterPortal extends BaseAuth {
         ];
 
         UserService.getInstance().register({name, password, answers});
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+
+        if (this._registerHandler)
+            UserService.getInstance().off("register", this._registerHandler);
     }
 }
