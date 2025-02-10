@@ -5,8 +5,6 @@ import {ImageButton} from "../image-button/image-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {checkConfirmPassword, checkRequired, getInputsData} from "../../js/FormUtils.js";
 
-//TODO patch username input too big
-
 export class UserProfile extends BaseAuth {
     constructor() {
         super();
