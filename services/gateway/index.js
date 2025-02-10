@@ -2,10 +2,34 @@
 const http = require('http');
 const httpProxy = require('http-proxy');
 const {Server} = require('socket.io');
+const jwt = require("jsonwebtoken");
 const {io: Client} = require('socket.io-client');
 
 // We will need a proxy to send requests to the other services.
+const publicRoutes = ["login", "register"];
+const jwtAccessSecretKey = process.env.ACCESS_TOKEN_SECRET;
+const jwtRefreshSecretKey = process.env.REFRESH_TOKEN_SECRET;
 const proxy = httpProxy.createProxyServer();
+
+function checkAuthentication(req, res, access, next) {
+    const token = req.headers["authorization"].split(" ")[1];
+    if (!token) {
+        res.statusCode = 401;
+        return res.end("Unauthorized: No token provided");
+    }
+    try {
+        let decoded;
+        if (access) {
+            decoded = jwt.verify(token, jwtAccessSecretKey);
+        } else {
+            decoded = jwt.verify(token, jwtRefreshSecretKey);
+        }
+        next(decoded);
+    } catch (error) {
+        res.statusCode = 498;
+        res.end("Unauthorized: Invalid token");
+    }
+}
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
@@ -20,8 +44,16 @@ const server = http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
-            //TODO: Add middlewares and call microservices depending on the request.
-
+            if (filePath[2] === "user") {
+                if (publicRoutes.includes(filePath[3].split("?")[0])) {
+                    proxy.web(request, response, {target: `http://127.0.0.1:8003`});
+                } else {
+                    checkAuthentication(request, response, filePath[3] !== "refreshToken", (token) => {
+                        request.headers["x-user-id"] = token.userID;
+                        proxy.web(request, response, {target: `http://127.0.0.1:8003`});
+                    });
+                }
+            }
         // If it doesn't start by /api, then it's a request for a file.
         } else {
             console.log("Request for a file received, transferring to the file service")
