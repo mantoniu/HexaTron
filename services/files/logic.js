@@ -42,11 +42,6 @@ function manageRequest(request, response) {
     // Uncomment the line below if you want to check in the console what url.parse() and path.parse() create.
     //console.log(parsedUrl, pathName, path.parse(pathName));
 
-    if (!request.url.includes(".") && request.url !== "/") {
-        redirectToRoot(response);
-        return;
-    }
-
     // Let's check if the file exists.
     fs.exists(pathName, async function (exist) {
         if (!exist) {
