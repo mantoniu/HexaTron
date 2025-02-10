@@ -7,4 +7,24 @@ export class CustomNav extends Component{
 
         ImageButton.register();
     }
+
+    async connectedCallback() {
+        await super.connectedCallback();
+
+        this.shadowRoot.querySelectorAll("image-button").forEach(button => {
+            this.addAutoCleanListener(
+                button,
+                "click",
+                () => {
+                    window.dispatchEvent(
+                        new CustomEvent("openDrawer", {
+                            bubbles: true,
+                            composed: true,
+                            detail: {type: button.id}
+                        })
+                    );
+                }
+            );
+        });
+    }
 }
