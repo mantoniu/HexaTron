@@ -14,8 +14,9 @@ export class RegisterPortal extends BaseAuth {
         const requiredValidity = super.checkValidity();
 
         const confirm = this.shadowRoot.getElementById("confirm-password");
-        const passwordValue = this.getFormData["password"];
-        const confirmPassword = this.getFormData["confirm-password"];
+        const data = this.getFormData();
+        const passwordValue = data["password"];
+        const confirmPassword = data["confirm-password"];
 
         return checkConfirmPassword(confirm, passwordValue, confirmPassword) && requiredValidity;
     }
