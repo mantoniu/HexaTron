@@ -12,14 +12,13 @@ export class BaseAuth extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        const form = this.shadowRoot.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', (event) => {
-                if (!this.checkValidity()) {
-                    event.preventDefault();
-                } else {
-                    this.handleSubmit();
-                }
+        const submitButton = this.shadowRoot.querySelector('submit-button');
+        if (submitButton) {
+            submitButton.addEventListener('click', () => {
+                if (!this.checkValidity())
+                    return;
+
+                this.handleSubmit();
             });
         }
     }
