@@ -2,11 +2,13 @@ import {ModeSelector} from "./components/mode-selector/mode-selector.js";
 import {CustomNav} from "./components/custom-nav/custom-nav.js";
 import {HomeButton} from "./components/home-button/home-button.js";
 import {GameComponent} from "./components/game-component/game-component.js";
+import {DrawerMenu} from "./components/drawer-menu/drawer-menu.js";
 
 ModeSelector.register();
 CustomNav.register();
 HomeButton.register();
 GameComponent.register();
+DrawerMenu.register();
 
 const routes = {
     "/": "<mode-selector></mode-selector>",

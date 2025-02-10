@@ -1,0 +1,54 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: userDataBase
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ./database/mongodb:/data/db
+
+  database-initializer:
+    build: ./database/
+    networks:
+      - network-services
+
+  user-service:
+    build: ./user-service/
+    networks:
+      - network-services
+    expose:
+      - "8003"
+
+  game-service:
+    build: ./game-service/
+    networks:
+      - network-services
+    expose:
+      - "8002"
+    environment:
+      - GATEWAY_URL=http://gateway:8000
+
+  files:
+    build: ./files/
+    networks:
+      - network-services
+    expose:
+      - "8001"
+
+  gateway:
+    build: ./gateway/
+    networks:
+      - network-services
+    ports:
+      - "8000:8000"
+    environment:
+      - USER_SERVICE_URL=http://user-service:8003
+      - GAME_SERVICE_URL=http://game-service:8002
+      - FILES_URL=http://files:8001
+
+networks:
+  network-services:
+    driver: bridge
