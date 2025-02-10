@@ -25,7 +25,7 @@ http.createServer(function (request, response) {
         response.writeHead(204, {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
+            "Access-Control-Allow-Headers": ["Content-Type", "Authorization"]
         });
         response.end();
         return;
@@ -46,6 +46,7 @@ http.createServer(function (request, response) {
         });
         switch (apiCall[3].split("?")[0]) {
             case "register":
+                console.log(process.env.ACCESS_TOKEN_SECRET, process.env.REFRESH_TOKEN_SECRET);
                 request.on("end", async () => {
                     console.log("test");
                     try {

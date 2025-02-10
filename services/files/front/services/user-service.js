@@ -2,13 +2,14 @@ export class UserService {
     static _instance = null;
 
     constructor() {
-        if (UserService._instance)
-            return UserService._instance;
+        if (UserService._instance) return UserService._instance;
 
-        this._user = null;
-        this._accessToken = null;
-        this._refreshToken = null;
+        this._user = JSON.parse(localStorage.getItem("user")) || null;
+        this._accessToken = localStorage.getItem("accessToken") || null;
+        this._refreshToken = localStorage.getItem("refreshToken") || null;
         this._listeners = {};
+
+        UserService._instance = this;
     }
 
     get user() {
@@ -49,12 +50,14 @@ export class UserService {
     }
 
     async register(data) {
-        data["parameters"] = "";
+        data["parameters"] = " ";
         const response = await this._request("POST", "/api/user/register", data);
         if (response) {
             this._user = response.user;
-            this._accessToken = response.accesstoken;
-            this._refreshToken = response.refreshtoken;
+            this._accessToken = response.accessToken;
+            this._refreshToken = response.refreshToken;
+
+            this._saveToLocalStorage();
         }
         this.emit("register", response);
         return response;
@@ -64,16 +67,25 @@ export class UserService {
         const response = await this._request("POST", "/api/user/login", data);
         if (response) {
             this._user = response.user;
-            this._accessToken = response.accesstoken;
-            this._refreshToken = response.refreshtoken;
+            this._accessToken = response.accessToken;
+            this._refreshToken = response.refreshToken;
+            this._saveToLocalStorage();
+            this.emit("login", {success: true, user: response.user});
+        } else {
+            this.emit("login", {success: false, error: "The password is incorrect"});
         }
-        this.emit("login", response);
         return response;
     }
 
     async editUsername(newUsername) {
         const response = await this._request("POST", "/api/user/modify", {name: newUsername});
-        this.emit("editUsername", response);
+        if (response) {
+            this._user.name = newUsername;
+            localStorage.setItem("user", JSON.stringify(this._user));
+        }
+        const username = response.user.name;
+        this.user.name = username;
+        this.emit("editUsername", username);
         return response;
     }
 
@@ -82,15 +94,22 @@ export class UserService {
             oldPassword: curPassword,
             newPassword
         });
-        this.emit("editPassword", response);
+        if (response) {
+            this.emit("editPassword", {success: true, message: "Password successfully modified"});
+        } else {
+            this.emit("editPassword", {success: false, error: "The password is incorrect"});
+        }
         return response;
     }
 
     async logout() {
-        const response = await this._request("GET", "/api/user/disconnect");
+        const response = await this._request("POST", "/api/user/disconnect");
         this._user = null;
         this._accessToken = null;
         this._refreshToken = null;
+
+        this._clearLocalStorage();
+
         this.emit("logout", response);
         return response;
     }
@@ -102,9 +121,10 @@ export class UserService {
     }
 
     async refreshAccessToken() {
-        const response = await this._request("GET", "/api/user/refreshToken", null, this._refreshToken);
+        const response = await this._request("POST", "/api/user/refreshToken", null, this._refreshToken);
         if (response) {
-            this._accessToken = response.accesstoken;
+            this._accessToken = response.accessToken;
+            localStorage.setItem("accessToken", this._accessToken);
         }
         this.emit("refreshAccessToken", response);
         return response;
@@ -136,5 +156,17 @@ export class UserService {
             this.emit("apiError", {endpoint, error});
             return null;
         }
+    }
+
+    _saveToLocalStorage() {
+        localStorage.setItem("user", JSON.stringify(this._user));
+        localStorage.setItem("accessToken", this._accessToken);
+        localStorage.setItem("refreshToken", this._refreshToken);
+    }
+
+    _clearLocalStorage() {
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
     }
 }
