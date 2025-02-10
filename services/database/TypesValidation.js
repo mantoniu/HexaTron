@@ -19,16 +19,36 @@ const Parameters = {
     }
 };
 
-export const User = {
+const User = {
     name: {
         bsonType: "string",
         minLength: 3,
         maxLength: 100
     },
     parameters: {
-        bsonType: Parameters
+        bsonType: "string"
     },
     password: {
         bsonType: "string"
+    },
+    answers: {
+        bsonType: "array",
+        minItems: 3,
+        maxItems: 3,
+        items: {
+            bsonType: "string"
+        }
     }
 };
+
+const RefreshToken = {
+    userID: {
+        bsonType: "string"
+    },
+    refreshToken: {
+        bsonType: "string"
+    }
+};
+
+exports.User = User;
+exports.RefreshToken = RefreshToken;
