@@ -50,7 +50,7 @@ const server = http.createServer(function (request, response) {
             if (filePath[2] === "user") {
                 console.log(request.url);
                 if (publicRoutes.includes(filePath[3].split("?")[0])) {
-                    proxy.web(request, response, {target: `http://127.0.0.1:8003`});
+                    proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
                 } else {
                     response.setHeader("Access-Control-Allow-Origin", "*");
                     response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
@@ -58,7 +58,7 @@ const server = http.createServer(function (request, response) {
                     response.setHeader("Access-Control-Allow-Credentials", true);
                     checkAuthentication(request, response, filePath[3] !== "refreshToken", (token) => {
                         request.headers["x-user-id"] = token.userID;
-                        proxy.web(request, response, {target: `http://127.0.0.1:8003`});
+                        proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
                     });
                 }
             } else {
@@ -68,7 +68,7 @@ const server = http.createServer(function (request, response) {
         // If it doesn't start by /api, then it's a request for a file.
         } else {
             console.log("Request for a file received, transferring to the file service")
-            proxy.web(request, response, {target: "http://127.0.0.1:8001"});
+            proxy.web(request, response, {target: process.env.FILES_URL});
         }
     } catch(error) {
         console.log(`error while processing ${request.url}: ${error}`)
@@ -85,7 +85,7 @@ const ioServer = new Server(server, {
     }
 });
 
-const gameServiceSocket = Client('http://localhost:8002');
+const gameServiceSocket = Client(process.env.GAME_SERVICE_URL);
 const gameNamespace = ioServer.of("/game");
 
 const servicesNamespaces = {

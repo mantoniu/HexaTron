@@ -1,5 +1,5 @@
 const {MongoClient} = require("mongodb");
-const {User, RefreshToken} = require("./TypesValidation");
+const {User, RefreshToken} = require("./TypesValidation.js");
 
 const uri = "mongodb://root:root@localhost:27017/?authSource=admin";
 const client = new MongoClient(uri);
