@@ -11,7 +11,12 @@ const ErrorTypes = {
     GAME_CREATION_FAILED: 'GAME_CREATION_FAILED',
 };
 
-const server = http.createServer();
+const server = http.createServer(function (request, response) {
+    if (request.url.split("/")[1] === "health") {
+        response.writeHead(204);
+        response.end();
+    }
+});
 
 const io = new Server(server, {
     cors: {
