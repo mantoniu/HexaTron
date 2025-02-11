@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const http = require("http");
 
-const uri = "mongodb://root:root@localhost:27017/?authSource=admin";
+const uri = process.env.URI;
 const client = new MongoClient(uri);
 const dbName = "database";
 const db = client.db(dbName);
@@ -30,15 +30,14 @@ http.createServer(function (request, response) {
         response.end();
         return;
     }
-    response.setHeader("Access-Control-Allow-Origin", "*");
-    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
-    response.setHeader("Access-Control-Allow-Credentials", true);
-
     let apiCall = request.url.split("/").filter(function (elem) {
         return elem !== "..";
     });
-    console.log(apiCall[3].split("?")[0] === "register", request.method);
+    if (apiCall[1] === "health") {
+        response.writeHead(204);
+        response.end();
+        return;
+    }
     let body = "";
     if (request.method === "POST") {
         request.on("data", chunk => {
@@ -46,9 +45,7 @@ http.createServer(function (request, response) {
         });
         switch (apiCall[3].split("?")[0]) {
             case "register":
-                console.log(process.env.ACCESS_TOKEN_SECRET, process.env.REFRESH_TOKEN_SECRET);
                 request.on("end", async () => {
-                    console.log("test");
                     try {
                         const userData = JSON.parse(body);
                         const newUser = await addUser(userData);
@@ -75,7 +72,6 @@ http.createServer(function (request, response) {
                     try {
                         const credentials = JSON.parse(body);
                         let {_id, password, ...user} = await checkPassword(credentials.name, credentials.password, false);
-                        console.log(user);
                         _id = convertToString(_id);
                         const accessToken = generateToken(_id, true);
                         const refreshToken = await generateRefreshToken(_id);

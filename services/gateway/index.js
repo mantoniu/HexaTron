@@ -47,15 +47,15 @@ const server = http.createServer(function (request, response) {
     try {
         // If the URL starts by /api, then it's a REST request (you can change that if you want).
         if (filePath[1] === "api") {
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+            response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
+            response.setHeader("Access-Control-Allow-Credentials", true);
             if (filePath[2] === "user") {
                 console.log(request.url);
                 if (publicRoutes.includes(filePath[3].split("?")[0])) {
                     proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
                 } else {
-                    response.setHeader("Access-Control-Allow-Origin", "*");
-                    response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-                    response.setHeader("Access-Control-Allow-Headers", "X-Requested-With,content-type");
-                    response.setHeader("Access-Control-Allow-Credentials", true);
                     checkAuthentication(request, response, filePath[3] !== "refreshToken", (token) => {
                         request.headers["x-user-id"] = token.userID;
                         proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
@@ -80,7 +80,7 @@ const server = http.createServer(function (request, response) {
 
 const ioServer = new Server(server, {
     cors: {
-        origin: ["http://localhost:8002", "http://localhost:8001"],
+        origin: [process.env.GAME_SERVICE_URL, process.env.FILES_URL],
         methods: ["GET", "POST"]
     }
 });

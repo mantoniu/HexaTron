@@ -5,6 +5,7 @@ const PlayerState = require("./PlayerState");
 const {PlayerType} = require("./Player");
 const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
 const MiniMaxAI = require("./ai/MiniMaxAI");
+const crypto = require("crypto");
 
 class GameEngine {
     constructor(users, gameType, rowNumber, columnNumber, roundsCount, playersCount, eventHandler, choiceTimeout = 250, setupTimeout = 1000) {

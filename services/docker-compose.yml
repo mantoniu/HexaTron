@@ -1,7 +1,8 @@
 services:
   mongodb:
     image: mongo:latest
-    container_name: userDataBase
+    networks:
+      - network-services
     ports:
       - "27017:27017"
     environment:
@@ -9,18 +10,42 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: root
     volumes:
       - ./database/mongodb:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
 
   database-initializer:
     build: ./database/
     networks:
       - network-services
+    environment:
+      - URI=mongodb://root:root@mongodb:27017/?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
   user-service:
     build: ./user-service/
     networks:
       - network-services
+    environment:
+      - URI=mongodb://root:root@mongodb:27017/?authSource=admin
     expose:
       - "8003"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8003/health" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
 
   game-service:
     build: ./game-service/
@@ -30,6 +55,15 @@ services:
       - "8002"
     environment:
       - GATEWAY_URL=http://gateway:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8002/health" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
 
   files:
     build: ./files/
@@ -37,6 +71,15 @@ services:
       - network-services
     expose:
       - "8001"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8001/health" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
 
   gateway:
     build: ./gateway/
@@ -48,6 +91,15 @@ services:
       - USER_SERVICE_URL=http://user-service:8003
       - GAME_SERVICE_URL=http://game-service:8002
       - FILES_URL=http://files:8001
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      files:
+        condition: service_healthy
+      game-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
 
 networks:
   network-services:

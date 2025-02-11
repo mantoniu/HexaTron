@@ -2,6 +2,7 @@ FROM node:18-slim
 
 ENV GATEWAY_URL=http://gateway:8000
 
+RUN apt-get update && apt-get install -y curl
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
