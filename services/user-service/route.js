@@ -1,42 +1,6 @@
-const {createServer} = require("node:http");
 const controller = require("./controller");
-const {parseRequestPath, HttpError} = require("./utils");
-const {generateDocumentationAPI} = require("api");
-const {options} = require("./api-utils");
-
-function handleError(req, res, error) {
-    console.error(`[${new Date().toISOString()}] [${req.method}] ${req.url} - Error:`, error);
-
-    const statusCode = error.status || 500;
-    const message = statusCode === 500 ? "Internal Server Error" : error.message;
-    res.writeHead(statusCode, {"Content-Type": "application/json"});
-    res.end(JSON.stringify({error: message}));
-}
-
-try {
-    generateDocumentationAPI(process.env.USER_API, options);
-} catch (error) {
-    console.error(`Error during the creation of API documentation: ${error}`);
-}
-
-function parseRequestBody(request) {
-    return new Promise((resolve, reject) => {
-        let body = "";
-        request.on("data", (chunk) => (body += chunk.toString()));
-
-        request.on("end", () => {
-            if (!body.trim())
-                return resolve({});
-            try {
-                resolve(JSON.parse(body));
-            } catch (e) {
-                reject(new HttpError(400, "Invalid JSON"));
-            }
-        });
-
-        request.on("error", (error) => reject(error));
-    });
-}
+const {options} = require("./api-options");
+const createServiceServer = require("../utils/routing-utils");
 
 const routes = [
     {
@@ -341,21 +305,4 @@ const routes = [
     }
 ];
 
-module.exports = createServer(async (req, res) => {
-    try {
-        const path = parseRequestPath(req);
-        const route = routes.find(
-            (route) =>
-                route.method === req.method &&
-                (route.path[0] === "*" || route.path.every((segment, index) => segment.startsWith(":") || segment === path[index]))
-        );
-
-        if (!route)
-            throw new HttpError(404, "Route not found");
-
-        req.body = await parseRequestBody(req);
-        await route.handler(req, res);
-    } catch (error) {
-        handleError(req, res, error);
-    }
-});
+module.exports = createServiceServer(routes, options, process.env.USER_API);

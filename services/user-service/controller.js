@@ -3,8 +3,9 @@ const {
     refreshAccessToken, deleteUserByID
 } = require("./database");
 const bcrypt = require("bcrypt");
-const {HttpError, convertToString, DATABASE_ERRORS} = require("./utils");
-const {readData} = require("../api-utils/api-utils");
+const {HttpError} = require("../utils/routing-utils");
+const {convertToString, DATABASE_ERRORS} = require("./utils");
+const {readData} = require("../utils/api-utils");
 const saltRounds = 10;
 
 async function hashPassword(password) {

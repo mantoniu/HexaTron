@@ -20,20 +20,6 @@ const DATABASE_ERRORS = Object.freeze({
     VALIDATION_FAILED: "VALIDATION_FAILED"
 });
 
-class HttpError extends Error {
-    constructor(status, message) {
-        super(message);
-        this.status = status;
-    }
-}
-
-function parseRequestPath(req) {
-    const baseUrl = `http://${req.headers.host}`;
-    const url = new URL(req.url, baseUrl);
-
-    return url.pathname.split("/").filter(Boolean).slice(2);
-}
-
 function convertToID(id) {
     return new ObjectId(id);
 }
@@ -45,8 +31,6 @@ function convertToString(id) {
 module.exports = {
     USER_FIELDS,
     DATABASE_ERRORS,
-    HttpError,
     convertToID,
-    convertToString,
-    parseRequestPath
+    convertToString
 };
