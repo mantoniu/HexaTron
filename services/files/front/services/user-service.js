@@ -178,6 +178,11 @@ export class UserService extends EventEmitter {
         return response;
     }
 
+    async getLeaderboard() {
+        const response = await this._request("GET", "api/user/leaderboard", null, this._refreshToken);
+        return response.data.playersELO;
+    }
+
     async _request(method, endpoint, body = null, token = this._accessToken) {
         const headers = {"Content-Type": "application/json"};
         if (token)

@@ -9,6 +9,7 @@ const dbName = process.env.DB_NAME;
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
+const leagueRank = {0: "Stone", 750: "Iron", 1250: "Silver", 1500: "Gold", 1750: "Platinum", 2000: "Diamond"};
 
 function handleMongoError(error) {
     switch (error.code) {
@@ -176,6 +177,34 @@ async function getElo(players) {
     return result;
 }
 
+async function leaderboard() {
+    const result = await mongoOperation(() =>
+        db.collection(userCollection).aggregate([
+            {
+                $sort: {
+                    "elo": -1
+                }
+            },
+            {
+                $bucket: {
+                    groupBy: "$elo",
+                    boundaries: Object.keys(leagueRank).map(Number),
+                    default: "-1",
+                    output: {
+                        players: {
+                            $push: {
+                                "name": "$name",
+                                "elo": "$elo"
+                            }
+                        }
+                    }
+                }
+            }
+        ]).toArray()
+    );
+    return Object.fromEntries(result.map(document => [document._id === "-1" ? "Wood" : leagueRank[document._id], document.players]));
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -186,5 +215,6 @@ module.exports = {
     resetPassword,
     refreshAccessToken,
     deleteUserByID,
-    getElo
+    getElo,
+    leaderboard
 };

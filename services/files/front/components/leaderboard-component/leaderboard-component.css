@@ -1,0 +1,13 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    margin-top: 25px;
+    width: 70%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+leaderboard-element:hover {
+    background-color: rgba(162, 162, 162, 0.22);
+}

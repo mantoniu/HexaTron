@@ -4,11 +4,13 @@ import {UserService} from "../../services/user-service.js";
 import {UserProfile} from "../user-profile/user-profile.js";
 import {RegisterPortal} from "../register-portal/register-portal.js";
 import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-password-portal.js";
+import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
     REGISTER: "register",
-    FORGOT_PASSWORD: "forgottenPassword"
+    FORGOT_PASSWORD: "forgottenPassword",
+    LEADERBOARD: "leaderboard"
 });
 
 export class DrawerMenu extends Component {
@@ -20,6 +22,7 @@ export class DrawerMenu extends Component {
         UserProfile.register();
         RegisterPortal.register();
         ForgottenPasswordPortal.register();
+        LeaderboardPortal.register();
     }
 
     async connectedCallback() {
@@ -53,6 +56,9 @@ export class DrawerMenu extends Component {
                 break;
             case DRAWER_CONTENT.FORGOT_PASSWORD:
                 component = "<forgotten-password-portal></forgotten-password-portal>";
+                break;
+            case DRAWER_CONTENT.LEADERBOARD:
+                component = "<leaderboard-portal></leaderboard-portal>";
                 break;
             default:
                 console.warn("This type is not yet supported");

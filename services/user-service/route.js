@@ -333,7 +333,6 @@ const routes = [
          *       - User service
          *     responses:
          *       204:
-         *          description:
          */
         method: "GET",
         path: ["health"],
@@ -357,7 +356,7 @@ const routes = [
          *            $ref: '#/components/schemas/getELO'
          *     responses:
          *       200:
-         *         description: The response consist of
+         *         description: The response consists of an array, with each element containing a player ID and the corresponding ELO.
          *         content:
          *           application/json:
          *             schema:
@@ -368,6 +367,38 @@ const routes = [
         method: "POST",
         path: ["ELO"],
         handler: controller.getElo
+    },
+    {
+        /**
+         * @swagger
+         * /api/user/leaderboard:
+         *   get:
+         *     summary: Retrieve the LeaderBoard
+         *     description: Retrieve the leaderboard created by aggregating users' data into one document for each league according to the ELO range, and convert the result into an array.
+         *     tags:
+         *       - User service
+         *     responses:
+         *       200:
+         *         description: The response consists of a dictionary with one element for each league, and each value is an ordered array of players with their name and ELO.
+         *         content:
+         *           application/json:
+         *             schema:
+         *                 type: array
+         *                 items:
+         *                   type: object
+         *                   properties:
+         *                     name:
+         *                       type: string
+         *                       description: The name of the player.
+         *                     elo:
+         *                       type: integer
+         *                       description: The ELO score of the player.
+         *       500:
+         *        description: Internal Server Error
+         */
+        method: "GET",
+        path: ["leaderboard"],
+        handler: controller.leaderboard
     }
 ];
 
