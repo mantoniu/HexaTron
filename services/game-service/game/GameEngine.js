@@ -217,6 +217,7 @@ class GameEngine {
     }
 
     async start() {
+        let results = [];
         await this.wait(1000);
         for (let round = 0; (round < this._game.roundsCount) && !this.isGameEmpty(); round++) {
             const result = await this.runRound();
@@ -226,9 +227,10 @@ class GameEngine {
                     round: round
                 }
             });
+            results.push(result);
             this._game.resetBoard();
         }
-        this.emitGameUpdate({status: GAME_END});
+        this.emitGameUpdate({status: GAME_END, results: results});
     }
 
     addPlayer(player) {

@@ -1,6 +1,7 @@
 const {userJson} = require("../database-initializer/type-documentation");
 
 const userExample = {
+    _id: "151vqdv445v1v21d",
     name: "Champion39",
     parameters: "parameters",
     password: "password1234",
@@ -20,14 +21,17 @@ const extractProperties = (obj, properties) => {
     }, {});
 };
 
-function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"]) {
+function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"], isValue = true, userFields = ["_id", "name", "parameters", "elo"]) {
     let value = extractProperties({
         message: message,
-        user: extractProperties(userExample, ["name", "parameters", "elo"]),
+        user: extractProperties(userExample, userFields),
         accessToken: accessToken,
         refreshToken: refreshToken
     }, fields);
-    return {value: value};
+    if (isValue) {
+        return {value: value};
+    }
+    return value;
 }
 
 exports.options = {
@@ -59,7 +63,7 @@ exports.options = {
                 user: {
                     type: "object",
                     properties: userJson,
-                    example: extractProperties(userExample, ["name", "parameters", "password", "answers"])
+                    example: extractProperties(userExample, ["_id", "name", "parameters", "password", "answers", "elo"])
                 },
                 returned_user: {
                     type: "object",
@@ -89,7 +93,7 @@ exports.options = {
                         },
                         user: {
                             type: "object",
-                            properties: extractProperties(userJson, ["name", "parameters", "elo"])
+                            properties: extractProperties(userJson, ["_id", "name", "parameters", "elo"])
                         },
                         accessToken: {
                             type: "string"
@@ -114,7 +118,7 @@ exports.options = {
                             properties: extractProperties(userJson, ["name", "parameters"])
                         }
                     },
-                    example: createResponseExample("User successfully updated.", ["message", "user"])
+                    example: createResponseExample("User successfully updated.", ["message", "user"], false)
                 },
                 refreshToken: {
                     type: "object",
@@ -126,7 +130,7 @@ exports.options = {
                             type: "string"
                         }
                     },
-                    example: createResponseExample("New access token generated successfully.", ["message", "accessToken"])
+                    example: createResponseExample("New access token generated successfully.", ["message", "accessToken"], false)
                 },
                 resetPassword: {
                     type: "object",
@@ -142,6 +146,32 @@ exports.options = {
                     example: {
                         oldPassword: userExample.password,
                         newPassword: "1234password"
+                    }
+                },
+                getELO: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        example: userExample._id
+                    }
+                },
+                resultELO: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string"
+                        },
+                        playersELO: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: extractProperties(userJson, ["_id", "elo"])
+                            }
+                        }
+                    },
+                    example: {
+                        message: "Successfully recover ELO of each player",
+                        playersELO: [extractProperties(userExample, ["_id", "elo"])]
                     }
                 }
             }

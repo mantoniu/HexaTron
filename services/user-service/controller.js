@@ -1,6 +1,6 @@
 const {
     deleteToken, addUser, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
-    refreshAccessToken, deleteUserByID
+    refreshAccessToken, deleteUserByID, getElo
 } = require("./database");
 const bcrypt = require("bcrypt");
 const {HttpError, convertToString, DATABASE_ERRORS} = require("./utils");
@@ -217,5 +217,18 @@ exports.documentation = async (req, res) => {
             error: "Failed to read API documentation",
             details: error.message
         }));
+    }
+};
+
+exports.getElo = async (req, res) => {
+    try {
+        const playersELO = await getElo(req.body);
+        res.writeHead(200, {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        });
+        res.end(JSON.stringify({message: "Successfully recover ELO of each player", playersELO: playersELO}));
+    } catch (error) {
+        throw new HttpError(500, error.message);
     }
 };

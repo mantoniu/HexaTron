@@ -338,6 +338,36 @@ const routes = [
         method: "GET",
         path: ["health"],
         handler: controller.health
+    },
+    {
+        /**
+         * @swagger
+         * /api/user/ELO:
+         *   post:
+         *     summary: Retrieve the ELO of each player
+         *     description: Retrieve from the database the ELO of each user present in the body of the request.
+         *     tags:
+         *       - User service
+         *     requestBody:
+         *       description: Array of player IDs
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *            $ref: '#/components/schemas/getELO'
+         *     responses:
+         *       200:
+         *         description: The response consist of
+         *         content:
+         *           application/json:
+         *             schema:
+         *                $ref: '#/components/schemas/resultELO'
+         *       500:
+         *        description: Internal Server Error
+         */
+        method: "POST",
+        path: ["ELO"],
+        handler: controller.getElo
     }
 ];
 

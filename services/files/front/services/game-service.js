@@ -101,7 +101,9 @@ export class GameService extends EventEmitter {
                     console.warn(`Unknown status received: ${status}`);
             }
         });
-
+        this.socket.on("updateELO", (receivedData) => {
+            UserService.getInstance().updateELO(receivedData);
+        });
         this.errorListener();
     }
 

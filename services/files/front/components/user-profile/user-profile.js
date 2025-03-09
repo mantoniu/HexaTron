@@ -37,6 +37,7 @@ export class UserProfile extends BaseAuth {
 
     async connectedCallback() {
         await super.connectedCallback();
+        this.shadowRoot.getElementById("ELO").textContent += Math.round(UserService.getInstance().user.elo);
         this._elements = this.initializeElements();
         this.setupEventListeners();
         this.updateUserData();

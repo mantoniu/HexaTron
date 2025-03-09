@@ -84,6 +84,11 @@ export class UserService extends EventEmitter {
         return UserService._instance;
     }
 
+    updateELO(newELO) {
+        this.user.elo = newELO;
+        localStorage.setItem("user", JSON.stringify(this.user));
+    }
+
     isConnected() {
         return this._user !== null;
     }

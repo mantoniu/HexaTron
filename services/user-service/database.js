@@ -167,6 +167,15 @@ async function resetPassword(username, answers, newPassword) {
     return true;
 }
 
+async function getElo(players) {
+    players = players.map(id => convertToID(id));
+    let result = await mongoOperation(() =>
+        db.collection(userCollection).find({"_id": {"$in": players}}, {projection: {_id: 1, elo: 1}}).toArray()
+    );
+    result.forEach(player => player._id = convertToString(player._id));
+    return result;
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -176,5 +185,6 @@ module.exports = {
     updateUser,
     resetPassword,
     refreshAccessToken,
-    deleteUserByID
+    deleteUserByID,
+    getElo
 };

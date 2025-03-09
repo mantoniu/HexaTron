@@ -101,7 +101,9 @@ function convertBsonToSwagger(schema) {
 }
 
 /* JSON */
-const userJson = convertBsonToSwagger(User);
+let userJson = convertBsonToSwagger(User);
+userJson["_id"] = {"type": "string"};
+
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
 
 /* EXPORTS */
