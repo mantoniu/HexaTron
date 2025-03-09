@@ -20,7 +20,8 @@ export class UserProfile extends BaseAuth {
         EDIT_PASSWORD: "edit-password",
         CURRENT_PASSWORD_INPUT: "current-password",
         NEW_PASSWORD_INPUT: "password",
-        CONFIRM_PASSWORD_INPUT: "confirm-password"
+        CONFIRM_PASSWORD_INPUT: "confirm-password",
+        ELO: "elo"
     };
 
     constructor() {
@@ -37,7 +38,6 @@ export class UserProfile extends BaseAuth {
 
     async connectedCallback() {
         await super.connectedCallback();
-        this.shadowRoot.getElementById("ELO").textContent += Math.round(UserService.getInstance().user.elo);
         this._elements = this.initializeElements();
         this.setupEventListeners();
         this.updateUserData();
@@ -81,6 +81,10 @@ export class UserProfile extends BaseAuth {
 
         if (this._elements.USERNAME && UserService.getInstance().user.name)
             this._elements.USERNAME.innerText = UserService.getInstance().user.name;
+
+        if (this._elements.ELO && UserService.getInstance().user.elo) {
+            this._elements.ELO.textContent += Math.round(UserService.getInstance().user.elo);
+        }
     }
 
     async toggleUsernameEdit() {
