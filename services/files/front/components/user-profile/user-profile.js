@@ -104,8 +104,8 @@ export class UserProfile extends BaseAuth {
             this.showElement(this._elements.USERNAME);
             this._elements.EDIT_USERNAME.setAttribute("src", "./assets/edit.svg");
             this.editingUsername = false;
-            if (this._elements.USERNAME && data.username)
-                this._elements.USERNAME.innerText = data.username;
+            if (this._elements.USERNAME && data.name)
+                this._elements.USERNAME.innerText = data.name;
         } else alert(data.error);
     }
 

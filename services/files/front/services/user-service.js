@@ -17,7 +17,7 @@ export const USER_ACTIONS = Object.freeze({
 });
 
 const DEFAULT_PARAMS = {
-    keysPlayers: [["A", "Q", "E", "D"], ["U", "J", "O", "L"]],
+    keysPlayers: [["a", "q", "e", "d"], ["u", "j", "o", "l"]],
     playersColors: ["#ff0000", "#40ff00"]
 };
 
@@ -97,7 +97,6 @@ export class UserService extends EventEmitter {
     }
 
     async register(data) {
-        console.log(this.user.parameters, data);
         data.parameters = this._user.parameters;
         return this._authenticate("api/user/register", data, USER_ACTIONS.REGISTER);
     }
@@ -129,10 +128,9 @@ export class UserService extends EventEmitter {
             const response = await this._request("PATCH", `api/user/me`, newData);
             if (response.success) {
                 const data = response.data;
-                console.log(data.user);
                 this._user = data.user;
                 localStorage.setItem("user", JSON.stringify(this._user));
-                return {success: true, newData: newData};
+                return {success: true, ...newData};
             }
             return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.UPDATE_USERNAME)};
         } else {

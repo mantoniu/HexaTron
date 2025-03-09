@@ -61,7 +61,7 @@ export class PlayerKeys extends Component {
 
                         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                         text.textContent = this._data[keyIndex];
-                        text.setAttribute("font-size", `${convertRemToPixels(0.3)}rem`);
+                        text.setAttribute("font-size", `${convertRemToPixels(0.2)}rem`);
                         text.setAttribute("id", keyIndex);
 
                         gElement.appendChild(text);

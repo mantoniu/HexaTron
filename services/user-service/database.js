@@ -144,8 +144,7 @@ async function updateUser(newUserData, userID) {
 
     if (modification.matchedCount === 0)
         throw new Error(DATABASE_ERRORS.USER_NOT_FOUND);
-
-    return await getUserByID(userID, USER_FIELDS.password, USER_FIELDS.id);
+    return await getUserByID(userID, [USER_FIELDS.password, USER_FIELDS.answers]);
 }
 
 async function refreshAccessToken(userID) {

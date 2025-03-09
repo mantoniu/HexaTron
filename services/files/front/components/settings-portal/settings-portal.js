@@ -55,16 +55,16 @@ export class SettingsPortal extends Component {
     keyListener(event) {
         const index = this.currentEventDetail.componentID.match(/\d+$/) - 1;
         this.shadowRoot.getElementById("keyMessage").style.visibility = "hidden";
-        if (this.settings.keysPlayers[index][this.currentEventDetail.index] === event.key.toUpperCase()) {
+        if (this.settings.keysPlayers[index][this.currentEventDetail.index] === event.key.toLowerCase()) {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
             this.currentEventDetail = null;
             return;
-        } else if (this.settings.keysPlayers.some(row => row.includes(event.key.toUpperCase()))) {
+        } else if (this.settings.keysPlayers.some(row => row.includes(event.key.toLowerCase()))) {
             this.activeMessage("keyMessage", MESSAGE.KEY_ALREADY_ASSIGNED);
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
         } else {
-            this.shadowRoot.getElementById(this.currentEventDetail.componentID).newKey(this.currentEventDetail.index, event.key.toUpperCase());
-            this.settings.keysPlayers[index][this.currentEventDetail.index] = event.key.toUpperCase();
+            this.shadowRoot.getElementById(this.currentEventDetail.componentID).newKey(this.currentEventDetail.index, event.key.toLowerCase());
+            this.settings.keysPlayers[index][this.currentEventDetail.index] = event.key.toLowerCase();
             this.shadowRoot.getElementById("validationPart").style.display = "flex";
         }
         this.currentEventDetail = null;
