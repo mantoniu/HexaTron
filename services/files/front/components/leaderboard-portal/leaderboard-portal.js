@@ -33,12 +33,10 @@ export class LeaderboardPortal extends Component {
     }
 
     selectLeague() {
-        console.log(this.leaderboard);
         const league = this.shadowRoot.getElementById("league-selector").value;
         if (league === "Global") {
             this.shadowRoot.getElementById("leaderboard").setLeague(Object.values(this.leaderboard).flat());
         } else {
-            console.log(league);
             this.shadowRoot.getElementById("leaderboard").setLeague(this.leaderboard[league]);
         }
     }
