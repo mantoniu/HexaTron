@@ -1,12 +1,15 @@
 :host {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
     opacity: 0;
     transform: translateY(-20px);
     animation: fadeIn 0.5s ease-out forwards;
     height: 80%;
     font-size: 1.3rem;
+}
+
+#leaderboard-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -38,4 +41,8 @@ h1 {
 
 select {
     font-size: 1.3rem;
+}
+
+user-profile {
+    display: none;
 }

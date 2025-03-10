@@ -1,12 +1,14 @@
 import {Component} from "../component/component.js";
 import {LeaderboardComponent} from "../leaderboard-component/leaderboard-component.js";
 import {UserService} from "../../services/user-service.js";
+import {UserProfile} from "../user-profile/user-profile.js";
 
 export class LeaderboardPortal extends Component {
     constructor() {
         super();
 
         LeaderboardComponent.register();
+        UserProfile.register();
 
         this.leaderboard = [];
     }
@@ -27,9 +29,9 @@ export class LeaderboardPortal extends Component {
         option.value = "Global";
         option.textContent = "Global";
         this.shadowRoot.getElementById("league-selector").appendChild(option);
-
         this.shadowRoot.getElementById("league-selector").value = "Global";
         this.selectLeague();
+        this.addAutoCleanListener(this, "watchProfile", (event) => this.handleEvent(event));
     }
 
     selectLeague() {
@@ -39,5 +41,13 @@ export class LeaderboardPortal extends Component {
         } else {
             this.shadowRoot.getElementById("leaderboard").setLeague(this.leaderboard[league]);
         }
+    }
+
+    handleEvent(event) {
+        event.stopPropagation();
+        this.shadowRoot.querySelector("user-profile").setAttribute("user", JSON.stringify(event.detail.player));
+        this.shadowRoot.querySelector("user-profile").setAttribute("editable", false);
+        this.shadowRoot.querySelector("user-profile").style.display = "block";
+        this.shadowRoot.getElementById("leaderboard-container").style.display = "none";
     }
 }

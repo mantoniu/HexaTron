@@ -27,6 +27,20 @@ export class UserProfile extends BaseAuth {
         this._elements = {};
     }
 
+    static get observedAttributes() {
+        return ["user", "editable", "part"];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === "user") {
+            this.user = JSON.parse(newValue);
+            this.updateUserData();
+        }
+        if (name === "editable" && !newValue) {
+            this.shadowRoot.getElementById("edit-username").style.display = "none";
+        }
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
         if (!JSON.parse(this.getAttribute("editable"))) {

@@ -16,6 +16,14 @@ export class LeaderboardElement extends Component {
         await super.connectedCallback();
 
         this.initialise();
+        this.addEventListener("click", () => {
+            const event = new CustomEvent("watchProfile", {
+                detail: {player: this.player},
+                bubbles: true,
+                composed: true
+            });
+            this.dispatchEvent(event);
+        });
     }
 
     initialise() {
