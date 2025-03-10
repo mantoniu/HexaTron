@@ -212,7 +212,7 @@ async function leaderboard() {
             }
         ]).toArray()
     );
-    return Object.fromEntries(result.map(document => [document._id === "-1" ? "Wood" : leagueRank[document._id], document.players]));
+    return Object.fromEntries(result.map(document => [document._id === "-1" ? "Wood" : document._id, document.players]));
 }
 
 async function getRank(id) {
