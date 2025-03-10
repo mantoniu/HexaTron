@@ -1,6 +1,6 @@
 const {
     deleteToken, addUser, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
-    refreshAccessToken, deleteUserByID, getElo, leaderboard
+    refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank
 } = require("./database");
 const bcrypt = require("bcrypt");
 const {HttpError, convertToString, DATABASE_ERRORS} = require("./utils");
@@ -233,14 +233,19 @@ exports.getElo = async (req, res) => {
     }
 };
 
-exports.leaderboard = async (_, res) => {
+exports.leaderboard = async (req, res) => {
     try {
         const playersRanking = await leaderboard();
         res.writeHead(200, {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*"
         });
-        res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));
+        if (req.body.hasOwnProperty("id")) {
+            const rank = await getRank(req.body);
+            res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking, rank: rank}));
+        } else {
+            res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));
+        }
     } catch (error) {
         throw new HttpError(500, error.message);
     }

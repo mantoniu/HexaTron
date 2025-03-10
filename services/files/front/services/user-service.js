@@ -179,8 +179,14 @@ export class UserService extends EventEmitter {
     }
 
     async getLeaderboard() {
-        const response = await this._request("GET", "api/user/leaderboard", null, this._refreshToken);
-        return response.data.playersELO;
+        let response;
+        if (this.isConnected()) {
+            response = await this._request("POST", "api/user/leaderboard", {id: this.user._id}, this._refreshToken);
+        } else {
+            response = await this._request("POST", "api/user/leaderboard", null, this._refreshToken);
+        }
+        console.log(response.data);
+        return response.data;
     }
 
     async _request(method, endpoint, body = null, token = this._accessToken) {

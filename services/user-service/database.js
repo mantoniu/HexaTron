@@ -9,7 +9,18 @@ const dbName = process.env.DB_NAME;
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
-const leagueRank = {0: "Stone", 750: "Iron", 1250: "Silver", 1500: "Gold", 1750: "Platinum", 2000: "Diamond"};
+const leagueRank = {0: "Stone", 1000: "Iron", 1250: "Silver", 1500: "Gold", 1750: "Platinum", 2000: "Diamond"};
+const initialELO = 1000;
+
+function getLeague(score) {
+    let league = "Wood";
+    for (const elo in Object.keys(leagueRank)) {
+        if (score >= elo) {
+            league = leagueRank[elo];
+        }
+    }
+    return league;
+}
 
 function handleMongoError(error) {
     switch (error.code) {
@@ -85,7 +96,8 @@ async function deleteToken(userID) {
 }
 
 async function addUser(newUser) {
-    newUser["elo"] = parseInt(process.env.INITIAL_ELO);
+    newUser["elo"] = initialELO;
+    newUser["league"] = leagueRank[initialELO];
     const result = await mongoOperation(() =>
         db.collection(userCollection).insertOne(newUser)
     );
@@ -136,6 +148,9 @@ async function checkPassword(credential, enteredPwd, withID) {
 }
 
 async function updateUser(newUserData, userID) {
+    if (newUserData.hasOwnProperty("elo")) {
+        newUserData["league"] = getLeague(newUserData.elo);
+    }
     const modification = await mongoOperation(() =>
         db.collection(userCollection).updateOne(
             {_id: convertToID(userID)},
@@ -181,21 +196,16 @@ async function leaderboard() {
     const result = await mongoOperation(() =>
         db.collection(userCollection).aggregate([
             {
-                $sort: {
-                    "elo": -1
-                }
+                $sort: {"elo": -1}
             },
             {
-                $bucket: {
-                    groupBy: "$elo",
-                    boundaries: Object.keys(leagueRank).map(Number),
-                    default: "-1",
-                    output: {
-                        players: {
-                            $push: {
-                                "name": "$name",
-                                "elo": "$elo"
-                            }
+                $group: {
+                    _id: "$league",
+                    players: {
+                        $push: {
+                            name: "$name",
+                            elo: "$elo",
+                            league: "$league"
                         }
                     }
                 }
@@ -203,6 +213,15 @@ async function leaderboard() {
         ]).toArray()
     );
     return Object.fromEntries(result.map(document => [document._id === "-1" ? "Wood" : leagueRank[document._id], document.players]));
+}
+
+async function getRank(id) {
+    const user = await getUserByID(id);
+
+    return await db.collection(userCollection).countDocuments({
+        league: user.league,
+        elo: {$gt: user.elo}
+    }) + 1;
 }
 
 module.exports = {
@@ -216,5 +235,6 @@ module.exports = {
     refreshAccessToken,
     deleteUserByID,
     getElo,
-    leaderboard
+    leaderboard,
+    getRank
 };

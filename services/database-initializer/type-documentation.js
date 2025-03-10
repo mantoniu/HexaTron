@@ -46,6 +46,10 @@ const User = {
     },
     elo: {
         bsonType: "int"
+    },
+    league: {
+        "bsonType": "string",
+        "enum": ["Stone", "Iron", "Silver", "Gold", "Platinum", "Diamond"]
     }
 };
 

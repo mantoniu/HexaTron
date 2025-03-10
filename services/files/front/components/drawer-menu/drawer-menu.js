@@ -23,6 +23,11 @@ export class DrawerMenu extends Component {
         RegisterPortal.register();
         ForgottenPasswordPortal.register();
         LeaderboardPortal.register();
+
+        this.addAutoCleanListener(this, "showUserProfile", (event) => {
+            event.stopPropagation();
+            this.loadContent(DRAWER_CONTENT.PROFILE);
+        });
     }
 
     async connectedCallback() {

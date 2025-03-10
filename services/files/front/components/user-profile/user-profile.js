@@ -10,6 +10,7 @@ export class UserProfile extends BaseAuth {
         PROFILE_PICTURE: "profile-picture",
         USERNAME: "username",
         ELO: "elo",
+        LEAGUE: "league",
         USERNAME_INPUT: "username-input",
         EDIT_USERNAME: "edit-username",
         USERNAME_DIV: "username-div",
@@ -75,6 +76,9 @@ export class UserProfile extends BaseAuth {
 
         if (this._elements.ELO && this.user.elo) {
             this._elements.ELO.textContent += Math.round(this.user.elo);
+        }
+        if (this._elements.LEAGUE && this.user.league) {
+            this._elements.LEAGUE.textContent += this.user.league;
         }
     }
 

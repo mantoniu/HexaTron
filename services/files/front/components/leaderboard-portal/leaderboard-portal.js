@@ -18,7 +18,10 @@ export class LeaderboardPortal extends Component {
 
         this.shadowRoot.getElementById("league-selector").addEventListener("input", () => this.selectLeague());
 
-        this.leaderboard = await UserService.getInstance().getLeaderboard();
+        const result = await UserService.getInstance().getLeaderboard();
+        this.leaderboard = result.playersELO;
+        if (UserService.getInstance().isConnected())
+            this.rank = result.rank;
         Object.keys(this.leaderboard).map(league => {
             const option = document.createElement("option");
             option.value = league;
@@ -44,10 +47,18 @@ export class LeaderboardPortal extends Component {
     }
 
     handleEvent(event) {
-        event.stopPropagation();
-        this.shadowRoot.querySelector("user-profile").setAttribute("user", JSON.stringify(event.detail.player));
-        this.shadowRoot.querySelector("user-profile").setAttribute("editable", false);
-        this.shadowRoot.querySelector("user-profile").style.display = "block";
-        this.shadowRoot.getElementById("leaderboard-container").style.display = "none";
+        if (event.detail.player.name === UserService.getInstance().user.name) {
+            const event = new CustomEvent("showUserProfile", {
+                bubbles: true,
+                composed: true
+            });
+            this.dispatchEvent(event);
+        } else {
+            event.stopPropagation();
+            this.shadowRoot.querySelector("user-profile").setAttribute("user", JSON.stringify(event.detail.player));
+            this.shadowRoot.querySelector("user-profile").setAttribute("editable", false);
+            this.shadowRoot.querySelector("user-profile").style.display = "block";
+            this.shadowRoot.getElementById("leaderboard-container").style.display = "none";
+        }
     }
 }

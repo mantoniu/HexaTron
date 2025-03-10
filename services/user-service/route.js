@@ -377,26 +377,25 @@ const routes = [
          *     description: Retrieve the leaderboard created by aggregating users' data into one document for each league according to the ELO range, and convert the result into an array.
          *     tags:
          *       - User service
+         *     requestBody:
+         *       description: ID of the player if one is connected
+         *       required: false
+         *       content:
+         *         application/json:
+         *           schema:
+         *            type: string
+         *            example: 151vqdv445v1v21d
          *     responses:
          *       200:
          *         description: The response consists of a dictionary with one element for each league, and each value is an ordered array of players with their name and ELO.
          *         content:
          *           application/json:
          *             schema:
-         *                 type: array
-         *                 items:
-         *                   type: object
-         *                   properties:
-         *                     name:
-         *                       type: string
-         *                       description: The name of the player.
-         *                     elo:
-         *                       type: integer
-         *                       description: The ELO score of the player.
+         *               $ref: '#/components/schemas/leaderboardResult'
          *       500:
          *        description: Internal Server Error
          */
-        method: "GET",
+        method: "POST",
         path: ["leaderboard"],
         handler: controller.leaderboard
     }
