@@ -49,7 +49,9 @@ export class DrawerMenu extends Component {
 
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
-                component = (UserService.getInstance().isConnected()) ? "<user-profile></user-profile>" : "<login-portal></login-portal>";
+                component = (UserService.getInstance().isConnected())
+                    ? `<user-profile user='${JSON.stringify(UserService.getInstance().user)}' editable='true' part='user-password-part'></user-profile>`
+                    : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
                 component = "<register-portal></register-portal>";
