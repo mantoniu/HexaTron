@@ -27,7 +27,7 @@ services:
       - network-services
     environment:
       - URI=${URI_DATABASE_ROOT}
-      - COLLECTIONS=${USER_COLLECTION},${TOKEN_COLLECTION}
+      - COLLECTIONS=${COLLECTIONS}
       - USERS=${MONGO_USER_SERVICE_USERNAME};${MONGO_USER_SERVICE_PASSWORD}
       - DB_NAME=${DB_NAME}
     depends_on:
@@ -82,6 +82,30 @@ services:
       start_period: 20s
       timeout: 5s
 
+  chat-service:
+    build:
+      context: .
+      dockerfile: chat-service/Dockerfile
+      network: host
+    networks:
+      - network-services
+    expose:
+      - "8005"
+    environment:
+      - DB_NAME=${DB_NAME}
+      - URI=${URI_DATABASE_USER_SERVICE}
+      - GATEWAY_URL=${GATEWAY_URL}
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8005/api/user/health" ]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
+
   files:
     build:
       context: ./files/
@@ -112,6 +136,7 @@ services:
     environment:
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - GAME_SERVICE_URL=${GAME_SERVICE_URL}
+      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
       - FILES_URL=${FILES_URL}
       - GATEWAY_URL=${GATEWAY_URL}
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
