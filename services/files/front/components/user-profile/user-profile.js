@@ -3,7 +3,7 @@ import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
-import {UserPasswordPart} from "../user-password-part/user-password-part.js";
+import {checkInputsValidity, getInputsData} from "../../js/FormUtils.js";
 
 export class UserProfile extends BaseAuth {
     static SELECTORS = {
@@ -63,7 +63,7 @@ export class UserProfile extends BaseAuth {
 
 
     updateUserData() {
-        if (!this.isConnected || !this.user)
+        if (!this.isConnected && !this.user)
             return;
 
         if (this._elements.PROFILE_PICTURE && this.user.profilePicturePath) {
@@ -92,7 +92,7 @@ export class UserProfile extends BaseAuth {
         } else {
             if (this.checkInputs(UserProfile.SELECTORS.USERNAME_DIV)) {
                 const newUsername = this._elements.USERNAME_INPUT.shadowRoot.querySelector("input").value;
-                const data = await UserService.getInstance().updateUsername(newUsername);
+                const data = await UserService.getInstance().updateUser({name: newUsername});
                 this._handleUsernameChange(data);
             }
         }
@@ -104,8 +104,8 @@ export class UserProfile extends BaseAuth {
             this.showElement(this._elements.USERNAME);
             this._elements.EDIT_USERNAME.setAttribute("src", "./assets/edit.svg");
             this.editingUsername = false;
-            if (this._elements.USERNAME && data.username)
-                this._elements.USERNAME.innerText = data.username;
+            if (this._elements.USERNAME && data.name)
+                this._elements.USERNAME.innerText = data.name;
         } else alert(data.error);
     }
 }
