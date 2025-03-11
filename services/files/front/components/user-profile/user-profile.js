@@ -70,7 +70,7 @@ export class UserProfile extends BaseAuth {
     }
 
     updateUserData() {
-        if (!userService.user)
+        if (!userService.isConnected())
             return;
 
         if (this._elements.PROFILE_PICTURE && userService.user.profilePicturePath) {
@@ -92,7 +92,7 @@ export class UserProfile extends BaseAuth {
         } else {
             if (this.checkInputs(UserProfile.SELECTORS.USERNAME_DIV)) {
                 const newUsername = this._elements.USERNAME_INPUT.shadowRoot.querySelector("input").value;
-                const data = await userService.updateUsername(newUsername);
+                const data = await userService.updateUser({name: newUsername});
                 this._handleUsernameChange(data);
             }
         }
@@ -104,8 +104,8 @@ export class UserProfile extends BaseAuth {
             this.showElement(this._elements.USERNAME);
             this._elements.EDIT_USERNAME.setAttribute("src", "./assets/edit.svg");
             this.editingUsername = false;
-            if (this._elements.USERNAME && data.username)
-                this._elements.USERNAME.innerText = data.username;
+            if (this._elements.USERNAME && data.name)
+                this._elements.USERNAME.innerText = data.name;
         } else alert(data.error);
     }
 

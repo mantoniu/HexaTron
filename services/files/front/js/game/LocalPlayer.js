@@ -15,7 +15,6 @@ export class LocalPlayer extends Player {
     setupListener() {
         window.addEventListener('keydown', (event) => {
             const key = event.key.toLowerCase();
-
             if (this._keys.includes(key) && gameService.game?.id) {
                 const move = this._movementsMapping[key];
                 gameService.nextMove(this.id, move);
