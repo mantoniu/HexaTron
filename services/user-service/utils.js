@@ -1,5 +1,3 @@
-const {ObjectId} = require("mongodb");
-
 const USER_FIELDS = Object.freeze({
     id: '_id',
     name: 'name',
@@ -19,14 +17,6 @@ const DATABASE_ERRORS = Object.freeze({
     USERNAME_ALREADY_EXISTS: "USERNAME_ALREADY_EXISTS",
     VALIDATION_FAILED: "VALIDATION_FAILED"
 });
-
-function convertToID(id) {
-    return new ObjectId(id);
-}
-
-function convertToString(id) {
-    return id.toHexString();
-}
 
 module.exports = {
     USER_FIELDS,
