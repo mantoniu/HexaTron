@@ -1,23 +1,45 @@
 const {MongoClient} = require("mongodb");
-const {User, RefreshToken} = require("./type-documentation.js");
+const {User, RefreshToken, Conservation, Message} = require("./type-documentation.js");
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const dbName = process.env.DB_NAME;
 const db = client.db(dbName);
 const adminDb = client.db("admin");
+
+// Define the schemas for each collection
 const propertiesCollections = {
+    conversations: Conservation,
+    messages: Message,
     users: User,
     refreshTokens: RefreshToken
 };
+
+// Define the indexes for each collection
 const collectionsIndex = {
+    // Index on 'participants' field in the 'conversations' collection.
+    // This will improve query performance when searching for conversations by participants.
+    conversations: {participants: 1},
+
+    // Index on 'conversationId' field in the 'messages' collection.
+    // This will improve query performance when searching for messages by conversation.
+    messages: {conversationId: 1},
+
+    // Index on 'name' field in the 'users' collection.
+    // This will improve query performance when searching for users by name.
     users: {name: 1},
+
+    // Compound index on 'userID' and 'refreshToken' fields in the 'refreshTokens' collection.
+    // This will improve query performance when looking up refresh tokens by user ID and token.
     refreshTokens: {userID: 1, refreshToken: 1}
 };
+
 const collections = process.env.COLLECTIONS.split(",").map(collection => collection.trim());
+
 const users = process.env.USERS.split(",").map(user => {
     user = user.split(";");
     return {"userName": user[0], "password": user[1]};
 });
+
 const users_collections = {
     [collections[0]]: users[0],
     [collections[1]]: users[0]
@@ -43,7 +65,10 @@ async function startService() {
                 await adminDb.command({
                     createRole: users_collections[collectionName]["userName"],
                     privileges: [
-                        {resource: {db: dbName, collection: collectionName}, actions: ["find", "insert", "update", "remove"]}
+                        {
+                            resource: {db: dbName, collection: collectionName},
+                            actions: ["find", "insert", "update", "remove"]
+                        }
                     ],
                     roles: []
                 });
@@ -53,7 +78,10 @@ async function startService() {
             await adminDb.command({
                 grantPrivilegesToRole: users_collections[collectionName]["userName"],
                 privileges: [
-                    {resource: {db: dbName, collection: collectionName}, actions: ["find", "insert", "update", "remove"]}
+                    {
+                        resource: {db: dbName, collection: collectionName},
+                        actions: ["find", "insert", "update", "remove"]
+                    }
                 ]
             });
 

@@ -1,4 +1,45 @@
 /* TYPE DEFINITION */
+//TODO maybe move this into the service directly ?
+const Conversation = {
+    bsonType: "object",
+    properties: {
+        participants: {
+            bsonType: "array",
+            items: {
+                bsonType: "string"
+            },
+            minItems: 2,
+            uniqueItems: true
+        },
+        createdAt: {
+            bsonType: "date"
+        }
+    },
+    required: ["participants", "createdAt"]
+};
+
+const Message = {
+    bsonType: "object",
+    properties: {
+        conversationId: {
+            bsonType: "objectId"
+        },
+        sender: {
+            bsonType: "string"
+        },
+        content: {
+            bsonType: "string"
+        },
+        timestamp: {
+            bsonType: "date"
+        },
+        isRead: {
+            bsonType: "bool"
+        }
+    },
+    required: ["conversationId", "sender", "content", "timestamp"]
+};
+
 const Parameters = {
     bsonType: "object",
     properties: {
@@ -102,9 +143,4 @@ const userJson = convertBsonToSwagger(User);
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
 
 /* EXPORTS */
-exports.User = User;
-exports.Parameters = Parameters;
-exports.RefreshToken = RefreshToken;
-
-exports.userJson = userJson;
-exports.refreshTokenJson = refreshTokenJson;
+module.exports = {User, Conversation, Message, Parameters, RefreshToken, userJson, refreshTokenJson};
