@@ -1,5 +1,4 @@
 /* TYPE DEFINITION */
-//TODO maybe move this into the service directly ?
 const Conversation = {
     bsonType: "object",
     properties: {
