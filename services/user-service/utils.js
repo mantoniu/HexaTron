@@ -30,7 +30,5 @@ function convertToString(id) {
 
 module.exports = {
     USER_FIELDS,
-    DATABASE_ERRORS,
-    convertToID,
-    convertToString
+    DATABASE_ERRORS
 };

@@ -1,6 +1,6 @@
 const controller = require("./controller");
 const {options} = require("./api-options");
-const createServiceServer = require("../utils/routing-utils");
+const {createServiceServer} = require("../utils/routing-utils");
 
 const routes = [
     {

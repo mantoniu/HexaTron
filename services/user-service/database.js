@@ -1,8 +1,8 @@
 const {MongoClient} = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const {convertToID, convertToString, DATABASE_ERRORS, USER_FIELDS} = require("./utils");
-
+const {DATABASE_ERRORS, USER_FIELDS} = require("./utils");
+const {convertToString, convertToID} = require("utils/database-utils");
 const userCollection = "users";
 const refreshTokenCollection = "refreshTokens";
 const dbName = process.env.DB_NAME;
@@ -131,6 +131,7 @@ async function checkPassword(credential, enteredPwd, withID) {
         throw new Error(DATABASE_ERRORS.INVALID_PASSWORD);
 
     const {password, ...res} = user;
+    res._id = convertToString(res._id);
     return res;
 }
 

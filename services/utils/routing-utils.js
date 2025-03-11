@@ -1,20 +1,6 @@
 const {createServer} = require("node:http");
 const {generateDocumentationAPI} = require("./api-utils");
-
-/**
- * Custom Error class to handle HTTP errors with a specific status code.
- *
- * @class
- * @extends {Error}
- * @param {number} status - The HTTP status code.
- * @param {string} message - The error message.
- */
-class HttpError extends Error {
-    constructor(status, message) {
-        super(message);
-        this.status = status;
-    }
-}
+const {HttpError} = require("./controller-utils");
 
 /**
  * Parses the request URL and extracts the path segments.
@@ -74,16 +60,18 @@ function parseRequestBody(request) {
  * Creates and configures an HTTP server for the service.
  *
  * @param {Array} routes - The routes for the service.
- * @param {Object} apiOptions - The options for generating API documentation.
- * @param {string} documentationPath - The path for generating API documentation.
+ * @param {Object|null} apiOptions - The options for generating API documentation.
+ * @param {string|null} documentationPath - The path for generating API documentation.
  * @returns {Server} The created HTTP server.
  */
-function createServiceServer(routes, apiOptions, documentationPath) {
+function createServiceServer(routes, apiOptions = null, documentationPath = null) {
     // Generate API documentation when the server starts
-    try {
-        generateDocumentationAPI(documentationPath, apiOptions);
-    } catch (error) {
-        console.error(`Error during the creation of API documentation: ${error}`);
+    if (apiOptions != null && documentationPath != null) {
+        try {
+            generateDocumentationAPI(documentationPath, apiOptions);
+        } catch (error) {
+            console.error(`Error during the creation of API documentation: ${error}`);
+        }
     }
 
     return createServer(async (req, res) => {
@@ -106,4 +94,4 @@ function createServiceServer(routes, apiOptions, documentationPath) {
     });
 }
 
-module.exports = createServiceServer;
+module.exports = {createServiceServer};
