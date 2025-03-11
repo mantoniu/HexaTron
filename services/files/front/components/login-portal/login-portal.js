@@ -1,5 +1,5 @@
 import {SubmitButton} from "../submit-button/submit-button.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
 
@@ -41,7 +41,7 @@ export class LoginPortal extends BaseAuth {
     }
 
     handleSubmit() {
-        UserService.getInstance().login(this.getFormData())
+        userService.login(this.getFormData())
             .then((data) => this._loginHandler(data));
     }
 }

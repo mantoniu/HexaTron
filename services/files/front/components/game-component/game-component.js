@@ -1,6 +1,6 @@
 import {GameBoard} from "../game-board/game-board.js";
 import {GameHeader} from "../game-header/game-header.js";
-import {GameService, GameStatus} from "../../services/game-service.js";
+import {gameService, GameStatus} from "../../services/game-service.js";
 import {GameWaiting} from "../game-waiting/game-waiting.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {ResultScreen} from "../result-screen/result-screen.js";
@@ -40,13 +40,13 @@ export class GameComponent extends ListenerComponent {
             }
         };
 
-        if (GameService.getInstance().isGameCreated())
+        if (gameService.isGameCreated())
             this.hideLoader();
 
-        this.addEventListener(GameService, GameStatus.CREATED,
+        this.addEventListener(gameService, GameStatus.CREATED,
             () => this.hideLoader());
 
-        this.addEventListener(GameService, GameStatus.GAME_END,
+        this.addEventListener(gameService, GameStatus.GAME_END,
             () => this.showResultScreen());
     }
 }

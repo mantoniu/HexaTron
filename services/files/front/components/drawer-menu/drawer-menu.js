@@ -1,6 +1,6 @@
 import {Component} from "../component/component.js";
 import {LoginPortal} from "../login-portal/login-portal.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {UserProfile} from "../user-profile/user-profile.js";
 import {RegisterPortal} from "../register-portal/register-portal.js";
 import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-password-portal.js";
@@ -46,7 +46,7 @@ export class DrawerMenu extends Component {
 
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
-                component = (UserService.getInstance().isConnected()) ? "<user-profile></user-profile>" : "<login-portal></login-portal>";
+                component = (userService.isConnected()) ? "<user-profile></user-profile>" : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
                 component = "<register-portal></register-portal>";

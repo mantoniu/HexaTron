@@ -1,4 +1,4 @@
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
@@ -57,12 +57,12 @@ export class UserProfile extends BaseAuth {
     }
 
     async handleLogout() {
-        await UserService.getInstance().logout();
+        await userService.logout();
         window.location.href = "/";
     }
 
     async handleDeletion() {
-        const data = await UserService.getInstance().delete();
+        const data = await userService.delete();
         if (data.success) {
             alert(data.message);
             window.location.href = "/";
@@ -70,16 +70,16 @@ export class UserProfile extends BaseAuth {
     }
 
     updateUserData() {
-        if (!UserService.getInstance().user)
+        if (!userService.user)
             return;
 
-        if (this._elements.PROFILE_PICTURE && UserService.getInstance().user.profilePicturePath) {
-            this._elements.PROFILE_PICTURE.src = UserService.getInstance().user.profilePicturePath;
+        if (this._elements.PROFILE_PICTURE && userService.user.profilePicturePath) {
+            this._elements.PROFILE_PICTURE.src = userService.user.profilePicturePath;
             this._elements.PROFILE_PICTURE.onerror = () => console.warn("Error loading the profile picture");
         }
 
-        if (this._elements.USERNAME && UserService.getInstance().user.name)
-            this._elements.USERNAME.innerText = UserService.getInstance().user.name;
+        if (this._elements.USERNAME && userService.user.name)
+            this._elements.USERNAME.innerText = userService.user.name;
     }
 
     async toggleUsernameEdit() {
@@ -87,12 +87,12 @@ export class UserProfile extends BaseAuth {
             this.showElement(this._elements.USERNAME_INPUT);
             this.hideElement(this._elements.USERNAME);
             this._elements.EDIT_USERNAME.setAttribute("src", "./assets/validate.svg");
-            this._elements.USERNAME_INPUT.setAttribute("value", UserService.getInstance().user.name);
+            this._elements.USERNAME_INPUT.setAttribute("value", userService.user.name);
             this.editingUsername = true;
         } else {
             if (this.checkInputs(UserProfile.SELECTORS.USERNAME_DIV)) {
                 const newUsername = this._elements.USERNAME_INPUT.shadowRoot.querySelector("input").value;
-                const data = await UserService.getInstance().updateUsername(newUsername);
+                const data = await userService.updateUsername(newUsername);
                 this._handleUsernameChange(data);
             }
         }
@@ -120,7 +120,7 @@ export class UserProfile extends BaseAuth {
             if (this.checkInputs(UserProfile.SELECTORS.PASSWORD_DIV)) {
                 const inputs = this.getInputs(`#${UserProfile.SELECTORS.PASSWORD_DIV} form-input`);
                 const inputsData = getInputsData(inputs);
-                const data = await UserService.getInstance().updatePassword(
+                const data = await userService.updatePassword(
                     inputsData["current-password"],
                     inputsData["confirm-password"]
                 );

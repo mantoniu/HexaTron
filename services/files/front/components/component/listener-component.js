@@ -13,6 +13,7 @@ export class ListenerComponent extends Component {
 
     /**
      * Adds an event listener to a specific service.
+     *
      * @param {Object} service - The service that must extend EventEmitter.
      * @param {string} eventName - The name of the event to listen to.
      * @param {Function} callback - The function to execute when the event is triggered.
@@ -20,7 +21,7 @@ export class ListenerComponent extends Component {
      * @throws {Error} If the service does not extend EventEmitter or if the callback is not a function.
      */
     addEventListener(service, eventName, callback) {
-        if (!(service.getInstance() instanceof EventEmitter))
+        if (!(service instanceof EventEmitter))
             throw new Error("Service must extend EventEmitter");
         if (typeof callback !== "function")
             throw new Error("Callback must be a function");
@@ -28,7 +29,7 @@ export class ListenerComponent extends Component {
         if (!this._serviceListeners.has(service))
             this._serviceListeners.set(service, new Map());
 
-        const listenerId = service.getInstance().on(eventName, callback);
+        const listenerId = service.on(eventName, callback);
         this._serviceListeners.get(service).set(eventName, listenerId);
         return listenerId;
     }
@@ -42,7 +43,7 @@ export class ListenerComponent extends Component {
 
         for (const [service, listeners] of this._serviceListeners) {
             for (const [event, listenerId] of listeners) {
-                service.getInstance().off(event, listenerId);
+                service.off(event, listenerId);
             }
             listeners.clear();
         }

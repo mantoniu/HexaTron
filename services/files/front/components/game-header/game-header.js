@@ -1,6 +1,6 @@
 import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/Utils.js";
-import {GameService, GameStatus} from "../../services/game-service.js";
-import {UserService} from "../../services/user-service.js";
+import {gameService, GameStatus} from "../../services/game-service.js";
+import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 
 export class GameHeader extends ListenerComponent {
@@ -19,22 +19,22 @@ export class GameHeader extends ListenerComponent {
 
         this.resizeCanvasFunction();
 
-        if (GameService.getInstance().isGameCreated())
-            await this.receiveData(GameService.getInstance().game.players);
+        if (gameService.isGameCreated())
+            await this.receiveData(gameService.game.players);
 
         this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
 
         this._roundEndHandler = (data) => {
             if (data.status === "winner") {
-                const colorIndex = +(data.winner !== UserService.getInstance().user._id);
-                this.fillCircle(data.round + 1, UserService.getInstance().user.parameters.playersColors[colorIndex]);
+                const colorIndex = +(data.winner !== userService.user._id);
+                this.fillCircle(data.round + 1, userService.user.parameters.playersColors[colorIndex]);
             } else this.fillCircle(data.round + 1, "#D3D3D3");
         };
 
-        this.addEventListener(GameService, GameStatus.CREATED,
-            () => this.receiveData(GameService.getInstance().game.players));
+        this.addEventListener(gameService, GameStatus.CREATED,
+            () => this.receiveData(gameService.game.players));
 
-        this.addEventListener(GameService, GameStatus.ROUND_END, (data) => this._roundEndHandler(data));
+        this.addEventListener(gameService, GameStatus.ROUND_END, (data) => this._roundEndHandler(data));
     }
 
     calculateUtils() {
@@ -86,7 +86,7 @@ export class GameHeader extends ListenerComponent {
         const ids = Object.keys(players);
         let n = 1;
         for (let k = 0; k < ids.length; k++) {
-            n = UserService.getInstance().user._id === ids[k] ? 1 : 2;
+            n = userService.user._id === ids[k] ? 1 : 2;
             waitForElm(this, "name-player" + n).then((element) => {
                 element.innerText = players[ids[k]]._name;
             });
