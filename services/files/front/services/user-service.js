@@ -232,7 +232,7 @@ export class UserService extends EventEmitter {
         this._user = null;
         this._accessToken = null;
         this._refreshToken = null;
-
+        this._connected = false;
         this._clearLocalStorage();
     }
 }
