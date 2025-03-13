@@ -3,7 +3,7 @@ import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
-import {checkInputsValidity, getInputsData} from "../../js/FormUtils.js";
+import {UserPasswordPart} from "../user-password-part/user-password-part.js";
 
 export class UserProfile extends BaseAuth {
     static SELECTORS = {

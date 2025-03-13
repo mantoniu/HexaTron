@@ -27,11 +27,6 @@ export class DrawerMenu extends Component {
         ForgottenPasswordPortal.register();
         LeaderboardPortal.register();
         SettingsPortal.register();
-
-        this.addAutoCleanListener(this, "showUserProfile", (event) => {
-            event.stopPropagation();
-            this.loadContent(DRAWER_CONTENT.PROFILE);
-        });
     }
 
     async connectedCallback() {
@@ -56,6 +51,12 @@ export class DrawerMenu extends Component {
             if (!(event.composedPath().some(element => element.localName === "drawer-menu" || element.localName === "custom-nav")) && this._oppened) {
                 this.nav(this.previous);
             }
+        });
+
+        this.addAutoCleanListener(this, "showUserProfile", (event) => {
+            event.stopPropagation();
+            this.previous = DRAWER_CONTENT.PROFILE;
+            this.loadContent(DRAWER_CONTENT.PROFILE);
         });
     }
 
