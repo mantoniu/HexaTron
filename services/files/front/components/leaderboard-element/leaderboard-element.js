@@ -28,7 +28,7 @@ export class LeaderboardElement extends Component {
 
     initialise() {
         if (this.isConnected && this.player) {
-            this.shadowRoot.getElementById("rank").textContent = this.id;
+            this.shadowRoot.getElementById("rank").textContent = this.rank;
             this.shadowRoot.getElementById("profile-picture").src = this.player.hasOwnProperty("profile-pictue") ? player["profile-pictue"] : "../../assets/profile.svg";
             this.shadowRoot.getElementById("name").textContent = this.player.name;
             this.shadowRoot.getElementById("elo").textContent = Math.round(this.player.elo);

@@ -19,19 +19,20 @@ export class LeaderboardPortal extends Component {
         this.shadowRoot.getElementById("league-selector").addEventListener("input", () => this.selectLeague());
 
         const result = await UserService.getInstance().getLeaderboard();
+
         this.leaderboard = result.playersELO;
-        if (UserService.getInstance().isConnected())
+
+        if (UserService.getInstance().isConnected()) {
             this.rank = result.rank;
+        }
+
         Object.keys(this.leaderboard).map(league => {
             const option = document.createElement("option");
             option.value = league;
             option.textContent = league;
             this.shadowRoot.getElementById("league-selector").appendChild(option);
         });
-        const option = document.createElement("option");
-        option.value = "Global";
-        option.textContent = "Global";
-        this.shadowRoot.getElementById("league-selector").appendChild(option);
+
         this.shadowRoot.getElementById("league-selector").value = "Global";
         this.selectLeague();
         this.addAutoCleanListener(this, "watchProfile", (event) => this.handleEvent(event));
@@ -39,26 +40,26 @@ export class LeaderboardPortal extends Component {
 
     selectLeague() {
         const league = this.shadowRoot.getElementById("league-selector").value;
-        if (league === "Global") {
-            this.shadowRoot.getElementById("leaderboard").setLeague(Object.values(this.leaderboard).flat());
-        } else {
-            this.shadowRoot.getElementById("leaderboard").setLeague(this.leaderboard[league]);
-        }
+        this.shadowRoot.getElementById("leaderboard").setLeague(league, this.leaderboard[league], this.rank);
     }
 
     handleEvent(event) {
+        event.stopPropagation();
         if (event.detail.player.name === UserService.getInstance().user.name) {
-            const event = new CustomEvent("showUserProfile", {
+            const newEvent = new CustomEvent("showUserProfile", {
                 bubbles: true,
                 composed: true
             });
-            this.dispatchEvent(event);
+            this.dispatchEvent(newEvent);
         } else {
-            event.stopPropagation();
-            this.shadowRoot.querySelector("user-profile").setAttribute("user", JSON.stringify(event.detail.player));
-            this.shadowRoot.querySelector("user-profile").setAttribute("editable", false);
-            this.shadowRoot.querySelector("user-profile").style.display = "block";
+            const userProfile = document.createElement("user-profile");
+
+            userProfile.setAttribute("user", JSON.stringify(event.detail.player));
+            userProfile.setAttribute("editable", false);
+            userProfile.style.display = "block";
+
             this.shadowRoot.getElementById("leaderboard-container").style.display = "none";
+            this.shadowRoot.appendChild(userProfile);
         }
     }
 }
