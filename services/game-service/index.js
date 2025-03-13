@@ -113,7 +113,7 @@ async function updateELO(gameId, results) {
                 });
             }
             let result = await response.json();
-            UserToSocket.get(id).emit("updateELO", result.user.elo);
+            UserToSocket.get(id).emit("updateELO", result.user);
         }));
     } catch (error) {
         io.to(gameId).emit("error", {

@@ -88,8 +88,9 @@ export class UserService extends EventEmitter {
         return UserService._instance;
     }
 
-    updateELO(newELO) {
-        this.user.elo = newELO;
+    updateELO(data) {
+        this.user.elo = data.elo;
+        this.user.league = data.league;
         localStorage.setItem("user", JSON.stringify(this.user));
     }
 
@@ -131,8 +132,10 @@ export class UserService extends EventEmitter {
     async updateUser(newData) {
         if (this.isConnected()) {
             const response = await this._request("PATCH", `api/user/me`, newData);
+
             if (response.success) {
                 const data = response.data;
+
                 this._user = data.user;
                 localStorage.setItem("user", JSON.stringify(this._user));
                 return {success: true, ...newData};
@@ -191,11 +194,10 @@ export class UserService extends EventEmitter {
     async getLeaderboard() {
         let response;
         if (this.isConnected()) {
-            response = await this._request("POST", "api/user/leaderboard", {id: this.user._id}, this._refreshToken);
+            response = await this._request("POST", "api/user/leaderboard", {id: this.user._id});
         } else {
-            response = await this._request("POST", "api/user/leaderboard", null, this._refreshToken);
+            response = await this._request("POST", "api/user/leaderboard");
         }
-        console.log(response.data);
         return response.data;
     }
 
