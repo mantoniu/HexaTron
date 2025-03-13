@@ -45,11 +45,7 @@ const User = {
         }
     },
     elo: {
-        bsonType: "int"
-    },
-    league: {
-        "bsonType": "string",
-        "enum": ["Stone", "Iron", "Silver", "Gold", "Platinum", "Diamond"]
+        bsonType: "number"
     }
 };
 
@@ -82,7 +78,8 @@ const bsonToJsonMap = new Map([
     ["undefined", "null"],
     ["symbol", "string"],
     ["minKey", null],
-    ["maxKey", null]
+    ["maxKey", null],
+    ["number", "number"]
 ]);
 
 /**
