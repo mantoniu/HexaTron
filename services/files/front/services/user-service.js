@@ -192,12 +192,13 @@ export class UserService extends EventEmitter {
     }
 
     async getLeaderboard() {
-        let response;
+        let url = "api/user/leaderboard";
         if (this.isConnected()) {
-            response = await this._request("POST", "api/user/leaderboard", {id: this.user._id});
-        } else {
-            response = await this._request("POST", "api/user/leaderboard");
+            const params = new URLSearchParams();
+            params.append("id", this.user._id);
+            url += `?${params.toString()}`;
         }
+        const response = await this._request("GET", url);
         return response.data;
     }
 

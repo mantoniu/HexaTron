@@ -5,6 +5,7 @@ const {
 const bcrypt = require("bcrypt");
 const {HttpError, convertToString, DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../api-utils/api-utils");
+const {parse} = require("url");
 const saltRounds = 10;
 
 async function hashPassword(password) {
@@ -239,8 +240,11 @@ exports.leaderboard = async (req, res) => {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*"
         });
-        if (req.body.hasOwnProperty("id")) {
-            const rank = await getRank(req.body);
+
+        const parsedUrl = parse(req.url, true);
+
+        if (parsedUrl.query.id) {
+            const rank = await getRank(parsedUrl.query.id);
             res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking, rank: rank}));
         } else {
             res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));

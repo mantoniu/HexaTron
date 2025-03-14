@@ -1,5 +1,7 @@
 const {userJson} = require("../database-initializer/type-documentation");
 
+userJson["league"] = {league: "string"};
+
 const userExample = {
     _id: "151vqdv445v1v21d",
     name: "Champion39",
@@ -31,6 +33,13 @@ const leaderBoardSchema = Object.fromEntries(league.map(rank => [rank, {
         properties: extractProperties(userJson, ["_id", "elo", "league"])
     }
 }]));
+leaderBoardSchema["Global"] = {
+    type: "array",
+    items: {
+        type: "object",
+        properties: extractProperties(userJson, ["_id", "elo", "league"])
+    }
+};
 
 function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"], isValue = true, userFields = ["_id", "name", "parameters", "elo", "league"]) {
     let value = extractProperties({
@@ -196,8 +205,17 @@ exports.options = {
                             properties: leaderBoardSchema
                         },
                         rank: {
-                            type: "number",
-                            description: "Not always present in the response"
+                            type: "object",
+                            properties: {
+                                "leagueName": {
+                                    type: "number"
+                                },
+                                "Global": {
+                                    type: "number"
+                                }
+                            },
+                            description: "Not present in the response if the user is not connected when he requests the leaderboard"
+
                         }
                     }
                 }
