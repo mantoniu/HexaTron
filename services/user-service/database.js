@@ -2,6 +2,7 @@ const {MongoClient} = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {convertToID, convertToString, DATABASE_ERRORS, USER_FIELDS} = require("./utils");
+const {leagueRank, switchOptions, addEloPipeline, addRankPipeline, groupPipelineCreation} = require("./pipeline-utils");
 
 const userCollection = "users";
 const refreshTokenCollection = "refreshTokens";
@@ -9,18 +10,7 @@ const dbName = process.env.DB_NAME;
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
-const leagueRank = {0: "Stone", 1000: "Iron", 1250: "Silver", 1500: "Gold", 1750: "Platinum", 2000: "Diamond"};
 const initialELO = 1000;
-
-const branches = Object.keys(leagueRank).reverse().map(elo => ({
-    case: {$gte: ["$elo", parseInt(elo)]},
-    then: leagueRank[elo]
-}));
-
-const switchOptions = {
-    branches: branches,
-    default: "wood"
-};
 
 function getLeague(score) {
     let league = "Wood";
@@ -200,119 +190,25 @@ async function getElo(players) {
 
 async function leaderboard() {
     const result = await db.collection(userCollection).aggregate([
-
+        {
+            $addFields: {
+                league: {
+                    $switch: switchOptions
+                }
+            }
+        },
         {
             $facet: {
                 byLeague: [
-                    {
-                        $addFields: {
-                            league: {
-                                $switch: switchOptions
-                            }
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: "$league",
-                            players: {
-                                $push: {
-                                    _id: "$_id",
-                                    name: "$name",
-                                    elo: "$elo",
-                                    league: "$league"
-                                }
-                            }
-                        }
-                    },
-                    {
-                        $addFields: {
-                            players: {
-                                $sortArray: {
-                                    input: "$players",
-                                    sortBy: {elo: -1}
-                                }
-                            }
-                        }
-                    },
-                    {
-                        $addFields: {
-                            players: {
-                                $map: {
-                                    input: "$players",
-                                    as: "player",
-                                    in: {
-                                        _id: "$$player._id",
-                                        name: "$$player.name",
-                                        elo: "$$player.elo",
-                                        league: "$$player.league",
-                                        leagueRank: {
-                                            $add: [
-                                                {
-                                                    $size: {
-                                                        $filter: {
-                                                            input: "$players",
-                                                            as: "other",
-                                                            cond: {$gt: ["$$other.elo", "$$player.elo"]}
-                                                        }
-                                                    }
-                                                },
-                                                1
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    groupPipelineCreation("$league"),
+                    addEloPipeline,
+                    addRankPipeline
                 ],
 
                 global: [
-                    {
-                        $group: {
-                            _id: "Global",
-                            players: {$push: {name: "$name", elo: "$elo"}}
-                        }
-                    },
-                    {
-                        $addFields: {
-                            players: {
-                                $sortArray: {
-                                    input: "$players",
-                                    sortBy: {elo: -1}
-                                }
-                            }
-                        }
-                    },
-                    {
-                        $addFields: {
-                            players: {
-                                $map: {
-                                    input: "$players",
-                                    as: "player",
-                                    in: {
-                                        _id: "$$player._id",
-                                        name: "$$player.name",
-                                        elo: "$$player.elo",
-                                        league: "$$player.league",
-                                        leagueRank: {
-                                            $add: [
-                                                {
-                                                    $size: {
-                                                        $filter: {
-                                                            input: "$players",
-                                                            as: "other",
-                                                            cond: {$gt: ["$$other.elo", "$$player.elo"]}
-                                                        }
-                                                    }
-                                                },
-                                                1
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    groupPipelineCreation("Global"),
+                    addEloPipeline,
+                    addRankPipeline
                 ]
             }
         },
