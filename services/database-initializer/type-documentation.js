@@ -1,42 +1,34 @@
 /* TYPE DEFINITION */
 const Conversation = {
-    bsonType: "object",
-    properties: {
-        participants: {
-            bsonType: "array",
-            items: {
-                bsonType: "string"
-            },
-            minItems: 2,
-            uniqueItems: true
+    participants: {
+        bsonType: "array",
+        items: {
+            bsonType: "string"
         },
-        createdAt: {
-            bsonType: "date"
-        }
+        minItems: 2,
+        uniqueItems: true
     },
-    required: ["participants", "createdAt"]
+    createdAt: {
+        bsonType: "date"
+    }
 };
 
 const Message = {
-    bsonType: "object",
-    properties: {
-        conversationId: {
-            bsonType: "objectId"
-        },
-        sender: {
-            bsonType: "string"
-        },
-        content: {
-            bsonType: "string"
-        },
-        timestamp: {
-            bsonType: "date"
-        },
-        isRead: {
-            bsonType: "bool"
-        }
+    conversationId: {
+        bsonType: "objectId"
     },
-    required: ["conversationId", "sender", "content", "timestamp"]
+    sender: {
+        bsonType: "string"
+    },
+    content: {
+        bsonType: "string"
+    },
+    timestamp: {
+        bsonType: "date"
+    },
+    isRead: {
+        bsonType: "bool"
+    }
 };
 
 const Parameters = {
