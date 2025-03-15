@@ -28,7 +28,7 @@ services:
     environment:
       - URI=${URI_DATABASE_ROOT}
       - COLLECTIONS=${COLLECTIONS}
-      - USERS=${MONGO_USER_SERVICE_USERNAME};${MONGO_USER_SERVICE_PASSWORD}
+      - USERS=${USERS}
       - DB_NAME=${DB_NAME}
     depends_on:
       mongodb:
@@ -93,7 +93,7 @@ services:
       - "8005"
     environment:
       - DB_NAME=${DB_NAME}
-      - URI=${URI_DATABASE_USER_SERVICE}
+      - URI=${URI_DATABASE_CHAT_SERVICE}
       - GATEWAY_URL=${GATEWAY_URL}
       - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
     depends_on:
