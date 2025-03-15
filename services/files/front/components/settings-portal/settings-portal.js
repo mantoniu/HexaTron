@@ -1,4 +1,4 @@
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {PlayerKeys} from "../player-keys/player-keys.js";
 import {PlayerColor} from "../player-color/player-color.js";
 import {Component} from "../component/component.js";
@@ -16,7 +16,7 @@ export class SettingsPortal extends Component {
         PlayerKeys.register();
         PlayerColor.register();
 
-        this.settings = structuredClone(UserService.getInstance().user.parameters);
+        this.settings = structuredClone(userService.user.parameters);
 
         this.boundKeyListener = this.keyListener.bind(this);
         this.boundCancelModification = this.cancelModification.bind(this);
@@ -111,12 +111,12 @@ export class SettingsPortal extends Component {
     }
 
     async validate() {
-        await UserService.getInstance().updateUser({parameters: this.settings});
+        await userService.updateUser({parameters: this.settings});
         this.shadowRoot.querySelector("#validationPart").style.display = "none";
     }
 
     cancel() {
-        this.settings = structuredClone(UserService.getInstance().user.parameters);
+        this.settings = structuredClone(userService.user.parameters);
         this.resetKeys();
         this.resetColors();
         this.shadowRoot.querySelector("#validationPart").style.display = "none";
