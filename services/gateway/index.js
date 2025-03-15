@@ -6,79 +6,130 @@ const jwt = require("jsonwebtoken");
 const {io: Client} = require('socket.io-client');
 const {addCors} = require("./cors");
 
+const servicesConfig = {
+    user: {
+        target: process.env.USER_SERVICE_URL,
+
+        http: {
+            path: '/api/user',
+            publicRoutes: ["login", "register", "resetPassword"],
+            requiresAuth: true
+        },
+        ws: null
+    },
+
+    chat: {
+        target: process.env.CHAT_SERVICE_URL,
+
+        http: {
+            path: '/api/chat',
+            publicRoutes: [],
+            requiresAuth: true
+        },
+        ws: {
+            namespace: '/chat',
+        }
+    },
+
+    game: {
+        target: process.env.GAME_SERVICE_URL,
+
+        http: null,
+        ws: {
+            namespace: '/game',
+        }
+    }
+};
+
+const filesService = {
+    target: process.env.FILES_URL,
+    http: {
+        path: '/',
+        requiresAuth: false
+    },
+    ws: null
+};
+
 // We will need a proxy to send requests to the other services.
-const publicRoutes = ["login", "register", "resetPassword"];
 const jwtAccessSecretKey = process.env.ACCESS_TOKEN_SECRET;
 const jwtRefreshSecretKey = process.env.REFRESH_TOKEN_SECRET;
 const proxy = httpProxy.createProxyServer();
 
-function checkAuthentication(req, res, access, next) {
-    if (req.method === 'OPTIONS') {
-        return next({userID: ""});
+/**
+ * Checks the authentication of a request and returns token information
+ *
+ * @param {Object} req - The HTTP request
+ * @param {Object} serviceConfig - The service configuration
+ * @returns {Object} The decoded token information or an object with empty userId if auth is not required
+ * @throws {Error} Throws an error if authentication fails
+ */
+function checkAuthentication(req, serviceConfig) {
+    // If authentication is not required or if it's an OPTIONS request or a public route
+    if (!serviceConfig.http.requiresAuth ||
+        req.method === 'OPTIONS' ||
+        serviceConfig.http.publicRoutes?.some(route => req.url.includes(route))) {
+        return {userId: ""};
     }
-    const token = req.headers["authorization"].split(" ")[1];
+
+    // Token verification
+    const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
-        res.statusCode = 401;
-        return res.end("Unauthorized: No token provided");
+        throw new Error("No token provided");
     }
+
+    // Verification based on token type (access or refresh)
+    const isRefreshRoute = req.url.includes('refreshToken');
+    const secret = isRefreshRoute ? jwtRefreshSecretKey : jwtAccessSecretKey;
+
     try {
-        let decoded;
-        if (access) {
-            decoded = jwt.verify(token, jwtAccessSecretKey);
-        } else {
-            decoded = jwt.verify(token, jwtRefreshSecretKey);
-        }
-        next(decoded);
+        return jwt.verify(token, secret);
     } catch (error) {
-        res.statusCode = 498;
-        res.end("Unauthorized: Invalid token");
+        throw new Error("Invalid token");
     }
 }
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
- */
-
-const server = http.createServer(function (request, response) {
-    // First, let's check the URL to see if it's a REST request or a file request.
-    // We will remove all cases of "../" in the url for security purposes.
+*/
+const server = http.createServer((request, response) => {
     addCors(response);
-    let filePath = request.url.split("/").filter(function(elem) {
-        return elem !== "..";
-    });
     try {
-        // If the URL starts by /api, then it's a REST request (you can change that if you want).
-        if (filePath[1] === "api") {
-            if (filePath[2] === "doc") {
-                request.url = process.env.FILES_URL + "/api.html";
-                proxy.web(request, response, {target: process.env.FILES_URL});
-            } else if (filePath[2] === "user") {
-                if (request.method === "OPTIONS") {
-                    response.end();
-                } else if (publicRoutes.includes(filePath[3].split("?")[0])) {
-                    proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
-                } else {
-                    checkAuthentication(request, response, filePath[3] !== "refreshToken", (token) => {
-                        request.headers["x-user-id"] = token.userID;
-                        proxy.web(request, response, {target: process.env.USER_SERVICE_URL});
-                    });
-                }
-            } else {
-                response.statusCode = 400;
-                response.end();
+        // Find the matching service or use the files service as default
+        const matchedService = Object.values(servicesConfig).find(
+            (config) => config.http && request.url.startsWith(config.http.path)
+        ) || filesService;
+
+        console.log(matchedService, servicesConfig.chat.http.path, request.url, request.url.startsWith(servicesConfig.chat.http.path));
+
+        if (matchedService.http) {
+            try {
+                // Check authentication
+                const decoded = checkAuthentication(request, matchedService);
+
+                // Add user ID to headers if available
+                if (decoded?.userId)
+                    request.headers['x-user-id'] = decoded.userId;
+
+                // Redirect the request to the appropriate service
+                proxy.web(request, response, {target: matchedService.target});
+            } catch (error) {
+                // Handle authentication errors
+                if (error.message === "No token provided")
+                    response.statusCode = 401;
+                else response.statusCode = 498;
+
+                response.end(JSON.stringify({error: error.message}));
             }
-        // If it doesn't start by /api, then it's a request for a file.
         } else {
-            console.log("Request for a file received, transferring to the file service")
-            proxy.web(request, response, {target: process.env.FILES_URL});
+            response.statusCode = 404;
+            response.end('Service not found');
         }
-    } catch(error) {
-        console.log(`error while processing ${request.url}: ${error}`)
+    } catch (error) {
+        console.error(`Error processing ${request.url}:`, error);
         response.statusCode = 400;
-        response.end(`Something in your request (${request.url}) is strange...`);
+        response.end('Something is strange in your request');
     }
-// For the server to be listening to request, it needs a port, which is set thanks to the listen function.
-})
+});
 
 const ioServer = new Server(server, {
     cors: {
@@ -87,29 +138,18 @@ const ioServer = new Server(server, {
     }
 });
 
-const servicesNamespaces = {
-    Game: {
-        nameSpacePath: "/game",
-        url: process.env.GAME_SERVICE_URL
-    }
-};
+Object.values(servicesConfig).forEach(service => {
+    if (!service.ws)
+        return;
 
-Object.values(servicesNamespaces).forEach(({nameSpacePath, url}) => {
-    const nameSpace = ioServer.of(nameSpacePath);
+    const nameSpace = ioServer.of(service.ws.namespace);
     nameSpace.on("connection", (clientSocket) => {
-        const socket = Client(url);
+        const socket = Client(service.target);
 
-        clientSocket.onAny((eventName, ...args) => {
-            socket.emit(eventName, ...args);
-        });
+        clientSocket.onAny((eventName, ...args) => socket.emit(eventName, ...args));
+        clientSocket.on("disconnect", () => socket.disconnect());
 
-        clientSocket.on("disconnect", () => {
-            socket.disconnect();
-        });
-
-        socket.onAny((eventName, ...args) => {
-            clientSocket.emit(eventName, ...args);
-        });
+        socket.onAny((eventName, ...args) => clientSocket.emit(eventName, ...args));
     });
 });
 
