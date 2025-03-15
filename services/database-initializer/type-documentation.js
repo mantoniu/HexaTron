@@ -79,7 +79,7 @@ const User = {
 };
 
 const RefreshToken = {
-    userID: {
+    userId: {
         bsonType: "string"
     },
     refreshToken: {

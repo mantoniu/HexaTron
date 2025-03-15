@@ -27,9 +27,19 @@ services:
       - network-services
     environment:
       - URI=${URI_DATABASE_ROOT}
-      - COLLECTIONS=${COLLECTIONS}
-      - USERS=${USERS}
       - DB_NAME=${DB_NAME}
+
+      # Explicit definition of collections
+      - USER_COLLECTION=${USER_COLLECTION}
+      - TOKEN_COLLECTION=${TOKEN_COLLECTION}
+      - CONVERSATION_COLLECTION=${CONVERSATION_COLLECTION}
+      - MESSAGE_COLLECTION=${MESSAGE_COLLECTION}
+
+      # Explicit definition of users
+      - MONGO_USER_USERNAME=${MONGO_USER_USERNAME}
+      - MONGO_USER_PWD=${MONGO_USER_PWD}
+      - MONGO_CHAT_USERNAME=${MONGO_CHAT_USERNAME}
+      - MONGO_CHAT_PWD=${MONGO_CHAT_PWD}
     depends_on:
       mongodb:
         condition: service_healthy

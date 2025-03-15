@@ -7,124 +7,149 @@ const db = client.db(dbName);
 const adminDb = client.db("admin");
 
 // Define the schemas for each collection
-const propertiesCollections = {
-    conversations: Conversation,
-    messages: Message,
-    users: User,
-    refreshTokens: RefreshToken
+const collectionSchemas = {
+    [process.env.CONVERSATION_COLLECTION]: Conversation,
+    [process.env.MESSAGE_COLLECTION]: Message,
+    [process.env.USER_COLLECTION]: User,
+    [process.env.TOKEN_COLLECTION]: RefreshToken
 };
 
 // Define the indexes for each collection with unique constraints when necessary
-const collectionsIndex = {
+const collectionIndexes = {
     // Index on 'participants' field in the 'conversations' collection.
     // This will improve query performance when searching for conversations by participants.
-    conversations: {index: {participants: 1}, unique: false},
-
+    [process.env.CONVERSATION_COLLECTION]: [
+        {keys: {participants: 1}, options: {unique: false}}
+    ],
     // Index on 'conversationId' field in the 'messages' collection.
     // This will improve query performance when searching for messages by conversation.
-    messages: {index: {conversationId: 1}, unique: false},
-
+    [process.env.MESSAGE_COLLECTION]: [
+        {keys: {conversationId: 1}, options: {unique: false}}
+    ],
     // Index on 'name' field in the 'users' collection.
     // This will improve query performance when searching for users by name.
-    users: {index: {name: 1}, unique: true},
-
+    [process.env.USER_COLLECTION]: [
+        {keys: {name: 1}, options: {unique: true}}
+    ],
     // Compound index on 'userID' and 'refreshToken' fields in the 'refreshTokens' collection.
     // This will improve query performance when looking up refresh tokens by user ID and token.
-    refreshTokens: {index: {userID: 1, refreshToken: 1}, unique: true}
+    [process.env.TOKEN_COLLECTION]: [
+        {keys: {userId: 1, refreshToken: 1}, options: {unique: true}}
+    ]
 };
 
-const collections = process.env.COLLECTIONS.split(",").map(collection => collection.trim());
-
-const users = process.env.USERS.split(",").map(user => {
-    user = user.split(";");
-    return {"userName": user[0], "password": user[1]};
-});
-
-const users_collections = {
-    [collections[0]]: users[0],
-    [collections[1]]: users[0],
-    [collections[2]]: users[1],
-    [collections[3]]: users[1],
+const serviceRoles = {
+    userService: {
+        username: process.env.MONGO_USER_USERNAME,
+        password: process.env.MONGO_USER_PWD,
+        permissions: {
+            [process.env.USER_COLLECTION]: ["find", "insert", "update", "remove"],
+            [process.env.TOKEN_COLLECTION]: ["find", "insert", "update", "remove"]
+        }
+    },
+    chatService: {
+        username: process.env.MONGO_CHAT_USERNAME,
+        password: process.env.MONGO_CHAT_PWD,
+        permissions: {
+            [process.env.CONVERSATION_COLLECTION]: ["find", "insert", "update", "remove"],
+            [process.env.MESSAGE_COLLECTION]: ["find", "insert", "update", "remove"],
+            [process.env.USER_COLLECTION]: ["find"]
+        }
+    }
 };
 
 async function startService() {
     try {
+        // Connect to the MongoDB client
         await client.connect();
 
-        for (const collectionName of Object.keys(users_collections)) {
-            const user = await adminDb.command({usersInfo: users_collections[collectionName]["userName"]});
-            if (!user?.users?.length) {
+        // Loop through each service defined in `serviceRoles`
+        for (const [serviceName, config] of Object.entries(serviceRoles)) {
+            // Check if the service user already exists
+            const userInfo = await adminDb.command({
+                usersInfo: {user: config.username, db: "admin"}
+            });
+
+            // If the user doesn't exist, create it
+            if (!userInfo?.users?.length) {
                 await adminDb.command({
-                    createUser: users_collections[collectionName]["userName"],
-                    pwd: users_collections[collectionName]["password"],
+                    createUser: config.username,
+                    pwd: config.password,
                     roles: []
                 });
-                console.log(`The user "${users_collections[collectionName]["userName"]}" has been successfully created.`);
+                console.log(`The user "${serviceName}" has been successfully created.`);
             }
 
-            const existingRole = await adminDb.command({rolesInfo: users_collections[collectionName]["userName"]});
-            if (!existingRole?.roles?.length) {
+            // Create a role name based on the service name
+            const roleName = `${serviceName}Role`;
+
+            // Check if the role already exists
+            const roleInfo = await adminDb.command({rolesInfo: roleName});
+
+            // If the role doesn't exist, create it
+            if (!roleInfo?.roles?.length) {
                 await adminDb.command({
-                    createRole: users_collections[collectionName]["userName"],
-                    privileges: [
-                        {
-                            resource: {db: dbName, collection: collectionName},
-                            actions: ["find", "insert", "update", "remove"]
-                        }
-                    ],
+                    createRole: roleName,
+                    privileges: [],
                     roles: []
                 });
-                console.log(`The role "${users_collections[collectionName]["userName"]}" has been successfully created.`);
+                console.log(`The role "${roleName}" has been successfully created.`);
             }
 
+            // Map the service's permissions to MongoDB privileges
+            const privileges = Object.entries(config.permissions).map(([collection, actions]) => ({
+                resource: {db: dbName, collection},
+                actions
+            }));
+
+            // Grant the privileges to the role
             await adminDb.command({
-                grantPrivilegesToRole: users_collections[collectionName]["userName"],
-                privileges: [
-                    {
-                        resource: {db: dbName, collection: collectionName},
-                        actions: ["find", "insert", "update", "remove"]
-                    }
-                ]
+                grantPrivilegesToRole: roleName,
+                privileges
             });
 
+            // Assign the role to the service user
             await adminDb.command({
-                grantRolesToUser: users_collections[collectionName]["userName"],
-                roles: [
-                    {role: users_collections[collectionName]["userName"], db: "admin"}
-                ]
+                grantRolesToUser: config.username,
+                roles: [roleName]
             });
+        }
 
-            const existentCollections = await db.listCollections({}, {nameOnly: true}).toArray();
-            const collectionExists = existentCollections.some(collection => {
-                return collection.name === collectionName;
-            });
-            if (!collectionExists) {
-                await db.createCollection(collectionName, {
+        // Loop through each collection defined in `collectionSchemas`
+        for (const [collName, schema] of Object.entries(collectionSchemas)) {
+            // Check if the collection already exists
+            const exists = await db.listCollections({name: collName}).hasNext();
+
+            // If the collection doesn't exist, create it
+            if (!exists) {
+                await db.createCollection(collName, {
                     validator: {
                         $jsonSchema: {
                             bsonType: "object",
-                            required: Object.keys(propertiesCollections[collectionName]),
-                            properties: propertiesCollections[collectionName]
+                            required: Object.keys(schema),
+                            properties: schema
                         }
-                    },
-                    validationAction: "error"
+                    }
                 });
 
-                // Create the index dynamically based on the structure in collectionsIndex
-                const {index, unique} = collectionsIndex[collectionName];
-                await db.collection(collectionName).createIndex(index, unique ? {unique: true} : {});
+                // Create indexes for the collection
+                for (const indexConfig of collectionIndexes[collName]) {
+                    await db.collection(collName).createIndex(
+                        indexConfig.keys,
+                        indexConfig.options
+                    );
+                }
 
-                console.log(`Collection '${collectionName}' created with validation.`);
-            } else {
-                console.log(`The collection '${collectionName}' already exists.`);
+                console.log(`Collection ${collName} created successfully.`);
             }
         }
-
     } catch (error) {
-        console.error("Error during initialization: ", error);
+        // Handle any errors that occur during initialization
+        console.error("Error during initialization:", error);
     } finally {
+        // Close the MongoDB connection
         await client.close();
-        console.log("MongoDB connection closed");
+        console.log("MongoDB connection closed.");
     }
 }
 
