@@ -1,5 +1,5 @@
 const {MongoClient} = require("mongodb");
-const {User, RefreshToken, Conservation, Message} = require("./type-documentation.js");
+const {User, RefreshToken, Conversation, Message} = require("./type-documentation.js");
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const dbName = process.env.DB_NAME;
@@ -8,29 +8,29 @@ const adminDb = client.db("admin");
 
 // Define the schemas for each collection
 const propertiesCollections = {
-    conversations: Conservation,
+    conversations: Conversation,
     messages: Message,
     users: User,
     refreshTokens: RefreshToken
 };
 
-// Define the indexes for each collection
+// Define the indexes for each collection with unique constraints when necessary
 const collectionsIndex = {
     // Index on 'participants' field in the 'conversations' collection.
     // This will improve query performance when searching for conversations by participants.
-    conversations: {participants: 1},
+    conversations: {index: {participants: 1}, unique: false},
 
     // Index on 'conversationId' field in the 'messages' collection.
     // This will improve query performance when searching for messages by conversation.
-    messages: {conversationId: 1},
+    messages: {index: {conversationId: 1}, unique: false},
 
     // Index on 'name' field in the 'users' collection.
     // This will improve query performance when searching for users by name.
-    users: {name: 1},
+    users: {index: {name: 1}, unique: true},
 
     // Compound index on 'userID' and 'refreshToken' fields in the 'refreshTokens' collection.
     // This will improve query performance when looking up refresh tokens by user ID and token.
-    refreshTokens: {userID: 1, refreshToken: 1}
+    refreshTokens: {index: {userID: 1, refreshToken: 1}, unique: true}
 };
 
 const collections = process.env.COLLECTIONS.split(",").map(collection => collection.trim());
@@ -42,7 +42,9 @@ const users = process.env.USERS.split(",").map(user => {
 
 const users_collections = {
     [collections[0]]: users[0],
-    [collections[1]]: users[0]
+    [collections[1]]: users[0],
+    [collections[2]]: users[1],
+    [collections[3]]: users[1],
 };
 
 async function startService() {
@@ -107,7 +109,11 @@ async function startService() {
                     },
                     validationAction: "error"
                 });
-                await db.collection(collectionName).createIndex(collectionsIndex[collectionName], {unique: true});
+
+                // Create the index dynamically based on the structure in collectionsIndex
+                const {index, unique} = collectionsIndex[collectionName];
+                await db.collection(collectionName).createIndex(index, unique ? {unique: true} : {});
+
                 console.log(`Collection '${collectionName}' created with validation.`);
             } else {
                 console.log(`The collection '${collectionName}' already exists.`);
