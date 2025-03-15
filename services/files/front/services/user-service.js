@@ -1,5 +1,6 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
+import {apiClient} from "../js/ApiClient.js";
 
 /**
  * Defines user-related events.
@@ -96,8 +97,7 @@ class UserService extends EventEmitter {
         if (UserService._instance) return UserService._instance;
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS);
-        this._accessToken = localStorage.getItem("accessToken") || null;
-        this._refreshToken = localStorage.getItem("refreshToken") || null;
+        this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS);
         this._connected = localStorage.getItem("connected") || false;
 
         if (!this._connected) {
@@ -180,7 +180,7 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} The authentication result.
      */
     async _authenticate(endpoint, data, action) {
-        const response = await this._request("POST", endpoint, data);
+        const response = await apiClient.request("POST", endpoint, data);
         if (response.success) {
             this._setUserData(response.data);
             return {success: true, user: this._user};
@@ -196,7 +196,7 @@ class UserService extends EventEmitter {
      */
     async updateUser(newData) {
         if (this.isConnected()) {
-            const response = await this._request("PATCH", `api/user/me`, newData);
+            const response = await apiClient.request("PATCH", `api/user/me`, newData);
             if (response.success) {
                 const data = response.data;
                 this._user = data.user;
@@ -218,7 +218,7 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} A promise that resolves to an object indicating success or failure.
      */
     async updatePassword(curPassword, newPassword) {
-        const response = await this._request("POST", "api/user/updatePassword", {
+        const response = await apiClient.request("POST", "api/user/updatePassword", {
             oldPassword: curPassword,
             newPassword
         });
@@ -232,8 +232,11 @@ class UserService extends EventEmitter {
      * Logs out the current user.
      */
     async logout() {
-        await this._request("POST", "api/user/disconnect");
+        await apiClient.request("POST", "api/user/disconnect");
+
         this._reset();
+        apiClient.clearTokens();
+
         this.emit(USER_EVENTS.LOGOUT);
     }
 
@@ -243,7 +246,7 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} A promise that resolves to an object indicating success or failure.
      */
     async delete() {
-        const response = await this._request("DELETE", `api/user/me`);
+        const response = await apiClient.request("DELETE", `api/user/me`);
         if (response.success) {
             this._reset();
             return {success: true, message: "User successfully deleted."};
@@ -261,66 +264,11 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} A promise that resolves to an object indicating success or failure.
      */
     async resetPassword(username, password, answers) {
-        const response = await this._request("POST", "api/user/resetPassword", {username, password, answers});
+        const response = await apiClient.request("POST", "api/user/resetPassword", {username, password, answers});
         if (response.success)
             return {success: true, message: "Password successfully reset."};
 
         return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.RESET_PASSWORD)};
-    }
-
-    /**
-     * Refreshes the access token using the refresh token.
-     *
-     * @returns {Promise<Object>} A promise that resolves to the new access token or an error.
-     */
-    async refreshAccessToken() {
-        const response = await this._request("POST", "api/user/refreshToken", null, this._refreshToken);
-        if (response) {
-            this._accessToken = response.accessToken;
-            localStorage.setItem("accessToken", this._accessToken);
-        }
-        return response;
-    }
-
-    /**
-     * Sends an HTTP request to the server.
-     *
-     * @private
-     * @param {string} method - The HTTP method (GET, POST, PATCH, DELETE).
-     * @param {string} endpoint - The API endpoint.
-     * @param {Object|null} body - The request body (if applicable).
-     * @param {string|null} token - The authentication token.
-     * @returns {Promise<Object>} The response object.
-     */
-    async _request(method, endpoint, body = null, token = this._accessToken) {
-        const headers = {"Content-Type": "application/json"};
-        if (token)
-            headers["Authorization"] = `Bearer ${token}`;
-
-        const options = {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : null
-        };
-
-        try {
-            const response = await fetch(`${window.location}${endpoint}`, options);
-            const data = await response.json().catch(() => null);
-            if (response.status === 498) {
-                await this.refreshAccessToken();
-                return this._request(method, endpoint, body, this._accessToken);
-            }
-
-            if (!response.ok)
-                return {success: false, status: response.status};
-
-            return {success: true, data};
-        } catch (error) {
-            if (error.name === "TypeError" || error.message === "Failed to fetch")
-                return {success: false, status: 503};
-
-            return {success: false, status: 500};
-        }
     }
 
     /**
@@ -333,8 +281,7 @@ class UserService extends EventEmitter {
      */
     _setUserData(data) {
         this._user = data.user;
-        this._accessToken = data.accessToken;
-        this._refreshToken = data.refreshToken;
+        apiClient.setTokens(data.accessToken, data.refreshToken);
         this._connected = true;
         this._saveToLocalStorage();
         this.emit(USER_EVENTS.CONNECTION);
@@ -347,8 +294,6 @@ class UserService extends EventEmitter {
      */
     _saveToLocalStorage() {
         localStorage.setItem("user", JSON.stringify(this._user));
-        localStorage.setItem("accessToken", this._accessToken);
-        localStorage.setItem("refreshToken", this._refreshToken);
         localStorage.setItem("connected", this._connected);
     }
 
@@ -359,8 +304,6 @@ class UserService extends EventEmitter {
      */
     _clearLocalStorage() {
         localStorage.removeItem("user");
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
         localStorage.removeItem("connected");
     }
 
@@ -371,8 +314,6 @@ class UserService extends EventEmitter {
      */
     _reset() {
         this._user = null;
-        this._accessToken = null;
-        this._refreshToken = null;
         this._connected = false;
         this._clearLocalStorage();
     }
