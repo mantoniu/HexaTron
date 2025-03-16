@@ -12,7 +12,9 @@ const ErrorTypes = Object.freeze({
     INVALID_INPUT: 'INVALID_INPUT',
     GAME_CREATION_FAILED: 'GAME_CREATION_FAILED',
     ALREADY_IN_GAME: 'ALREADY_IN_GAME',
-    GAME_ERROR: 'GAME_ERROR'
+    GAME_ERROR: "GAME_ERROR",
+    ELO_RETRIEVING_ERROR: "ELO_RETRIEVING_ERROR",
+    ELO_UPDATING_ERROR: "ELO_UPDATING_ERROR"
 });
 
 const server = http.createServer(function (request, response) {
@@ -31,8 +33,95 @@ const io = new Server(server, {
 
 const activeGames = new Map(); // { gameEngineId => gameEngine }
 const socketToUser = new Map(); // socketId -> userId
+const userToSocket = new Map(); // userId -> socket
 const friendlyGames = new Map(); // playerId -> gameEngine
 const pendingGames = new Map(); // gameEngineId -> gameEngine
+
+/**
+ * Update the player's ELO based on the game results
+ *
+ * @param gameId - The game id
+ * @param results - The results of the game
+ * @returns {Promise<void>}
+ */
+async function updateELO(gameId, results) {
+    let K = 40;
+
+    let resultByPlayer = Object.fromEntries([...activeGames.get(gameId).game.players.keys()].map(key => [key, 0]));
+    results.forEach(result => resultByPlayer[result.winner] += 1);
+
+    let newELO = {};
+
+    try {
+        let response = await fetch(process.env.USER_SERVICE_URL + "/api/user/ELO", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(Array.from(activeGames.get(gameId).game.players.keys()))
+        });
+
+        if (!response.ok) {
+            throw new Error({
+                type: ErrorTypes.ELO_RETRIEVING_ERROR,
+                message: "Error occurred while retrieving the ELO of the players"
+            });
+        }
+
+        const data = await response.json();
+        const [playersELO, sum] = data.playersELO.reduce((acc, player) => {
+            acc[0][player._id] = player.elo;
+            acc[1] += 10 ** (player.elo / 400);
+            return acc;
+        }, [{}, 0]);
+
+        let orderedPlayers = Object.entries(resultByPlayer).sort((first, second) => second[1] - first[1]);
+        let previous = [orderedPlayers[0]];
+        let counter = 1;
+        let pos = 1;
+        let numberOfPlayers = orderedPlayers.length;
+
+        for (let i = 1; i <= orderedPlayers.length; i++) {
+            if (i === orderedPlayers.length || previous[0][1] !== orderedPlayers[i][1]) {
+
+                previous.forEach(element => newELO[element[0]] = playersELO[element[0]] + K * ((numberOfPlayers - pos) / (numberOfPlayers - 1) - (10 ** (playersELO[element[0]] / 400)) / sum));
+
+                if (i !== orderedPlayers.length) {
+                    previous = [orderedPlayers[i]];
+                    pos += counter;
+                    counter = 1;
+                }
+            } else {
+                previous.push(orderedPlayers[i]);
+                counter += 1;
+            }
+        }
+
+        await Promise.all(Object.entries(newELO).map(async ([id, elo]) => {
+            let response = await fetch(process.env.USER_SERVICE_URL + "/api/user/me", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-user-id": id
+                },
+                body: JSON.stringify({elo: elo})
+            });
+            if (!response.ok) {
+                throw new Error({
+                    type: ErrorTypes.ELO_UPDATING_ERROR,
+                    message: "Error occurred while updating the ELO of the players"
+                });
+            }
+            let result = await response.json();
+            userToSocket.get(id).emit("updateELO", result.user);
+        }));
+    } catch (error) {
+        io.to(gameId).emit("error", {
+            type: error.type,
+            message: error.message
+        });
+    }
+}
 
 /**
  * Handle a game event
@@ -47,8 +136,13 @@ function handleEvent(gameId, eventName, eventData) {
 
     io.to(gameId).emit(eventName, eventData);
 
-    if (eventName === "refreshStatus" && eventData.status === GAME_END)
-        activeGames.delete(gameId);
+    if (eventName === "refreshStatus" && eventData.status === GAME_END) {
+        if (activeGames.get(gameId).game.type === GameType.RANKED) {
+            updateELO(gameId, eventData.results).then(() => activeGames.delete(gameId));
+        } else {
+            activeGames.delete(gameId);
+        }
+    }
 }
 
 /**
@@ -186,6 +280,8 @@ io.on('connection', (gatewaySocket) => {
             });
 
             socketToUser.set(gatewaySocket.id, playerIds);
+            userToSocket.set(playerIds[0], gatewaySocket);
+
 
             if (gameType === GameType.FRIENDLY) {
                 joinFriendlyGame(remotePlayers[0], expectedPlayerId, gatewaySocket);
@@ -261,6 +357,8 @@ io.on('connection', (gatewaySocket) => {
                 activeGames.delete(game.id);
 
             socketToUser.delete(gatewaySocket.id);
+            userToSocket.delete(playerIds[0]);
+
             gatewaySocket.broadcast.to(room).emit("userLeft", `${gatewaySocket.id} leaved the room`);
         });
     });

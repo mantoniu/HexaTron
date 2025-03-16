@@ -1,7 +1,11 @@
-import {Component} from '../component/component.js';
 import {ImageButton} from "../image-button/image-button.js";
+import {ListenerComponent} from "../component/listener-component.js";
+import {GameService, GameStatus} from "../../services/game-service.js";
 
-export class CustomNav extends Component{
+
+export class CustomNav extends ListenerComponent {
+    static HIDE_IN_GAME = ["leaderboard"];
+
     constructor() {
         super();
 
@@ -10,6 +14,8 @@ export class CustomNav extends Component{
 
     async connectedCallback() {
         await super.connectedCallback();
+
+        this.addEventListener(GameService, GameStatus.STARTED, () => this.hideElementsInGame());
 
         this.shadowRoot.querySelectorAll("image-button").forEach(button => {
             this.addAutoCleanListener(
@@ -25,6 +31,12 @@ export class CustomNav extends Component{
                     );
                 }
             );
+        });
+    }
+
+    hideElementsInGame() {
+        CustomNav.HIDE_IN_GAME.forEach(element => {
+            this.shadowRoot.getElementById(element).style.display = "none";
         });
     }
 }

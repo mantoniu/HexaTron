@@ -333,11 +333,71 @@ const routes = [
          *       - User service
          *     responses:
          *       204:
-         *          description:
          */
         method: "GET",
         path: ["health"],
         handler: controller.health
+    },
+    {
+        /**
+         * @swagger
+         * /api/user/ELO:
+         *   post:
+         *     summary: Retrieve the ELO of each player
+         *     description: Retrieve from the database the ELO of each user present in the body of the request.
+         *     tags:
+         *       - User service
+         *     requestBody:
+         *       description: Array of player IDs
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *            $ref: '#/components/schemas/getELO'
+         *     responses:
+         *       200:
+         *         description: The response consists of an array, with each element containing a player ID and the corresponding ELO.
+         *         content:
+         *           application/json:
+         *             schema:
+         *                $ref: '#/components/schemas/resultELO'
+         *       500:
+         *        description: Internal Server Error
+         */
+        method: "POST",
+        path: ["ELO"],
+        handler: controller.getElo
+    },
+    {
+        /**
+         * @swagger
+         * /api/user/leaderboard:
+         *   get:
+         *     summary: Retrieve the LeaderBoard
+         *     description: Retrieve the leaderboard created by aggregating users' data into one document for each league according to the ELO range, and convert the result into an array.
+         *     tags:
+         *       - User service
+         *     parameters:
+         *       - in: query
+         *         name: id
+         *         required: false
+         *         description: ID of the user
+         *         schema:
+         *           type: string
+         *           example: "ID 151vqdv445v1v21d"
+         *     responses:
+         *       200:
+         *         description: The response consists of a dictionary with one element for each league, and each value is an ordered array of players with their name and ELO.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               $ref: '#/components/schemas/leaderboardResult'
+         *       500:
+         *         description: Internal Server Error
+         */
+        method: "GET",
+        path: ["leaderboard"],
+        handler: controller.leaderboard
     }
 ];
 

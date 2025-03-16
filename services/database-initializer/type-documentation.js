@@ -43,6 +43,9 @@ const User = {
             minLength: 1,
             maxLength: 50
         }
+    },
+    elo: {
+        bsonType: "number"
     }
 };
 
@@ -75,7 +78,8 @@ const bsonToJsonMap = new Map([
     ["undefined", "null"],
     ["symbol", "string"],
     ["minKey", null],
-    ["maxKey", null]
+    ["maxKey", null],
+    ["number", "number"]
 ]);
 
 /**
@@ -98,7 +102,9 @@ function convertBsonToSwagger(schema) {
 }
 
 /* JSON */
-const userJson = convertBsonToSwagger(User);
+let userJson = convertBsonToSwagger(User);
+userJson["_id"] = {"type": "string"};
+
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
 
 /* EXPORTS */

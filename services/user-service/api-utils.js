@@ -1,10 +1,15 @@
 const {userJson} = require("../database-initializer/type-documentation");
 
+userJson["league"] = {league: "string"};
+
 const userExample = {
+    _id: "151vqdv445v1v21d",
     name: "Champion39",
     parameters: "parameters",
     password: "password1234",
-    answers: ["Lacroix", "Rennes", "Mars attack"]
+    answers: ["Lacroix", "Rennes", "Mars attack"],
+    elo: 1000,
+    league: "Iron"
 };
 
 const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2N2FhNDc4M2MwZGMwYTM3YTUxM2MwYjciLCJpYXQiOjE3MzkyMTMzMzYsImV4cCI6MTczOTIxNDIzNn0.2iIKH4d9dSnS7p9-8148MEHIBvgxTdTpl8JhJGHZYm0";
@@ -19,14 +24,34 @@ const extractProperties = (obj, properties) => {
     }, {});
 };
 
-function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"]) {
+const league = ["Wood", "Stone", "Iron", "Silver", "Gold", "Platinum", "Diamond"];
+
+const leaderBoardSchema = Object.fromEntries(league.map(rank => [rank, {
+    type: "array",
+    items: {
+        type: "object",
+        properties: extractProperties(userJson, ["_id", "elo", "league"])
+    }
+}]));
+leaderBoardSchema["Global"] = {
+    type: "array",
+    items: {
+        type: "object",
+        properties: extractProperties(userJson, ["_id", "elo", "league"])
+    }
+};
+
+function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"], isValue = true, userFields = ["_id", "name", "parameters", "elo", "league"]) {
     let value = extractProperties({
         message: message,
-        user: extractProperties(userExample, ["name", "parameters"]),
+        user: extractProperties(userExample, userFields),
         accessToken: accessToken,
         refreshToken: refreshToken
     }, fields);
-    return {value: value};
+    if (isValue) {
+        return {value: value};
+    }
+    return value;
 }
 
 exports.options = {
@@ -58,7 +83,7 @@ exports.options = {
                 user: {
                     type: "object",
                     properties: userJson,
-                    example: userExample
+                    example: extractProperties(userExample, ["_id", "name", "parameters", "password", "answers", "elo", "league"])
                 },
                 returned_user: {
                     type: "object",
@@ -88,7 +113,7 @@ exports.options = {
                         },
                         user: {
                             type: "object",
-                            properties: extractProperties(userJson, ["name", "parameters"])
+                            properties: extractProperties(userJson, ["_id", "name", "parameters", "elo", "league"])
                         },
                         accessToken: {
                             type: "string"
@@ -113,7 +138,7 @@ exports.options = {
                             properties: extractProperties(userJson, ["name", "parameters"])
                         }
                     },
-                    example: createResponseExample("User successfully updated.", ["message", "user"])
+                    example: createResponseExample("User successfully updated.", ["message", "user"], false)
                 },
                 refreshToken: {
                     type: "object",
@@ -125,7 +150,7 @@ exports.options = {
                             type: "string"
                         }
                     },
-                    example: createResponseExample("New access token generated successfully.", ["message", "accessToken"])
+                    example: createResponseExample("New access token generated successfully.", ["message", "accessToken"], false)
                 },
                 resetPassword: {
                     type: "object",
@@ -141,6 +166,57 @@ exports.options = {
                     example: {
                         oldPassword: userExample.password,
                         newPassword: "1234password"
+                    }
+                },
+                getELO: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        example: userExample._id
+                    }
+                },
+                resultELO: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string"
+                        },
+                        playersELO: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: extractProperties(userJson, ["_id", "elo", "league"])
+                            }
+                        }
+                    },
+                    example: {
+                        message: "Successfully recover ELO of each player",
+                        playersELO: [extractProperties(userExample, ["_id", "elo", "league"])]
+                    }
+                },
+                leaderboardResult: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string"
+                        },
+                        playersELO: {
+                            type: "object",
+                            properties: leaderBoardSchema
+                        },
+                        rank: {
+                            type: "object",
+                            properties: {
+                                "leagueName": {
+                                    type: "number"
+                                },
+                                "Global": {
+                                    type: "number"
+                                }
+                            },
+                            description: "Not present in the response if the user is not connected when he requests the leaderboard"
+
+                        }
                     }
                 }
             }

@@ -88,6 +88,12 @@ export class UserService extends EventEmitter {
         return UserService._instance;
     }
 
+    updateELO(data) {
+        this.user.elo = data.elo;
+        this.user.league = data.league;
+        localStorage.setItem("user", JSON.stringify(this.user));
+    }
+
     isConnected() {
         return this._connected;
     }
@@ -126,8 +132,10 @@ export class UserService extends EventEmitter {
     async updateUser(newData) {
         if (this.isConnected()) {
             const response = await this._request("PATCH", `api/user/me`, newData);
+
             if (response.success) {
                 const data = response.data;
+
                 this._user = data.user;
                 localStorage.setItem("user", JSON.stringify(this._user));
                 return {success: true, ...newData};
@@ -181,6 +189,15 @@ export class UserService extends EventEmitter {
             localStorage.setItem("accessToken", this._accessToken);
         }
         return response;
+    }
+
+    async getLeaderboard() {
+        let url = "api/user/leaderboard";
+        if (this.isConnected() && this.user?._id) {
+            url += `?id=${this.user?._id}`;
+        }
+        const response = await this._request("GET", url);
+        return response.data;
     }
 
     async _request(method, endpoint, body = null, token = this._accessToken) {

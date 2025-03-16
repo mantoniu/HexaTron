@@ -5,12 +5,14 @@ import {UserProfile} from "../user-profile/user-profile.js";
 import {RegisterPortal} from "../register-portal/register-portal.js";
 import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-password-portal.js";
 import {SettingsPortal} from "../settings-portal/settings-portal.js";
+import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
     REGISTER: "register",
     FORGOT_PASSWORD: "forgottenPassword",
-    SETTINGS: "settings"
+    SETTINGS: "settings",
+    LEADERBOARD: "leaderboard"
 });
 
 export class DrawerMenu extends Component {
@@ -23,6 +25,7 @@ export class DrawerMenu extends Component {
         UserProfile.register();
         RegisterPortal.register();
         ForgottenPasswordPortal.register();
+        LeaderboardPortal.register();
         SettingsPortal.register();
     }
 
@@ -49,6 +52,12 @@ export class DrawerMenu extends Component {
                 this.nav(this.previous);
             }
         });
+
+        this.addAutoCleanListener(this, "showUserProfile", (event) => {
+            event.stopPropagation();
+            this.previous = DRAWER_CONTENT.PROFILE;
+            this.loadContent(DRAWER_CONTENT.PROFILE);
+        });
     }
 
     loadContent(type) {
@@ -56,7 +65,9 @@ export class DrawerMenu extends Component {
 
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
-                component = (UserService.getInstance().isConnected()) ? "<user-profile></user-profile>" : "<login-portal></login-portal>";
+                component = (UserService.getInstance().isConnected())
+                    ? `<user-profile user='${JSON.stringify(UserService.getInstance().user)}' editable='true' part='user-password-part'></user-profile>`
+                    : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
                 component = "<register-portal></register-portal>";
@@ -66,6 +77,9 @@ export class DrawerMenu extends Component {
                 break;
             case DRAWER_CONTENT.SETTINGS:
                 component = "<settings-portal></settings-portal>";
+                break;
+            case DRAWER_CONTENT.LEADERBOARD:
+                component = "<leaderboard-portal></leaderboard-portal>";
                 break;
             default:
                 console.warn("This type is not yet supported");
