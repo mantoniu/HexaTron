@@ -36,7 +36,6 @@ export class CustomNav extends ListenerComponent {
 
     hideElementsInGame() {
         CustomNav.HIDE_IN_GAME.forEach(element => {
-            console.log(element);
             this.shadowRoot.getElementById(element).style.display = "none";
         });
     }
