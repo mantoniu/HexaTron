@@ -193,10 +193,8 @@ export class UserService extends EventEmitter {
 
     async getLeaderboard() {
         let url = "api/user/leaderboard";
-        if (this.isConnected()) {
-            const params = new URLSearchParams();
-            params.append("id", this.user._id);
-            url += `?${params.toString()}`;
+        if (this.isConnected() && this.user?._id) {
+            url += `?id=${this.user?._id}`;
         }
         const response = await this._request("GET", url);
         return response.data;

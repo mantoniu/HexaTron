@@ -33,7 +33,7 @@ const io = new Server(server, {
 
 const activeGames = new Map(); // { gameEngineId => gameEngine }
 const socketToUser = new Map(); // socketId -> userId
-const UserToSocket = new Map(); // userId -> socket
+const userToSocket = new Map(); // userId -> socket
 const friendlyGames = new Map(); // playerId -> gameEngine
 const pendingGames = new Map(); // gameEngineId -> gameEngine
 
@@ -113,7 +113,7 @@ async function updateELO(gameId, results) {
                 });
             }
             let result = await response.json();
-            UserToSocket.get(id).emit("updateELO", result.user);
+            userToSocket.get(id).emit("updateELO", result.user);
         }));
     } catch (error) {
         io.to(gameId).emit("error", {
@@ -280,7 +280,7 @@ io.on('connection', (gatewaySocket) => {
             });
 
             socketToUser.set(gatewaySocket.id, playerIds);
-            UserToSocket.set(playerIds[0], gatewaySocket);
+            userToSocket.set(playerIds[0], gatewaySocket);
 
 
             if (gameType === GameType.FRIENDLY) {
@@ -357,7 +357,7 @@ io.on('connection', (gatewaySocket) => {
                 activeGames.delete(game.id);
 
             socketToUser.delete(gatewaySocket.id);
-            UserToSocket.delete(playerIds[0]);
+            userToSocket.delete(playerIds[0]);
 
             gatewaySocket.broadcast.to(room).emit("userLeft", `${gatewaySocket.id} leaved the room`);
         });

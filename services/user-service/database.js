@@ -50,10 +50,11 @@ async function getUserByFilter(filter, excludedFields = []) {
             {projection}
         )
     );
-    user.league = getLeague(user.elo);
+
     if (!user)
         throw new Error(DATABASE_ERRORS.USER_NOT_FOUND);
 
+    user.league = getLeague(user.elo);
     return user;
 }
 

@@ -8,7 +8,6 @@ const SCROLL_DIRECTION = Object.freeze({
 });
 
 export class LeaderboardComponent extends Component {
-
     constructor() {
         super();
 
