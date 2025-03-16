@@ -1,6 +1,6 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
-import {apiClient} from "../js/ApiClient.js";
+import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
 
 /**
  * Defines user-related events.
@@ -29,6 +29,7 @@ export const USER_ACTIONS = Object.freeze({
 
 /**
  * Default parameters for new users (key bindings and player colors).
+ *
  * @constant {Object}
  */
 const DEFAULT_PARAMS = {
@@ -38,6 +39,7 @@ const DEFAULT_PARAMS = {
 
 /**
  * Error messages mapped to user actions and HTTP status codes.
+ *
  * @constant {Object}
  */
 const ERROR_MESSAGES = {
@@ -138,7 +140,7 @@ class UserService extends EventEmitter {
      * @returns {string} The corresponding error message.
      */
     _getErrorMessage(status, action) {
-        return ERROR_MESSAGES[action]?.[status] || ERROR_MESSAGES.default[status] || "An unknown error has occurred.";
+        return ERROR_MESSAGES[action]?.[status] || DEFAULT_ERROR_MESSAGES[status] || "An unknown error has occurred.";
     }
 
     /**
