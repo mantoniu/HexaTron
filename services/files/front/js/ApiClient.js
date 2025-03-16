@@ -43,7 +43,7 @@ export class ApiClient {
     async refreshAccessToken() {
         const response = await this.request("POST", "api/user/refreshToken", null, this._refreshToken);
         if (response) {
-            this._accessToken = response.accessToken;
+            this._accessToken = response.data.accessToken;
             localStorage.setItem("accessToken", this._accessToken);
         }
         return response;
