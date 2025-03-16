@@ -7,6 +7,18 @@ const {io: Client} = require('socket.io-client');
 const {addCors} = require("./cors");
 
 const servicesConfig = {
+    doc: {
+        target: process.env.FILES_URL,
+
+        http: {
+            path: "/api/doc",
+            requiresAuth: false,
+            rewriteUrl: true,
+            targetUrl: "/api.html"
+        },
+        ws: null
+    },
+
     user: {
         target: process.env.USER_SERVICE_URL,
 
@@ -107,6 +119,9 @@ const server = http.createServer((request, response) => {
                 // Add user ID to headers if available
                 if (decoded?.userId)
                     request.headers['x-user-id'] = decoded.userId;
+
+                if (matchedService.http.rewriteUrl)
+                    request.url = matchedService.http.targetUrl;
 
                 // Redirect the request to the appropriate service
                 proxy.web(request, response, {target: matchedService.target});
