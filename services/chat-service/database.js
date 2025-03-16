@@ -123,12 +123,10 @@ async function getConversationWithRecentMessages(conversationId, userId, limit =
  * @returns {Promise<void>} - A promise that resolves when the message is saved.
  */
 async function saveMessage(message) {
-    console.log(message);
     message.conversationId = new ObjectId(message.conversationId);
     await mongoOperation(() => {
         db.collection(messageCollection).insertOne(message);
     });
-    console.log("ok");
 }
 
 /**
@@ -161,7 +159,6 @@ async function addParticipant(conversationId, userId) {
  */
 async function userExists(userId) {
     const user = await db.collection(userCollection).findOne({_id: new ObjectId(userId)});
-    console.log(user);
     return !!user;
 }
 
@@ -177,7 +174,6 @@ async function allUsersExist(userIds) {
             return await userExists(userId);
         })
     );
-    console.log(userExistenceChecks);
     return userExistenceChecks.every((exists) => exists);
 }
 
@@ -197,12 +193,9 @@ async function createConversation(participantIds) {
         createdAt: new Date()
     };
 
-    console.log(conversation);
-
     const result = await mongoOperation(() =>
         db.collection(conversationCollection).insertOne(conversation));
 
-    console.log(result);
     return {_id: result.insertedId, ...conversation};
 }
 

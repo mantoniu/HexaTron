@@ -87,7 +87,6 @@ class ChatService {
      */
     async getConversation(conversationId) {
         const response = await apiClient.request("GET", `${this._apiUrl}/conversations/${conversationId}`);
-        console.log(response);
         if (response.success) {
             return {success: true, conversation: response.data.conversation};
         }
@@ -101,7 +100,6 @@ class ChatService {
      * @param {Array<{_id: string}>} conversations - The list of conversations to join.
      */
     _joinConversations(conversations) {
-        console.log(conversations);
         conversations.forEach(conversation =>
             this._socket.emit("joinConversation", conversation._id)
         );
@@ -118,7 +116,6 @@ class ChatService {
      */
     async getConversations() {
         const response = await apiClient.request("GET", `${this._apiUrl}/conversations`);
-        console.log(response);
         if (response.success) {
             this._joinConversations(response.data.conversations);
             return {success: true, conversations: response.data.conversations};
@@ -138,7 +135,6 @@ class ChatService {
      */
     async createConversation(participants) {
         const response = await apiClient.request("POST", `${this._apiUrl}/conversations`, participants);
-        console.log(response);
         if (response.success) {
             return {success: true, conversation: response.data.conversation};
         }

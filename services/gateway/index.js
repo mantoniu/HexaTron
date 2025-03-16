@@ -99,8 +99,6 @@ const server = http.createServer((request, response) => {
             (config) => config.http && request.url.startsWith(config.http.path)
         ) || filesService;
 
-        console.log(matchedService, servicesConfig.chat.http.path, request.url, request.url.startsWith(servicesConfig.chat.http.path));
-
         if (matchedService.http) {
             try {
                 // Check authentication
