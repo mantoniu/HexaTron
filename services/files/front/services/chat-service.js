@@ -44,9 +44,7 @@ class ChatService {
 
         this._socket = socketService.chatSocket;
         this._apiUrl = "api/chat";
-
-        this._socket.on("message", (data) => console.log(data));
-        this._socket.on("error", (error) => console.error(error));
+        this._setupListeners();
 
         ChatService._instance = this;
     }
@@ -61,6 +59,17 @@ class ChatService {
             ChatService._instance = new ChatService();
 
         return ChatService._instance;
+    }
+
+    /**
+     * Sets up event listeners for chat updates received from the server.
+     *
+     * @private
+     */
+    _setupListeners() {
+        this._socket.on("message", (data) => console.log(data));
+        this._socket.on("deleteMessage", (conversationId, messageId) => console.log(conversationId, messageId));
+        this._socket.on("error", (error) => console.error(error));
     }
 
     /**
@@ -149,6 +158,15 @@ class ChatService {
      */
     sendMessage(conversationId, content) {
         this._socket.emit("message", content, conversationId, userService.user._id);
+    }
+
+    /**
+     * Deletes a message via WebSocket
+     *
+     * @param {string} messageId - The ID of the message to be deleted
+     */
+    deleteMessage(messageId) {
+        this._socket.emit("deleteMessage", messageId, userService.user._id);
     }
 }
 

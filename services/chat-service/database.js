@@ -47,6 +47,7 @@ async function mongoOperation(operation) {
 /**
  * Retrieves all conversations of a user with their latest message in a single query.
  *
+ * @async
  * @param {string} userId - The ID of the user.
  * @returns {Promise<Array>} - List of conversations with the last message.
  */
@@ -76,14 +77,18 @@ async function getUserConversationsWithLastMessage(userId) {
 }
 
 /**
- * Retrieves a conversation with a limited number of recent messages.
+ * Retrieves a conversation with a limited number of recent messages from a specified date.
  *
+ * @async
  * @param {string} conversationId - The ID of the conversation.
  * @param {string} userId - The ID of the user (to check if he is in the conversation)
+ * @param {string|Date} date - The reference date to fetch messages before.
  * @param {number} limit - The number of messages to retrieve.
+ * @throws {Error} `CONVERSATION_NOT_FOUND` - If the conversation does not exist
+ * @throws {Error} `USER_NOT_PARTICIPANT` - If the user is not a participant of the conversation
  * @returns {Promise<Object|null>} - The conversation object with its recent messages, or null if not found.
  */
-async function getConversationWithRecentMessages(conversationId, userId, limit = 10) {
+async function getConversationWithMessagesBeforeDate(conversationId, userId, date, limit = 10) {
     const conversation = await mongoOperation(() =>
         db.collection(conversationCollection).aggregate([
             {$match: {_id: new ObjectId(conversationId)}},
@@ -92,7 +97,12 @@ async function getConversationWithRecentMessages(conversationId, userId, limit =
                     from: messageCollection,
                     let: {convId: "$_id"},
                     pipeline: [
-                        {$match: {$expr: {$eq: ["$conversationId", "$$convId"]}}},
+                        {
+                            $match: {
+                                $expr: {$eq: ["$conversationId", "$$convId"]},
+                                timestamp: {$lt: new Date(date)}
+                            }
+                        },
                         {$sort: {timestamp: -1}},
                         {$limit: limit}
                     ],
@@ -119,23 +129,49 @@ async function getConversationWithRecentMessages(conversationId, userId, limit =
 /**
  * Save a message in the database
  *
+ * @async
  * @param {Object} message - The message object to be saved.
- * @returns {Promise<void>} - A promise that resolves when the message is saved.
+ * @returns {Promise<string>} - A promise that resolves when the message is saved with the id of the message.
  */
 async function saveMessage(message) {
+    message.senderId = new ObjectId(message.senderId);
     message.conversationId = new ObjectId(message.conversationId);
-    await mongoOperation(() => {
-        db.collection(messageCollection).insertOne(message);
+    const result = await db.collection(messageCollection).insertOne(message);
+    return result.insertedId.toString();
+}
+
+/**
+ * Deletes a message if the user is the sender.
+ *
+ * @async
+ * @param {string} messageId - The ID of the message to be deleted.
+ * @param {string} userId - The ID of the user attempting to delete the message.
+ * @throws {Error} `MESSAGE_NOT_FOUND` - If the message does not exist in the database.
+ * @throws {Error} `USER_NOT_OWNER` - If the user is not the sender of the message.
+ * @returns {Promise<string>} - Resolves when the message is successfully deleted and gives the conversationId.
+ */
+async function deleteMessageWithOwner(messageId, userId) {
+    return await mongoOperation(async () => {
+        const message = await db.collection(messageCollection).findOneAndDelete({
+            _id: new ObjectId(messageId),
+            senderId: new ObjectId(userId)
+        });
+
+        if (!message)
+            throw new Error(DATABASE_ERRORS.MESSAGE_NOT_FOUND);
+
+        return message.conversationId.toString();
     });
 }
 
 /**
  * Adds a participant to an existing conversation.
  *
+ * @async
  * @param {string} conversationId - The ID of the conversation.
  * @param {string} userId - The ID of the user to add.
- * @returns {Promise<void>}
  * @throws {Error} If the conversation does not exist.
+ * @returns {Promise<void>}
  */
 async function addParticipant(conversationId, userId) {
     const result = await mongoOperation(() =>
@@ -154,6 +190,7 @@ async function addParticipant(conversationId, userId) {
 /**
  * Checks if a user exists in the database.
  *
+ * @async
  * @param {string} userId - The ID of the user.
  * @returns {Promise<boolean>} - `true` if the user exists, otherwise `false`.
  */
@@ -165,6 +202,7 @@ async function userExists(userId) {
 /**
  * Check is list of users exists in the database
  *
+ * @async
  * @param userIds - The IDs of the users
  * @returns {Promise<boolean>} - `true` if the users exists, otherwise `false`.
  */
@@ -180,7 +218,9 @@ async function allUsersExist(userIds) {
 /**
  * Creates a new conversation with the given participants.
  *
+ * @async
  * @param {string[]} participantIds - Array of participant user IDs.
+ * @throws {Error} `PARTICIPANT_NOT_FOUND` - If one of the participant cannot be found
  * @returns {Promise<Object>} - The created conversation object.
  */
 async function createConversation(participantIds) {
@@ -200,7 +240,8 @@ async function createConversation(participantIds) {
 }
 
 module.exports = {
-    getConversationWithRecentMessages,
+    deleteMessageWithOwner,
+    getConversationWithMessagesBeforeDate,
     getUserConversationsWithLastMessage,
     createConversation,
     saveMessage

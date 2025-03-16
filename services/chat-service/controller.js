@@ -2,8 +2,7 @@ const {parse} = require('url');
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const {
     getUserConversationsWithLastMessage,
-    getConversationWithRecentMessages,
-    createConversation
+    createConversation, getConversationWithMessagesBeforeDate
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 
@@ -12,10 +11,13 @@ exports.getConversations = async (req, res) => {
         const userId = getIDInRequest(req);
         const conversationId = parse(req.url, true).pathname.split('/')?.[4];
 
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const date = url.searchParams.get('date') || new Date();
+
         const response = conversationId
             ? {
                 message: "Conversation retrieved successfully.",
-                conversation: await getConversationWithRecentMessages(conversationId, userId),
+                conversation: await getConversationWithMessagesBeforeDate(conversationId, userId, date),
             }
             : {
                 message: "User conversations retrieved successfully.",

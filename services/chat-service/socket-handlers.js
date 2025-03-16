@@ -1,4 +1,4 @@
-const {saveMessage} = require("./database");
+const {saveMessage, deleteMessageWithOwner} = require("./database");
 
 module.exports = (io) => {
     io.on('connection', (gatewaySocket) => {
@@ -8,23 +8,32 @@ module.exports = (io) => {
             gatewaySocket.join(conversationId);
         });
 
-        gatewaySocket.on("message", async (content, conversationId, sender) => {
+        gatewaySocket.on("deleteMessage", async (messageId, userId) => {
             try {
-                if (!content || !conversationId || !sender) {
+                const conversationId = await deleteMessageWithOwner(messageId, userId);
+                io.to(conversationId).emit("deleteMessage", conversationId, messageId);
+            } catch (error) {
+                console.error("Error deleting message:", error);
+                gatewaySocket.emit("error", {message: "Failed to delete the message"});
+            }
+        });
+
+        gatewaySocket.on("message", async (content, conversationId, senderId) => {
+            try {
+                if (!content || !conversationId || !senderId) {
                     return gatewaySocket.emit("error", {message: "Missing required fields"});
                 }
 
                 const message = {
                     conversationId,
-                    sender,
+                    senderId,
                     content,
                     timestamp: new Date(),
                     isRead: false
                 };
 
-                await saveMessage(message);
-
-                io.to(conversationId).emit("message", message.content);
+                const messageId = await saveMessage(message);
+                io.to(conversationId).emit("message", {_id: messageId, ...message});
             } catch (error) {
                 console.error("Error saving message:", error);
                 gatewaySocket.emit("error", {message: "Failed to send message"});

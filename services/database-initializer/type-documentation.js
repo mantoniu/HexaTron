@@ -17,8 +17,8 @@ const Message = {
     conversationId: {
         bsonType: "objectId"
     },
-    sender: {
-        bsonType: "string"
+    senderId: {
+        bsonType: "objectId"
     },
     content: {
         bsonType: "string"
