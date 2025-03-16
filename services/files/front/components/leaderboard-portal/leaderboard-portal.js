@@ -1,6 +1,6 @@
 import {Component} from "../component/component.js";
 import {LeaderboardComponent} from "../leaderboard-component/leaderboard-component.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {UserProfile} from "../user-profile/user-profile.js";
 
 export class LeaderboardPortal extends Component {
@@ -18,11 +18,11 @@ export class LeaderboardPortal extends Component {
 
         this.shadowRoot.getElementById("league-selector").addEventListener("input", () => this.selectLeague());
 
-        const result = await UserService.getInstance().getLeaderboard();
+        const result = await userService.getLeaderboard();
 
         this.leaderboard = result.playersELO;
 
-        if (UserService.getInstance().isConnected()) {
+        if (userService.isConnected()) {
             this.rank = result.rank;
         }
 
@@ -45,7 +45,7 @@ export class LeaderboardPortal extends Component {
 
     handleEvent(event) {
         event.stopPropagation();
-        if (event.detail.player.name === UserService.getInstance().user.name) {
+        if (event.detail.player.name === userService.user.name) {
             const newEvent = new CustomEvent("showUserProfile", {
                 bubbles: true,
                 composed: true

@@ -1,4 +1,4 @@
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
@@ -42,12 +42,12 @@ export class UserPasswordPart extends BaseAuth {
     }
 
     async handleLogout() {
-        await UserService.getInstance().logout();
+        await userService.logout();
         window.location.href = "/";
     }
 
     async handleDeletion() {
-        const data = await UserService.getInstance().delete();
+        const data = await userService.delete();
         if (data.success) {
             alert(data.message);
             window.location.href = "/";
@@ -65,7 +65,7 @@ export class UserPasswordPart extends BaseAuth {
             if (this.checkInputs(UserPasswordPart.SELECTORS.PASSWORD_DIV)) {
                 const inputs = this.getInputs(`#${UserPasswordPart.SELECTORS.PASSWORD_DIV} form-input`);
                 const inputsData = getInputsData(inputs);
-                const data = await UserService.getInstance().updatePassword(
+                const data = await userService.updatePassword(
                     inputsData["current-password"],
                     inputsData["confirm-password"]
                 );

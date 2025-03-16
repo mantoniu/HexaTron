@@ -1,6 +1,6 @@
 import {ImageButton} from "../image-button/image-button.js";
 import {ListenerComponent} from "../component/listener-component.js";
-import {GameService, GameStatus} from "../../services/game-service.js";
+import {gameService, GameStatus} from "../../services/game-service.js";
 
 
 export class CustomNav extends ListenerComponent {
@@ -15,7 +15,7 @@ export class CustomNav extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.addEventListener(GameService, GameStatus.STARTED, () => this.hideElementsInGame());
+        this.addEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
 
         this.shadowRoot.querySelectorAll("image-button").forEach(button => {
             this.addAutoCleanListener(

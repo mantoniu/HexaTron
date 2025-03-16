@@ -247,7 +247,7 @@ class UserService extends EventEmitter {
         if (this.isConnected() && this.user?._id) {
             url += `?id=${this.user?._id}`;
         }
-        const response = await this._request("GET", url);
+        const response = await apiClient.request("GET", url);
         return response.data;
     }
 
