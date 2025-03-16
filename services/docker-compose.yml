@@ -114,8 +114,8 @@ services:
       - CONVERSATION_COLLECTION=${CONVERSATION_COLLECTION}
       - MESSAGE_COLLECTION=${MESSAGE_COLLECTION}
     depends_on:
-      mongodb:
-        condition: service_healthy
+      database-initializer:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8005/api/user/health" ]
       interval: 10s
