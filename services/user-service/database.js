@@ -2,12 +2,25 @@ const {MongoClient, ObjectId} = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {DATABASE_ERRORS, USER_FIELDS} = require("./utils");
+const {leagueRank, switchOptions, addEloPipeline, addRankPipeline, groupPipelineCreation} = require("./pipeline-utils");
+
 const userCollection = process.env.USER_COLLECTION;
 const refreshTokenCollection = process.env.TOKEN_COLLECTION;
 const dbName = process.env.DB_NAME;
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
+const initialELO = 1000;
+
+function getLeague(score) {
+    let league = "Wood";
+    for (const elo of Object.keys(leagueRank)) {
+        if (score >= elo) {
+            league = leagueRank[elo];
+        }
+    }
+    return league;
+}
 
 function handleMongoError(error) {
     switch (error.code) {
@@ -37,9 +50,11 @@ async function getUserByFilter(filter, excludedFields = []) {
             {projection}
         )
     );
+
     if (!user)
         throw new Error(DATABASE_ERRORS.USER_NOT_FOUND);
 
+    user.league = getLeague(user.elo);
     return user;
 }
 
@@ -83,6 +98,7 @@ async function deleteToken(userId) {
 }
 
 async function addUser(newUser) {
+    newUser.elo = initialELO;
     const result = await mongoOperation(() =>
         db.collection(userCollection).insertOne(newUser)
     );
@@ -166,6 +182,66 @@ async function resetPassword(username, answers, newPassword) {
     return true;
 }
 
+async function getElo(players) {
+    players = players.map(id => convertToID(id));
+    let result = await mongoOperation(() =>
+        db.collection(userCollection).find({"_id": {"$in": players}}, {projection: {_id: 1, elo: 1}}).toArray()
+    );
+    result.forEach(player => player._id = convertToString(player._id));
+    return result;
+}
+
+async function leaderboard() {
+    const result = await db.collection(userCollection).aggregate([
+        {
+            $addFields: {
+                league: {
+                    $switch: switchOptions
+                }
+            }
+        },
+        {
+            $facet: {
+                byLeague: [
+                    groupPipelineCreation("$league"),
+                    addEloPipeline,
+                    addRankPipeline
+                ],
+
+                global: [
+                    groupPipelineCreation("Global"),
+                    addEloPipeline,
+                    addRankPipeline
+                ]
+            }
+        },
+        {
+            $project: {
+                combined: {$concatArrays: ["$byLeague", "$global"]}
+            }
+        },
+        {$unwind: "$combined"},
+        {$replaceRoot: {newRoot: "$combined"}}
+    ]).toArray();
+
+    return Object.fromEntries(result.map(document => [document._id, document.players]));
+}
+
+async function getRank(id) {
+    const user = await getUserByID(id);
+
+    const rankLeagueOnly = await db.collection(userCollection).countDocuments({
+        league: user.league,
+        elo: {$gt: user.elo}
+    }) + 1;
+
+    const rankGlobal = await db.collection(userCollection).countDocuments({
+        elo: {$gt: user.elo}
+    }) + 1;
+
+    return {[getLeague(user.elo)]: rankLeagueOnly, "Global": rankGlobal};
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -175,5 +251,8 @@ module.exports = {
     updateUser,
     resetPassword,
     refreshAccessToken,
-    deleteUserByID
+    deleteUserByID,
+    getElo,
+    leaderboard,
+    getRank
 };

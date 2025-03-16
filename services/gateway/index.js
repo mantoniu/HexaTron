@@ -24,7 +24,7 @@ const servicesConfig = {
 
         http: {
             path: '/api/user',
-            publicRoutes: ["login", "register", "resetPassword"],
+            publicRoutes: ["login", "register", "resetPassword", "leaderboard"],
             requiresAuth: true
         },
         ws: null

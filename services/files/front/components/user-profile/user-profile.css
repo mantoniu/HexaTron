@@ -23,20 +23,6 @@ img {
     display: none;
 }
 
-#password-inputs {
+#part > * {
     display: none;
-}
-
-.password-edit {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-#buttons {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
 }

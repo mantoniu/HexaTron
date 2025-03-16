@@ -1,11 +1,12 @@
 const {
     deleteToken, addUser, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
-    refreshAccessToken, deleteUserByID
+    refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank
 } = require("./database");
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
 const {DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../utils/api-utils");
+const {parse} = require("url");
 const saltRounds = 10;
 
 async function hashPassword(password) {
@@ -207,5 +208,39 @@ exports.documentation = async (req, res) => {
             error: "Failed to read API documentation",
             details: error.message
         }));
+    }
+};
+
+exports.getElo = async (req, res) => {
+    try {
+        const playersELO = await getElo(req.body);
+        res.writeHead(200, {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        });
+        res.end(JSON.stringify({message: "Successfully recover ELO of each player", playersELO: playersELO}));
+    } catch (error) {
+        throw new HttpError(500, error.message);
+    }
+};
+
+exports.leaderboard = async (req, res) => {
+    try {
+        const playersRanking = await leaderboard();
+        res.writeHead(200, {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        });
+
+        const parsedUrl = parse(req.url, true);
+
+        if (parsedUrl.query.id) {
+            const rank = await getRank(parsedUrl.query.id);
+            res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking, rank: rank}));
+        } else {
+            res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));
+        }
+    } catch (error) {
+        throw new HttpError(500, error.message);
     }
 };

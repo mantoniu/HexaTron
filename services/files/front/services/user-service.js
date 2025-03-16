@@ -91,7 +91,6 @@ class UserService extends EventEmitter {
         if (UserService._instance) return UserService._instance;
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS);
-        this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS);
         this._connected = localStorage.getItem("connected") || false;
 
         if (!this._connected) {
@@ -191,8 +190,10 @@ class UserService extends EventEmitter {
     async updateUser(newData) {
         if (this.isConnected()) {
             const response = await apiClient.request("PATCH", `api/user/me`, newData);
+
             if (response.success) {
                 const data = response.data;
+
                 this._user = data.user;
                 localStorage.setItem("user", JSON.stringify(this._user));
                 return {success: true, ...newData};
@@ -220,6 +221,34 @@ class UserService extends EventEmitter {
             return {success: true, message: "Password successfully modified"};
 
         return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.UPDATE_PASSWORD)};
+    }
+
+    /**
+     * Updates the user's ELO rating and league, then stores the updated information in localStorage.
+     *
+     * @param {Object} data - The new ranking data.
+     * @param {number} data.elo - The user's new ELO rating.
+     * @param {string} data.league - The user's new league.
+     */
+    updateELO(data) {
+        this.user.elo = data.elo;
+        this.user.league = data.league;
+        localStorage.setItem("user", JSON.stringify(this.user));
+    }
+
+    /**
+     * Fetches the leaderboard data from the API.
+     * If the user is connected and has an ID, it includes the user ID in the request.
+     *
+     * @returns {Promise<Object>} A promise resolving to the leaderboard data.
+     */
+    async getLeaderboard() {
+        let url = "api/user/leaderboard";
+        if (this.isConnected() && this.user?._id) {
+            url += `?id=${this.user?._id}`;
+        }
+        const response = await this._request("GET", url);
+        return response.data;
     }
 
     /**

@@ -8,22 +8,10 @@
         <image-button alt="Edit username" id="edit-username" src="/assets/edit.svg"></image-button>
     </div>
 
-    <h2>Password</h2>
-    <div class="inline" id="password-div">
-        <div id="password-inputs">
-            <form-input id="current-password" label="Current Password" placeholder="Enter your current password"
-                        required type="password"></form-input>
-            <form-input id="password" label="New Password" maxlength="64" minlength="8"
-                        placeholder="Enter your new password"
-                        required type="password"></form-input>
-            <form-input id="confirm-password" label="Confirm Password" placeholder="Confirm your new password"
-                        required type="password"></form-input>
-        </div>
-        <h1 id="password-display">.........</h1>
-        <image-button alt="Edit password" id="edit-password" src="/assets/edit.svg"></image-button>
-    </div>
-    <div id="buttons">
-        <custom-button id="logout">Log out</custom-button>
-        <custom-button id="delete">Delete account</custom-button>
+    <h2 id="elo">ELO: </h2>
+    <h2 id="league">League: </h2>
+
+    <div id="part">
+        <user-password-part></user-password-part>
     </div>
 </div>

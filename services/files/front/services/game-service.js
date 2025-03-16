@@ -12,6 +12,7 @@ import {socketService} from "./socket-service.js";
  */
 export const GameStatus = {
     CREATED: 'CREATED',
+    STARTED: "STARTED",
     POSITIONS_UPDATED: 'POSITION_UPDATED',
     ROUND_END: 'ROUND_END',
     GAME_END: 'GAME_END'
@@ -158,7 +159,9 @@ class GameService extends EventEmitter {
                     console.warn(`Unknown status received: ${status}`);
             }
         });
-
+        this.socket.on("updateELO", (receivedData) => {
+            UserService.getInstance().updateELO(receivedData);
+        });
         this.errorListener();
     }
 
@@ -272,6 +275,8 @@ class GameService extends EventEmitter {
             gameType,
             players: players.map(player => ({id: player.id, name: player.name}))
         });
+
+        this.emit(GameStatus.STARTED);
     }
 
     /**
