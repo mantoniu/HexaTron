@@ -65,14 +65,6 @@ const ERROR_MESSAGES = {
     [USER_ACTIONS.DELETE]: {
         404: "The user account you are trying to delete does not exist.",
         500: "Unable to delete your account at the moment. Please try again later."
-    },
-    default: {
-        400: "Something went wrong with your request. Please check your input and try again.",
-        401: "You need to log in to perform this action.",
-        403: "You do not have permission to perform this action.",
-        404: "The resource you are looking for could not be found.",
-        500: "We are experiencing some technical difficulties. Please try again later.",
-        503: "Unable to connect to the server. Please check your internet connection and try again."
     }
 };
 

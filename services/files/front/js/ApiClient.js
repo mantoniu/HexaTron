@@ -1,4 +1,18 @@
 /**
+ * Default error messages mapped to HTTP status codes.
+ *
+ * @constant {Object}
+ */
+export const DEFAULT_ERROR_MESSAGES = Object.freeze({
+    400: "Something went wrong with your request. Please check your input and try again.",
+    401: "You need to log in to perform this action.",
+    403: "You do not have permission to perform this action.",
+    404: "The resource you are looking for could not be found.",
+    500: "We are experiencing some technical difficulties. Please try again later.",
+    503: "Unable to connect to the server. Please check your internet connection and try again."
+});
+
+/**
  * Class for managing API requests and tokens
  * This class implements the Singleton pattern to ensure a single instance.
  * It handles HTTP requests, token management, and automatic token refresh.
