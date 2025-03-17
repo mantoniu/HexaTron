@@ -33,8 +33,9 @@ class SocketService {
         if (SocketService._instance)
             return SocketService._instance;
 
-        this._sockets.game = io(`http://${window.location.hostname}/game`, {autoConnect: true});
-        this._sockets.chat = io(`http://${window.location.hostname}/chat`, {autoConnect: true});
+        const baseUrl = window.location.origin;
+        this._sockets.game = io(`${baseUrl}/game`, {autoConnect: true});
+        this._sockets.chat = io(`${baseUrl}/chat`, {autoConnect: true});
 
         this.setupListeners();
 
