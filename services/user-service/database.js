@@ -183,11 +183,11 @@ async function resetPassword(username, answers, newPassword) {
 }
 
 async function getElo(players) {
-    players = players.map(id => new ObjectId(id));
+    players = players.map(id => convertToID(id));
     let result = await mongoOperation(() =>
         db.collection(userCollection).find({"_id": {"$in": players}}, {projection: {_id: 1, elo: 1}}).toArray()
     );
-    result.forEach(player => player._id = player._id.toHexString());
+    result.forEach(player => player._id = convertToString(player._id));
     return result;
 }
 
