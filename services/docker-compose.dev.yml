@@ -10,11 +10,12 @@ services:
   gateway:
     environment:
       - NODE_ENV=development
-      - USER_SERVICE_URL=${USER_SERVICE_URL}
-      - GAME_SERVICE_URL=${GAME_SERVICE_URL}
-      - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
-      - FILES_URL=${FILES_URL}
-      - GATEWAY_URL=${GATEWAY_URL}
-      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
-      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
-      - DOC_API_SERVICE_URL=${DOC_API_SERVICE_URL}
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}
+
+  game-service:
+    environment:
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}
+
+  chat-service:
+    environment:
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}
