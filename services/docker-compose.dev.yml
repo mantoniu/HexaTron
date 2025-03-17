@@ -6,3 +6,16 @@ services:
       target: dev
     volumes:
       - ./files/front:/app/front
+
+  gateway:
+    environment:
+      - NODE_ENV=development
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}
+
+  game-service:
+    environment:
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}
+
+  chat-service:
+    environment:
+      - GATEWAY_URL=${GATEWAY_URL_HTTP}

@@ -84,7 +84,7 @@ export class ApiClient {
         };
 
         try {
-            const response = await fetch(`${window.location}${endpoint}`, options);
+            const response = await fetch(`${window.location.origin}/${endpoint}`, options);
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
                 await this.refreshAccessToken();
