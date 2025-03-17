@@ -78,6 +78,20 @@ const User = {
     },
     elo: {
         bsonType: "number"
+    },
+    friends: {
+        bsonType: "array",
+        items: {
+            bsonType: "object",
+            properties: {
+                friendId: {
+                    bsonType: "objectId"
+                },
+                status: {
+                    bsonType: "string"
+                }
+            }
+        }
     }
 };
 

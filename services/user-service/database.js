@@ -99,6 +99,7 @@ async function deleteToken(userId) {
 
 async function addUser(newUser) {
     newUser.elo = initialELO;
+    newUser.friends = [];
     const result = await mongoOperation(() =>
         db.collection(userCollection).insertOne(newUser)
     );
