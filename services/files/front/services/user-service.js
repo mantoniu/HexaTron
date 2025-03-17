@@ -1,6 +1,7 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
+import {socketService} from "./socket-service.js";
 
 /**
  * Defines user-related events.
@@ -90,8 +91,12 @@ class UserService extends EventEmitter {
 
         if (UserService._instance) return UserService._instance;
 
-        this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS);
+        this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
+
+        if (this._connected) {
+            socketService.connectFriendsSocket(this._user._id);
+        }
 
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
@@ -176,6 +181,7 @@ class UserService extends EventEmitter {
         const response = await apiClient.request("POST", endpoint, data);
         if (response.success) {
             this._setUserData(response.data);
+            socketService.connectFriendsSocket(this._user._id);
             return {success: true, user: this._user};
         }
         return {success: false, error: this._getErrorMessage(response.status, action)};

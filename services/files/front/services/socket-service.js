@@ -22,6 +22,7 @@ class SocketService {
     _sockets = {
         game: null,
         chat: null,
+        friends: null
     };
 
     /**
@@ -33,9 +34,9 @@ class SocketService {
         if (SocketService._instance)
             return SocketService._instance;
 
-        const baseUrl = window.location.origin;
-        this._sockets.game = io(`${baseUrl}/game`, {autoConnect: true});
-        this._sockets.chat = io(`${baseUrl}/chat`, {autoConnect: true});
+        this.baseUrl = window.location.origin;
+        this._sockets.game = io(`${this.baseUrl}/game`, {autoConnect: true});
+        this._sockets.chat = io(`${this.baseUrl}/chat`, {autoConnect: true});
 
         this.setupListeners();
 
@@ -58,6 +59,32 @@ class SocketService {
      */
     get chatSocket() {
         return this._sockets.chat;
+    }
+
+    /**
+     * Returns the socket for the `/friends` namespace.
+     *
+     * @return {socket} The friends socket.
+     */
+    get friendsSocket() {
+        return this._sockets.friendsSocket;
+    }
+
+    /**
+     * Connect the friends socket to the back
+     */
+    connectFriendsSocket(userId) {
+        console.log(userId);
+
+        this._sockets.friends = io(`${this.baseUrl}/friends`,
+            {
+                auth: {
+                    userId: userId
+                },
+                autoConnect: true
+            });
+        this._sockets.friends.on("connect", () => console.log("[FriendSocket] Connected:", this._sockets.friends.id));
+        this._sockets.friends.on("disconnect", () => console.warn("[FriendSocket] Disconnected!"));
     }
 
     /**
