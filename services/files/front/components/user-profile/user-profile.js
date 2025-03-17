@@ -4,6 +4,7 @@ import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {UserPasswordPart} from "../user-password-part/user-password-part.js";
+import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
 
 export class UserProfile extends BaseAuth {
     static SELECTORS = {
@@ -23,6 +24,7 @@ export class UserProfile extends BaseAuth {
         SubmitButton.register();
         ImageButton.register();
         UserPasswordPart.register();
+        UserFriendPart.register();
 
         this.editingUsername = false;
         this._elements = {};
@@ -49,6 +51,9 @@ export class UserProfile extends BaseAuth {
         }
         this.user = JSON.parse(this.getAttribute("user"));
         if (this.getAttribute("part")) {
+            if (this.getAttribute("part") === "user-friend-part") {
+                this.shadowRoot.querySelector(this.getAttribute("part")).setAttribute("friend-id", this.user._id);
+            }
             this.shadowRoot.querySelector(this.getAttribute("part")).style.display = "flex";
         }
         this._elements = this.initializeElements(UserProfile.SELECTORS);

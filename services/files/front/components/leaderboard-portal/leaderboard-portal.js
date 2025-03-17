@@ -56,6 +56,8 @@ export class LeaderboardPortal extends Component {
 
             userProfile.setAttribute("user", JSON.stringify(event.detail.player));
             userProfile.setAttribute("editable", false);
+            userProfile.setAttribute("part", "user-friend-part");
+
             userProfile.style.display = "block";
 
             this.shadowRoot.getElementById("leaderboard-container").style.display = "none";

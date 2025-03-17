@@ -1,0 +1,40 @@
+:host {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeIn 0.5s ease-out forwards;
+    height: 80%;
+    font-size: 1.3rem;
+}
+
+#friends-part {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+#search-container {
+    display: flex;
+    flex-direction: row;
+    width: 70%;
+}
+
+#search-bar {
+    flex-grow: 1;
+}

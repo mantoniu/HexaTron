@@ -36,6 +36,12 @@ export class Component extends HTMLElement {
         this.render(html, css);
     }
 
+    initializeElements(selectors) {
+        return Object.fromEntries(
+            Object.entries(selectors).map(([key, id]) => [key, this.shadowRoot.getElementById(id)])
+        );
+    }
+
     async fetchResource(type) {
         const response = await fetch(`/components/${this.constructor.elementName}/${this.constructor.elementName}.${type}`);
         if (!response.ok) {
