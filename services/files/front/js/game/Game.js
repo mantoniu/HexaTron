@@ -1,7 +1,7 @@
 import {Board} from "./Board.js";
 import {Position} from "./Position.js";
 import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 
 export const GameType = {
     LOCAL: 0,
@@ -80,7 +80,7 @@ export class Game {
             this.board.update(
                 prevPosition,
                 curPosition,
-                UserService.getInstance().user.parameters.playersColors[i],
+                userService.user.parameters.playersColors[i],
                 context,
                 this.obtainDirection(prevPosition, curPosition)
             );

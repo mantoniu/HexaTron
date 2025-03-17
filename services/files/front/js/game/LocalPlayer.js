@@ -1,6 +1,6 @@
 import {Player} from "./Player.js";
 import {defaultMovementsConfiguration} from "./GameUtils.js";
-import {GameService} from "../../services/game-service.js";
+import {gameService} from "../../services/game-service.js";
 
 export class LocalPlayer extends Player {
     constructor(id, name, keyConfiguration) {
@@ -15,9 +15,9 @@ export class LocalPlayer extends Player {
     setupListener() {
         window.addEventListener('keydown', (event) => {
             const key = event.key.toLowerCase();
-            if (this._keys.includes(key) && GameService.getInstance().game?.id) {
+            if (this._keys.includes(key) && gameService.game?.id) {
                 const move = this._movementsMapping[key];
-                GameService.getInstance().nextMove(this.id, move);
+                gameService.nextMove(this.id, move);
             }
         });
     }

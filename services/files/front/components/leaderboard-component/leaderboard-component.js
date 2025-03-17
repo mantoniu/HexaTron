@@ -1,6 +1,6 @@
 import {Component} from "../component/component.js";
 import {LeaderboardElement} from "../leaderboard-element/leaderboard-element.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 
 const SCROLL_DIRECTION = Object.freeze({
     UP: "up",
@@ -50,9 +50,9 @@ export class LeaderboardComponent extends Component {
                 this.shadowRoot.removeChild(this.shadowRoot.getElementById("actualRank"));
             }
 
-            if (UserService.getInstance().isConnected() && Object.keys(this.rank).includes(this.league)) {
+            if (userService.isConnected() && Object.keys(this.rank).includes(this.league)) {
                 let element = document.createElement("leaderboard-element");
-                element.setPlayer(UserService.getInstance().user);
+                element.setPlayer(userService.user);
                 element.rank = this.rank[this.league];
                 element.id = "actualRank";
                 this.shadowRoot.appendChild(element);
@@ -65,7 +65,7 @@ export class LeaderboardComponent extends Component {
                 element.rank = player.leagueRank;
                 this.shadowRoot.getElementById("league-container").appendChild(element);
 
-                if (this.shadowRoot.getElementById("actualRank") && UserService.getInstance().user.name === player.name) {
+                if (this.shadowRoot.getElementById("actualRank") && userService.user.name === player.name) {
                     this.observer = new IntersectionObserver(
                         this.elementVisible.bind(this),
                         {

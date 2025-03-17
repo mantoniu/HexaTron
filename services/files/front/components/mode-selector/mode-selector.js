@@ -1,7 +1,7 @@
 import {CustomButton} from "../custom-button/custom-button.js";
-import {GameService} from "../../services/game-service.js";
+import {gameService} from "../../services/game-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {GameType} from "../../js/game/Game.js";
-import {USER_EVENTS, UserService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 
 export class ModeSelector extends ListenerComponent {
@@ -20,11 +20,11 @@ export class ModeSelector extends ListenerComponent {
         buttons.forEach(button => {
             const gameType = Number(button.getAttribute("game-type"));
 
-            if (gameType === GameType.RANKED && !UserService.getInstance().isConnected())
+            if (gameType === GameType.RANKED && !userService.isConnected())
                 this.lockRankedButton();
 
             const handler = () => {
-                GameService.getInstance().startGame(gameType, 9, 16, 3, 2);
+                gameService.startGame(gameType);
 
                 setTimeout(() => {
                     window.dispatchEvent(new CustomEvent("navigate", {
@@ -36,8 +36,8 @@ export class ModeSelector extends ListenerComponent {
             this.addAutoCleanListener(button, 'click', handler);
         });
 
-        this.addEventListener(UserService, USER_EVENTS.CONNECTION, () => this.unLockRankedButton());
-        this.addEventListener(UserService, USER_EVENTS.LOGOUT, () => this.lockRankedButton());
+        this.addEventListener(userService, USER_EVENTS.CONNECTION, () => this.unLockRankedButton());
+        this.addEventListener(userService, USER_EVENTS.LOGOUT, () => this.lockRankedButton());
     }
 
     lockRankedButton() {

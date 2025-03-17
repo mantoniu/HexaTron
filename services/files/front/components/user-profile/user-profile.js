@@ -1,4 +1,4 @@
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
@@ -92,7 +92,7 @@ export class UserProfile extends BaseAuth {
         } else {
             if (this.checkInputs(UserProfile.SELECTORS.USERNAME_DIV)) {
                 const newUsername = this._elements.USERNAME_INPUT.shadowRoot.querySelector("input").value;
-                const data = await UserService.getInstance().updateUser({name: newUsername});
+                const data = await userService.updateUser({name: newUsername});
                 this._handleUsernameChange(data);
             }
         }

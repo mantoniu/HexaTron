@@ -4,10 +4,10 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app/user-service/
 COPY ./user-service/package*.json ./
-COPY ../api-utils/* /app/api-utils/
+COPY ../utils/* /app/utils/
 
 RUN npm install
-RUN cd /app/api-utils && npm install
+RUN cd /app/utils && npm install
 
 COPY ./user-service/*.js ./
 COPY ../database-initializer/type-documentation.js /app/database-initializer/

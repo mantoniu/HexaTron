@@ -1,4 +1,36 @@
 /* TYPE DEFINITION */
+const Conversation = {
+    participants: {
+        bsonType: "array",
+        items: {
+            bsonType: "string"
+        },
+        minItems: 2,
+        uniqueItems: true
+    },
+    createdAt: {
+        bsonType: "date"
+    }
+};
+
+const Message = {
+    conversationId: {
+        bsonType: "objectId"
+    },
+    senderId: {
+        bsonType: "objectId"
+    },
+    content: {
+        bsonType: "string"
+    },
+    timestamp: {
+        bsonType: "date"
+    },
+    isRead: {
+        bsonType: "bool"
+    }
+};
+
 const Parameters = {
     bsonType: "object",
     properties: {
@@ -50,7 +82,7 @@ const User = {
 };
 
 const RefreshToken = {
-    userID: {
+    userId: {
         bsonType: "string"
     },
     refreshToken: {
@@ -108,9 +140,4 @@ userJson["_id"] = {"type": "string"};
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
 
 /* EXPORTS */
-exports.User = User;
-exports.Parameters = Parameters;
-exports.RefreshToken = RefreshToken;
-
-exports.userJson = userJson;
-exports.refreshTokenJson = refreshTokenJson;
+module.exports = {User, Conversation, Message, Parameters, RefreshToken, userJson, refreshTokenJson};

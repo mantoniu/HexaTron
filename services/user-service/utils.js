@@ -1,5 +1,3 @@
-const {ObjectId} = require("mongodb");
-
 const USER_FIELDS = Object.freeze({
     id: '_id',
     name: 'name',
@@ -20,33 +18,7 @@ const DATABASE_ERRORS = Object.freeze({
     VALIDATION_FAILED: "VALIDATION_FAILED"
 });
 
-class HttpError extends Error {
-    constructor(status, message) {
-        super(message);
-        this.status = status;
-    }
-}
-
-function parseRequestPath(req) {
-    const baseUrl = `http://${req.headers.host}`;
-    const url = new URL(req.url, baseUrl);
-
-    return url.pathname.split("/").filter(Boolean).slice(2);
-}
-
-function convertToID(id) {
-    return new ObjectId(id);
-}
-
-function convertToString(id) {
-    return id.toHexString();
-}
-
 module.exports = {
     USER_FIELDS,
-    DATABASE_ERRORS,
-    HttpError,
-    convertToID,
-    convertToString,
-    parseRequestPath
+    DATABASE_ERRORS
 };

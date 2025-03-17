@@ -2,9 +2,10 @@ const {
     deleteToken, addUser, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
     refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank
 } = require("./database");
+const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
-const {HttpError, convertToString, DATABASE_ERRORS} = require("./utils");
-const {readData} = require("../api-utils/api-utils");
+const {DATABASE_ERRORS} = require("./utils");
+const {readData} = require("../utils/api-utils");
 const {parse} = require("url");
 const saltRounds = 10;
 
@@ -14,15 +15,6 @@ async function hashPassword(password) {
         return await bcrypt.hash(password, salt);
     } catch (error) {
         throw new HttpError(500, error.message);
-    }
-}
-
-function getIDInRequest(request) {
-    const userId = request.headers["x-user-id"];
-    if (userId) {
-        return userId;
-    } else {
-        throw new HttpError(400, "Missing 'x-user-id' header in the request");
     }
 }
 
@@ -56,9 +48,8 @@ exports.login = async (req, res) => {
     try {
         const credentials = req.body;
         const user = await checkPassword(credentials.name, credentials.password, false);
-        const id = convertToString(user._id);
-        const accessToken = generateToken(id, true);
-        const refreshToken = await generateRefreshToken(id);
+        const accessToken = generateToken(user._id, true);
+        const refreshToken = await generateRefreshToken(user._id);
 
         res.writeHead(200, {"Content-Type": "application/json"});
         res.end(JSON.stringify({

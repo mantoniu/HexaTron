@@ -1,5 +1,5 @@
 import {BaseAuth} from "../base-auth/base-auth.js";
-import {UserService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
 
 export class ForgottenPasswordPortal extends BaseAuth {
@@ -24,7 +24,7 @@ export class ForgottenPasswordPortal extends BaseAuth {
             data["security-question3"]
         ];
 
-        UserService.getInstance().resetPassword({username, password, answers})
+        userService.resetPassword(username, password, answers)
             .then((data) => this._resetPasswordHandler(data));
     }
 }
