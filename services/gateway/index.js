@@ -1,10 +1,12 @@
 // The http module contains methods to handle http queries.
+const https = require('https');
 const http = require('http');
 const httpProxy = require('http-proxy');
 const {Server} = require('socket.io');
 const jwt = require("jsonwebtoken");
 const {io: Client} = require('socket.io-client');
 const {addCors} = require("./cors");
+const {readFileSync} = require("node:fs");
 
 const servicesConfig = {
     doc: {
@@ -100,10 +102,23 @@ function checkAuthentication(req, serviceConfig) {
     }
 }
 
+const options = {
+    cert: readFileSync("./dns/fullchain.pem"),
+    key: readFileSync("./dns/privkey.pem")
+};
+
+http.createServer((request, response) => {
+    const httpsUrl = `https://${request.headers['host']}${request.url}`;
+    console.log(httpsUrl);
+
+    response.writeHead(308, {'Location': httpsUrl});
+    response.end('Redirecting to HTTPS');
+}).listen(8006);
+
 /* The http module contains a createServer function, which takes one argument, which is the function that
 ** will be called whenever a new request arrives to the server.
 */
-const server = http.createServer((request, response) => {
+const server = https.createServer(options, (request, response) => {
     addCors(response);
     try {
         // Find the matching service or use the files service as default

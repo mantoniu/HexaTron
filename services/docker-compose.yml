@@ -150,6 +150,7 @@ services:
     networks:
       - network-services
     ports:
+      - "8006:8006"
       - "8000:8000"
     environment:
       - USER_SERVICE_URL=${USER_SERVICE_URL}
