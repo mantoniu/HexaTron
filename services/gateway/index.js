@@ -102,23 +102,52 @@ function checkAuthentication(req, serviceConfig) {
     }
 }
 
-const options = {
-    cert: readFileSync("./dns/fullchain.pem"),
-    key: readFileSync("./dns/privkey.pem")
-};
+/**
+ * Creates an HTTP or HTTPS server based on the given protocol.
+ * @param {"http" | "https"} protocol - The protocol to use.
+ * @param {Function} requestHandler - The function handling incoming requests.
+ * @returns {http.Server | https.Server} - Returns a server instance.
+ */
+function createServer(protocol, requestHandler) {
+    if (protocol === "https") {
+        setupRedirectionToHttps();
+        const options = {
+            cert: readFileSync("./dns/fullchain.pem"),
+            key: readFileSync("./dns/privkey.pem"),
+        };
+        return https.createServer(options, requestHandler);
+    }
 
-http.createServer((request, response) => {
-    const httpsUrl = `https://${request.headers['host']}${request.url}`;
-    console.log(httpsUrl);
+    return http.createServer(requestHandler);
+}
 
-    response.writeHead(308, {'Location': httpsUrl});
-    response.end('Redirecting to HTTPS');
-}).listen(8006);
+/**
+ * Creates an HTTP server that listens on port 8000 and redirects all requests to HTTPS.
+ */
+function setupRedirectionToHttps() {
+    http.createServer((request, response) => {
+        const httpsUrl = `https://${request.headers['host']}${request.url}`;
 
-/* The http module contains a createServer function, which takes one argument, which is the function that
-** will be called whenever a new request arrives to the server.
-*/
-const server = https.createServer(options, (request, response) => {
+        response.writeHead(308, {'Location': httpsUrl});
+        response.end('Redirecting to HTTPS');
+    }).listen(8006);
+}
+
+/**
+ * Handles incoming HTTP/HTTPS requests and proxies them to the appropriate service.
+ * This function:
+ *  - Adds CORS headers to responses.
+ *  - Identifies the matching service based on the request URL.
+ *  - Checks authentication if required.
+ *  - Adds the user ID to the headers if authentication is successful.
+ *  - Forwards the request to the correct service using http-proxy.
+ *  - Returns appropriate error messages for authentication failures or unknown services.
+ *
+ * @async
+ * @param {http.IncomingMessage} request - The incoming request object.
+ * @param {http.ServerResponse} response - The response object to send data back to the client.
+ */
+requestHandler = async (request, response) => {
     addCors(response);
     try {
         // Find the matching service or use the files service as default
@@ -157,7 +186,10 @@ const server = https.createServer(options, (request, response) => {
         response.statusCode = 400;
         response.end('Something is strange in your request');
     }
-});
+}
+
+const isProd = process.env.NODE_ENV === "production";
+const server = createServer(isProd ? "https" : "http", requestHandler);
 
 const ioServer = new Server(server, {
     cors: {
