@@ -224,7 +224,9 @@ Object.values(servicesConfig).forEach(service => {
         clientSocket.onAny((eventName, ...args) => socket.emit(eventName, ...args));
         clientSocket.on("disconnect", () => socket.disconnect());
 
-        socket.onAny((eventName, ...args) => clientSocket.emit(eventName, ...args));
+        socket.onAny((eventName, ...args) => {
+            clientSocket.emit(eventName, ...args);
+        });
     });
 });
 
