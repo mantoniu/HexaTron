@@ -14,7 +14,7 @@ export class CustomNav extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.addEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
+        this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
 
         this.shadowRoot.querySelectorAll("image-button").forEach(button => {
             this.addAutoCleanListener(

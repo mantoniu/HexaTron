@@ -58,8 +58,19 @@ export class DrawerMenu extends Component {
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
             event.stopPropagation();
-            this.previous = DRAWER_CONTENT.PROFILE;
-            this.loadContent(DRAWER_CONTENT.PROFILE);
+            if (event.detail.name === userService.user.name) {
+                this.previous = DRAWER_CONTENT.PROFILE;
+                this.loadContent(DRAWER_CONTENT.PROFILE);
+            } else {
+                this.previous = DRAWER_CONTENT.FRIENDS;
+                this.loadContent(DRAWER_CONTENT.FRIENDS);
+                const newEvent = new CustomEvent("watchProfile", {
+                    detail: {player: event.detail},
+                    bubbles: true,
+                    composed: true
+                });
+                this.shadowRoot.querySelector("friends-portal").dispatchEvent(newEvent);
+            }
         });
     }
 
