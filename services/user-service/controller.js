@@ -1,5 +1,5 @@
 const {
-    deleteToken, addUser, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
+    removeFriend, addFriend, acceptFriend, addUser, deleteToken, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
     refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank
 } = require("./database");
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
@@ -7,8 +7,16 @@ const bcrypt = require("bcrypt");
 const {DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../utils/api-utils");
 const {parse} = require("url");
+const eventBus = require("./event-bus");
 const saltRounds = 10;
 
+/**
+ * Hashes a password using bcrypt with a generated salt.
+ *
+ * @param {string} password - The plain text password to be hashed.
+ * @return {Promise<string>} - A promise that resolves to the hashed password.
+ * @throws {HttpError} - Throws an error with status 500 if hashing fails.
+ */
 async function hashPassword(password) {
     try {
         const salt = await bcrypt.genSalt(saltRounds);
@@ -18,6 +26,15 @@ async function hashPassword(password) {
     }
 }
 
+/**
+ * Registers a new user by hashing the password and saving the user's data in the database.
+ * It also generates access and refresh tokens for the user.
+ *
+ * @param {Object} req - The request object containing the user's data in the body.
+ * @param {Object} res - The response object used to send back the registration result.
+ * @return {Promise<void>} - Sends a response with the status of the registration process.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios.
+ */
 exports.register = async (req, res) => {
     try {
         const userData = req.body;
@@ -44,6 +61,14 @@ exports.register = async (req, res) => {
     }
 };
 
+/**
+ * Authenticates a user by verifying their credentials and generating access and refresh tokens.
+ *
+ * @param {Object} req - The request object containing the user's credentials in the body.
+ * @param {Object} res - The response object used to send back the login result.
+ * @return {Promise<void>} - Sends a response with the status of the login process, including the user data and tokens.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (invalid credentials, token generation issues).
+ */
 exports.login = async (req, res) => {
     try {
         const credentials = req.body;
@@ -73,6 +98,15 @@ exports.login = async (req, res) => {
     }
 };
 
+/**
+ * Updates an existing user's data based on the provided request body.
+ * The user ID is extracted from the request to identify the user to be updated.
+ *
+ * @param {Object} req - The request object containing the new user data in the body.
+ * @param {Object} res - The response object used to send back the update result.
+ * @return {Promise<void>} - Sends a response with the status of the update process, including the updated user data.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (user not found, validation errors, etc.).
+ */
 exports.update = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
@@ -94,6 +128,15 @@ exports.update = async (req, res) => {
     }
 };
 
+/**
+ * Updates a user's password by verifying the current password and setting a new one.
+ * The new password is hashed before being saved.
+ *
+ * @param {Object} req - The request object containing the user's old and new passwords in the body.
+ * @param {Object} res - The response object used to send back the update result.
+ * @return {Promise<void>} - Sends a response with the status of the password update.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (incorrect current password, user not found, invalid format).
+ */
 exports.updatePassword = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
@@ -120,6 +163,15 @@ exports.updatePassword = async (req, res) => {
     }
 };
 
+/**
+ * Resets a user's password after verifying the security answers.
+ * The new password is hashed before being updated in the database.
+ *
+ * @param {Object} req - The request object containing the user's username, security answers, and new password.
+ * @param {Object} res - The response object used to send back the result of the password reset operation.
+ * @return {Promise<void>} - Sends a response indicating the status of the password reset.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (mismatched security answers, user not found).
+ */
 exports.resetPassword = async (req, res) => {
     try {
         let {username, answers, password} = req.body;
@@ -141,6 +193,15 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
+/**
+ * Generates a new access token using the refresh token associated with the user.
+ * The refresh token is used to authenticate the request and generate a new access token.
+ *
+ * @param {Object} req - The request object containing the refresh token in the user's session or request.
+ * @param {Object} res - The response object used to send back the new access token.
+ * @return {Promise<void>} - Sends a response containing the new access token.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (missing refresh token, token generation failure).
+ */
 exports.refreshToken = async (req, res) => {
     try {
         const token = await refreshAccessToken(getIDInRequest(req));
@@ -160,6 +221,14 @@ exports.refreshToken = async (req, res) => {
     }
 };
 
+/**
+ * Disconnects a user by deleting their refresh token.
+ *
+ * @param {Object} req - The request object containing the user ID in the request.
+ * @param {Object} res - The response object used to send back the disconnection result.
+ * @return {Promise<void>} - Sends a response indicating that the user has been successfully logged out.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (user not logged in, token deletion failure).
+ */
 exports.disconnect = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
@@ -176,6 +245,15 @@ exports.disconnect = async (req, res) => {
     }
 };
 
+/**
+ * Deletes a user from the system by their user ID.
+ * The user data is permanently removed from the database.
+ *
+ * @param {Object} req - The request object containing the user ID.
+ * @param {Object} res - The response object used to send back the deletion result.
+ * @return {Promise<void>} - Sends a response indicating that the user has been successfully deleted.
+ * @throws {HttpError} - Throws specific HttpErrors based on different failure scenarios (user not found).
+ */
 exports.delete = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
@@ -190,11 +268,27 @@ exports.delete = async (req, res) => {
     }
 };
 
+/**
+ * Health check to ensure that the service is accessible and functioning.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object used to send back the health check result.
+ * @return {Promise<void>} - Sends a 204 No Content response to indicate the service is healthy.
+ */
 exports.health = async (req, res) => {
     res.writeHead(204);
     res.end();
 };
 
+/**
+ * Serves the API documentation by reading the data from a specified file.
+ * The documentation is returned as a JSON response.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object used to send the API documentation.
+ * @return {Promise<void>} - Sends a JSON response containing the API documentation.
+ * @throws {HttpError} - Throws an error response if there is an issue reading the documentation file.
+ */
 exports.documentation = async (req, res) => {
     try {
         res.writeHead(200, {
@@ -211,6 +305,15 @@ exports.documentation = async (req, res) => {
     }
 };
 
+/**
+ * Retrieves the ELO ratings for the specified players.
+ * The ELO ratings are fetched based on the provided player data.
+ *
+ * @param {Object} req - The request object containing the necessary data to fetch players' ELO ratings.
+ * @param {Object} res - The response object used to send back the ELO ratings.
+ * @return {Promise<void>} - Sends a JSON response containing the players' ELO ratings.
+ * @throws {HttpError} - Throws an error if the ELO ratings cannot be retrieved or an issue occurs during the process.
+ */
 exports.getElo = async (req, res) => {
     try {
         const playersELO = await getElo(req.body);
@@ -224,6 +327,17 @@ exports.getElo = async (req, res) => {
     }
 };
 
+/**
+ * Retrieves the leaderboard, including players' ELO rankings, and optionally returns the rank of a specific player.
+ *
+ * If an `id` query parameter is provided, the function also retrieves the rank of that specific player
+ * both in their league and globally, based on their ELO score.
+ *
+ * @param {Object} req - The HTTP request object, which can include a query parameter for a specific player's ID.
+ * @param {Object} res - The HTTP response object, used to return the leaderboard and rank details.
+ * @return {void} - Sends the leaderboard data in JSON format, along with the rank of the player if specified.
+ * @throws {HttpError} - Throws an error with status 500 if the operation fails.
+ */
 exports.leaderboard = async (req, res) => {
     try {
         const playersRanking = await leaderboard();
@@ -240,6 +354,78 @@ exports.leaderboard = async (req, res) => {
         } else {
             res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));
         }
+    } catch (error) {
+        throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * Handles the process of adding a new friend for a user.
+ *
+ * This function extracts the user ID from the request, processes the addition of a friend
+ * by calling the `addFriend` function, and returns a success message along with the updated friendship details.
+ * It also emits an event to update the friend's status.
+ *
+ * @param {Object} req - The HTTP request object, containing the user and friend's IDs.
+ * @param {Object} res - The HTTP response object, used to send the response back to the client.
+ * @return {void} - Sends a JSON response with a success message and the updated friendship details.
+ * @throws {HttpError} - Throws an error with status 500 if an issue occurs while adding the friend.
+ */
+exports.addFriend = async (req, res) => {
+    const userId = getIDInRequest(req);
+    const friendId = parse(req.url, true).pathname.split("/")?.[4];
+    try {
+        const result = await addFriend(userId, friendId);
+        res.end(JSON.stringify({message: "New friend successfully added", friends: result.userFriends}));
+        eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
+    } catch (error) {
+        throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * Accepts a friend request, updating the friendship status to "friend" for both users.
+ *
+ * This function extracts the user ID and the friend ID from the request, then processes the acceptance
+ * of the friend request by calling the `acceptFriend` function. Upon success, it returns a success message
+ * and the updated friendship details. It also emits an event to update the friend's status.
+ *
+ * @param {Object} req - The HTTP request object, containing the user and friend's IDs.
+ * @param {Object} res - The HTTP response object, used to send the response back to the client.
+ * @return {void} - Sends a JSON response with a success message and the updated friendship details.
+ * @throws {HttpError} - Throws an error with status 500 if an issue occurs while accepting the friend request.
+ */
+exports.acceptFriend = async (req, res) => {
+    const userId = getIDInRequest(req);
+    const friendId = parse(req.url, true).pathname.split("/")?.[4];
+    try {
+        const result = await acceptFriend(userId, friendId);
+        res.end(JSON.stringify({message: "Friend status successfully updated", friends: result.userFriends}));
+        eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
+    } catch (error) {
+        throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * Removes a friend by deleting the friendship between two users.
+ *
+ * This function extracts the user ID and the friend ID from the request, then processes the removal of the
+ * friend by calling the `removeFriend` function. Upon success, it returns a success message and the friend ID
+ * of the removed user. Additionally, it emits an event to notify that the friendship has been deleted.
+ *
+ * @param {Object} req - The HTTP request object, containing the user and friend's IDs.
+ * @param {Object} res - The HTTP response object, used to send the response back to the client.
+ * @return {void} - Sends a JSON response with a success message and the friend ID of the removed friend.
+ * @throws {HttpError} - Throws an error with status 500 if an issue occurs while removing the friend.
+ */
+exports.removeFriend = async (req, res) => {
+    const userId = getIDInRequest(req);
+    const friendId = parse(req.url, true).pathname.split("/")?.[4];
+    try {
+        await removeFriend(userId, friendId);
+        res.end(JSON.stringify({message: "Friend successfully deleted", friendId: friendId}));
+        eventBus.emit("delete-friends", {userId: userId, friendId: friendId});
     } catch (error) {
         throw new HttpError(500, error.message);
     }
