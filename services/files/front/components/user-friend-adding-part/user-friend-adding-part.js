@@ -11,10 +11,8 @@ export class UserFriendAddingPart extends Component {
         this.addAutoCleanListener(this.shadowRoot.getElementById("addFriend"), "click", () => this.handleAddFriend());
     }
 
-
     async handleAddFriend() {
-        //TODO Modification in the userService
-        const event = new CustomEvent("updateFriendStatus", {
+        const event = new CustomEvent("addFriend", {
             detail: {player: this.player},
             bubbles: true,
             composed: true

@@ -1,3 +1,5 @@
+import {userService} from "./user-service.js";
+
 /**
  * Service for managing Socket.IO connections.
  *
@@ -71,11 +73,18 @@ class SocketService {
     }
 
     /**
-     * Connect the friends socket to the back
+     * Connects the user to the friends-related socket server.
+     *
+     * This function establishes a connection to the friends socket server using the user's ID for authentication.
+     * It sets up the socket connection and listens for the "connect" and "disconnect" events.
+     * Upon connection, the socket instance is saved to the `userService` and setup listeners for handling incoming messages.
+     * The function logs a message upon successful connection and a warning if the connection is lost.
+     *
+     * @param {string} userId - The unique identifier of the user to authenticate the socket connection.
+     *
+     * @returns {void}
      */
     connectFriendsSocket(userId) {
-        console.log(userId);
-
         this._sockets.friends = io(`${this.baseUrl}/friends`,
             {
                 auth: {
@@ -83,7 +92,11 @@ class SocketService {
                 },
                 autoConnect: true
             });
-        this._sockets.friends.on("connect", () => console.log("[FriendSocket] Connected:", this._sockets.friends.id));
+        this._sockets.friends.on("connect", () => {
+            userService.socket = this._sockets.friends;
+            userService._setupFriendSocketListeners();
+            console.log("[FriendSocket] Connected:", this._sockets.friends.id);
+        });
         this._sockets.friends.on("disconnect", () => console.warn("[FriendSocket] Disconnected!"));
     }
 

@@ -1,6 +1,7 @@
 import {Component} from "../component/component.js";
 
-export class NotFriendsList extends Component {
+export class UserFriendRequestedPart extends Component {
+
     constructor() {
         super();
     }

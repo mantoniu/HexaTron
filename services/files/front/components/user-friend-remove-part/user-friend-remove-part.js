@@ -19,12 +19,11 @@ export class UserFriendRemovePart extends Component {
 
     setupEventListeners() {
         this.addAutoCleanListener(this._elements.DELETE_FRIEND, "click", () => this.handleFriendDeletion());
-        this.addAutoCleanListener(this._elements.DELETE_FRIEND, "click", () => this.sendMessage());
+        this.addAutoCleanListener(this._elements.MESSAGE, "click", () => this.sendMessage());
     }
 
     async handleFriendDeletion() {
-        //TODO deletion in the userService
-        const event = new CustomEvent("updateFriendStatus", {
+        const event = new CustomEvent("deleteFriend", {
             detail: {player: this.player},
             bubbles: true,
             composed: true

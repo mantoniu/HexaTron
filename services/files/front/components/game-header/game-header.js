@@ -31,10 +31,10 @@ export class GameHeader extends ListenerComponent {
             } else this.fillCircle(data.round + 1, "#D3D3D3");
         };
 
-        this.addEventListener(gameService, GameStatus.CREATED,
+        this.addAutomaticEventListener(gameService, GameStatus.CREATED,
             () => this.receiveData(gameService.game.players));
 
-        this.addEventListener(gameService, GameStatus.ROUND_END, (data) => this._roundEndHandler(data));
+        this.addAutomaticEventListener(gameService, GameStatus.ROUND_END, (data) => this._roundEndHandler(data));
     }
 
     calculateUtils() {
