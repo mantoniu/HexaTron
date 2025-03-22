@@ -1,7 +1,16 @@
 :host {
-    display: grid;
-    grid-template-columns: 1fr 1fr 4fr;
+    display: flex;
     align-items: center;
     justify-items: center;
     padding: 0 10px 0 10px;
+}
+
+img {
+    flex: 1;
+    max-width: 10%;
+    object-fit: contain;
+}
+
+#name, user-friend-part {
+    flex: 2;
 }

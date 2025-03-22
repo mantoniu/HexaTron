@@ -2,20 +2,33 @@
     display: flex;
     flex-direction: row;
     width: 70%;
+    margin: 15px 0 15px 0;
+}
+
+label {
+    display: none;
 }
 
 #search-bar {
-    flex-grow: 1;
+    width: 100%;
+    font-size: 1.5rem;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 15px 0 15px 0;
+    border: 5px solid #ffffff;
+
 }
 
 #search-result {
     display: none;
     position: absolute;
     max-height: 300px;
+    width: 70%;
     overflow: auto;
     background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 0 0 4px 4px;
+    border-top: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border-radius: 0 0 10px 10px;
     z-index: 2;
 }
 

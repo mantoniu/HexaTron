@@ -25,6 +25,8 @@ export class SearchFriendComponent extends ListenerComponent {
 
     addEventListeners() {
         this.addAutoCleanListener(this.searchInput, "input", this.handleSearchInput.bind(this));
+        this.addAutoCleanListener(this.searchInput, "click", this.handleSearchInput.bind(this));
+
 
         //this.addAutoCleanListener(this.searchButton, "click", () => {
         //    this.performSearch(this.searchInput.value);
@@ -38,6 +40,7 @@ export class SearchFriendComponent extends ListenerComponent {
     }
 
     handleSearchInput(event) {
+        event.stopPropagation();
         const query = event.target.value.trim();
 
         if (this.debounceTimeout) {
@@ -63,7 +66,6 @@ export class SearchFriendComponent extends ListenerComponent {
     }
 
     displayResults() {
-        console.log(this.searchResults);
         this.resultsContainer.innerHTML = "";
 
         if (this.searchResults.length === 0) {
@@ -84,13 +86,19 @@ export class SearchFriendComponent extends ListenerComponent {
     }
 
     showResults() {
+        this.searchInput.style.borderRadius = "10px 10px 0 0";
+        this.searchInput.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+
         const searchBarRect = this.searchInput.getBoundingClientRect();
         this.resultsContainer.style.top = `${searchBarRect.bottom}px`;
+        this.resultsContainer.style.width = `${searchBarRect.left - searchBarRect.right}px`;
 
         this.resultsContainer.style.display = "block";
     }
 
     hideResults() {
+        this.searchInput.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+        this.searchInput.style.borderRadius = "10px 10px 10px 10px";
         this.resultsContainer.style.display = "none";
     }
 
