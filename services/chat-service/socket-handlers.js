@@ -18,7 +18,7 @@ module.exports = (io) => {
             }
         });
 
-        gatewaySocket.on("message", async (content, conversationId, senderId) => {
+        gatewaySocket.on("message", async (content, conversationId, senderId, callback) => {
             try {
                 if (!content || !conversationId || !senderId) {
                     return gatewaySocket.emit("error", {message: "Missing required fields"});
@@ -33,7 +33,12 @@ module.exports = (io) => {
                 };
 
                 const messageId = await saveMessage(message);
-                io.to(conversationId).emit("message", {_id: messageId, ...message});
+                const newMessage = {_id: messageId, ...message};
+
+                if (callback)
+                    callback(newMessage);
+
+                gatewaySocket.to(conversationId).emit("message", conversationId, newMessage);
             } catch (error) {
                 console.error("Error saving message:", error);
                 gatewaySocket.emit("error", {message: "Failed to send message"});
