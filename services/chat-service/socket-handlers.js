@@ -1,11 +1,20 @@
-const {saveMessage, deleteMessageWithOwner} = require("./database");
+const {saveMessage, deleteMessageWithOwner, markMessagesAsRead} = require("./database");
 
 module.exports = (io) => {
     io.on('connection', (gatewaySocket) => {
         console.log("Socket connected", gatewaySocket.id);
 
-        gatewaySocket.on("joinConversation", (conversationId) => {
-            gatewaySocket.join(conversationId);
+        gatewaySocket.on("messagesRead", async (messageIds, conversationId, userId) => {
+            try {
+                await markMessagesAsRead(messageIds, userId);
+            } catch (error) {
+                console.error("Error marking messages as read:", error);
+                gatewaySocket.emit("error", {message: "Failed to mark messages as read"});
+            }
+        });
+
+        gatewaySocket.on("joinConversations", (conversationIds) => {
+            gatewaySocket.join(conversationIds);
         });
 
         gatewaySocket.on("deleteMessage", async (messageId, userId) => {
