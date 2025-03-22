@@ -332,7 +332,7 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friendId]});
+            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friends.id]});
         } else {
             console.log("Error during the addition of a friend.");
         }
@@ -355,7 +355,7 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friendId]});
+            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friends.id]});
         } else {
             console.log("Error during the friend request acceptance.");
         }
@@ -390,7 +390,7 @@ class UserService extends EventEmitter {
      * Searches for friends based on the given query and emits the query to the server.
      * @param {string} query - The search query to find friends.
      */
-    async searchFriends(query) {
+    searchFriends(query) {
         this.socket.emit("searchFriends", query);
     }
 
@@ -458,11 +458,11 @@ class UserService extends EventEmitter {
             this.emit("updateFriends", friends);
         });
 
-        this.socket.on("delete-friends", (friendId) => {
+        this.socket.on("delete-friends", (friendId, deleted) => {
             const friendData = this.user.friends[friendId];
             delete this.user.friends[friendId];
             this._saveToLocalStorage();
-            this.emit("deleteFriend", {id: friendId, friendData: friendData});
+            this.emit("deleteFriend", {id: friendId, friendData: friendData, deleted: deleted});
         });
 
         this.socket.on("searchFriendsResults", (searchResult) => {

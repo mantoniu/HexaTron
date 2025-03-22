@@ -25,10 +25,10 @@ module.exports = (io) => {
         }
     });
 
-    eventBus.on("delete-friends", (message) => {
+    eventBus.on("delete-friends", (message, deleted) => {
         const socket = userToSocket.get(message.friendId);
         if (socket) {
-            socket.emit("delete-friends", message.userId);
+            socket.emit("delete-friends", message.userId, deleted);
         }
     });
 };

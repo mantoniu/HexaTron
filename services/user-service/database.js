@@ -168,7 +168,6 @@ async function getUserWithFriend(filter, projection) {
 
     user.friends = Object.fromEntries(user.friends.map(({friendId, ...other}) => [friendId.toHexString(), other]));
     return user;
-
 }
 
 /**
@@ -183,7 +182,7 @@ async function getUserByFilter(filter, excludedFields = []) {
     const projection = excludedFields.reduce((acc, field) => ({...acc, [field]: 0}), {});
 
     let user;
-    if (projection.hasOwnProperty("friends")) {
+    if (projection.hasOwnProperty(USER_FIELDS.friends)) {
         user = await mongoOperation(() =>
             db.collection(userCollection).findOne(
                 filter,
@@ -197,7 +196,7 @@ async function getUserByFilter(filter, excludedFields = []) {
     if (!user)
         throw new Error(DATABASE_ERRORS.USER_NOT_FOUND);
 
-    if (!projection.hasOwnProperty("league")) {
+    if (!projection.hasOwnProperty(USER_FIELDS.league)) {
         user.league = getLeague(user.elo);
     }
     return user;
@@ -325,17 +324,25 @@ async function getUserID(userName) {
 
 /**
  * Deletes a user from the user collection by their ID.
+ * Deletes this user's presence in the friends field of other users
  *
  * @param {string} userId - The ID of the user to be deleted.
  * @return {Promise<boolean>} - Returns `true` if the user was successfully deleted.
  * @throws {Error} - Throws an error if the user is not found or deletion fails.
  */
 async function deleteUserByID(userId) {
+
     const result = await mongoOperation(() =>
         db.collection(userCollection).deleteOne({_id: new ObjectId(userId)})
     );
+
     if (result.deletedCount === 0)
         throw new Error(DATABASE_ERRORS.USER_NOT_FOUND);
+
+    await mongoOperation(() => db.collection(userCollection).updateMany(
+        {"friends.friendId": new ObjectId(userId)},
+        {$pull: {friends: {friendId: new ObjectId(userId)}}}
+    ));
     return true;
 }
 
@@ -636,6 +643,24 @@ async function searchFroFriends(query) {
     return result;
 }
 
+/**
+ * Retrieves the friendship status between a user and a specified friend.
+ *
+ * @param {ObjectId} userId - The ID of the user whose status we want to check.
+ * @param {ObjectId} friendId - The ID of the friend's status to retrieve.
+ * @returns {string|null} - The friendship status if found, otherwise null.
+ */
+async function getFriendStatus(userId, friendId) {
+    const user = await mongoOperation(() => db.collection("users").aggregate([
+        {$match: {_id: userId}},
+        {$unwind: "$friends"},
+        {$match: {"friends.friendId": friendId}},
+        {$project: {_id: 0, status: "$friends.status"}}
+    ]).toArray());
+
+    return user.length > 0 ? user[0].status : null;
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -652,5 +677,7 @@ module.exports = {
     addFriend,
     acceptFriend,
     removeFriend,
-    searchFroFriends
+    searchFroFriends,
+    getUserByID,
+    getFriendStatus
 };

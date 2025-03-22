@@ -26,9 +26,9 @@ export class SearchFriendComponent extends ListenerComponent {
     addEventListeners() {
         this.addAutoCleanListener(this.searchInput, "input", this.handleSearchInput.bind(this));
 
-        this.addAutoCleanListener(this.searchButton, "click", () => {
-            this.performSearch(this.searchInput.value);
-        });
+        //this.addAutoCleanListener(this.searchButton, "click", () => {
+        //    this.performSearch(this.searchInput.value);
+        //});
 
         document.addEventListener("click", (event) => {
             if (!this.contains(event.target) && !this.resultsContainer.contains(event.target)) {

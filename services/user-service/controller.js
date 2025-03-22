@@ -1,13 +1,14 @@
 const {
     removeFriend, addFriend, acceptFriend, addUser, deleteToken, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
-    refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank
+    refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank, getUserByID, getFriendStatus
 } = require("./database");
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
-const {DATABASE_ERRORS} = require("./utils");
+const {DATABASE_ERRORS, USER_FIELDS} = require("./utils");
 const {readData} = require("../utils/api-utils");
 const {parse} = require("url");
 const eventBus = require("./event-bus");
+const {ObjectId} = require("mongodb");
 const saltRounds = 10;
 
 /**
@@ -23,6 +24,25 @@ async function hashPassword(password) {
         return await bcrypt.hash(password, salt);
     } catch (error) {
         throw new HttpError(500, error.message);
+    }
+}
+
+/**
+ * Notifies all friends of a user when user's information are updated.
+ *
+ * @param {string} id - The ID of the user whose data has been modified.
+ * @param modification - If the event is the modification of a user, apply cascading changes.
+ */
+async function notifyFriendOfEvent(id, modification) {
+    const {friends, ...user} = await getUserByID(id, [USER_FIELDS.parameters, USER_FIELDS.answers, USER_FIELDS.password]);
+    for (const friend in friends) {
+        if (modification) {
+            const status = await getFriendStatus(new ObjectId(id), new ObjectId(friend));
+            const friendData = {id: user._id, friendData: {...user, status: status}};
+            eventBus.emit("update-status-friends", {friendId: friend, friendFriends: friendData});
+        } else {
+            eventBus.emit("delete-friends", {userId: id, friendId: friend}, true);
+        }
     }
 }
 
@@ -113,6 +133,7 @@ exports.update = async (req, res) => {
         const userData = await updateUser(req.body, userID);
         res.writeHead(200, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User successfully updated.", user: userData}));
+        await notifyFriendOfEvent(userID, true);
     } catch (error) {
         if (error instanceof HttpError)
             throw error;
@@ -248,6 +269,7 @@ exports.disconnect = async (req, res) => {
 /**
  * Deletes a user from the system by their user ID.
  * The user data is permanently removed from the database.
+ * Notify all users who have the deleted user in their friends field
  *
  * @param {Object} req - The request object containing the user ID.
  * @param {Object} res - The response object used to send back the deletion result.
@@ -257,6 +279,7 @@ exports.disconnect = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
+        await notifyFriendOfEvent(userID, false);
         await deleteUserByID(userID);
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
@@ -425,7 +448,7 @@ exports.removeFriend = async (req, res) => {
     try {
         await removeFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend successfully deleted", friendId: friendId}));
-        eventBus.emit("delete-friends", {userId: userId, friendId: friendId});
+        eventBus.emit("delete-friends", {userId: userId, friendId: friendId}, false);
     } catch (error) {
         throw new HttpError(500, error.message);
     }

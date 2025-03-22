@@ -32,6 +32,7 @@ export class FriendsPortal extends ListenerComponent {
             if (this.shadowRoot.getElementById("friends-part"))
                 this.shadowRoot.getElementById("friends-part").style.display = "none";
         } else {
+            this.shadowRoot.getElementById("friends-part").style.display = "flex";
             this.shadowRoot.getElementById("friend-list").setFriendsList(userService.user.friends);
             this.shadowRoot.getElementById("not-friend-list").setFriendsList(userService.user.friends);
         }
@@ -54,9 +55,16 @@ export class FriendsPortal extends ListenerComponent {
 
     modificationStatus(data) {
         if (this.profilElement?.style.display === "block") {
-            let user = data.friendData;
-            user._id = data.id;
-            this.profilElement.setAttribute("user", JSON.stringify(user));
+            if (data.deleted) {
+                console.log(this.profilElement);
+                this.shadowRoot.removeChild(this.profilElement);
+                this.profilElement = null;
+                this.initialize();
+            } else {
+                let user = data.friendData;
+                user._id = data.id;
+                this.profilElement.setAttribute("user", JSON.stringify(user));
+            }
         }
     }
 
