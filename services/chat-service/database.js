@@ -10,6 +10,7 @@ const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
 
+const GLOBAL_CONVERSATION_ID = process.env.GLOBAL_CONVERSATION_ID;
 /**
  * Handles MongoDB-specific errors and throws a more descriptive error if applicable.
  *
@@ -239,7 +240,77 @@ async function createConversation(participantIds) {
     return {_id: result.insertedId, ...conversation};
 }
 
+/**
+ * Updates a message in the database by applying the specified changes.
+ *
+ * @async
+ * @param {string} messageId - The ID of the message to update.
+ * @param {Object} updateFields - The fields to update in the message.
+ * @throws {Error} `MESSAGE_NOT_FOUND` - If no message with the given ID is found.
+ * @throws {Error} `UPDATE_FAILURE` - If the update operation did not modify any document.
+ * @returns {Promise<Object>} - Returns `{ success: true }` if the update is successful.
+ */
+async function updateMessage(messageId, updateFields) {
+    const result = await mongoOperation(() =>
+        db.collection(messageCollection).updateOne(
+            {_id: new ObjectId(messageId)},
+            {$set: updateFields}
+        )
+    );
+
+    if (!result.matchedCount)
+        throw new Error(DATABASE_ERRORS.MESSAGE_NOT_FOUND);
+}
+
+/**
+ * Marks specific messages as read in the database.
+ *
+ * @async
+ * @param {string[]} messageIds - Array of message IDs to be marked as read.
+ * @param {string} userId - The ID of the user making the request.
+ *                          Ensures the user cannot mark their own messages as read.
+ * @returns {Promise<void>} Resolves when the update is complete.
+ * @throws {Error} Throws an error if the database operation fails.
+ */
+async function markMessagesAsRead(messageIds, userId) {
+    await db.collection(messageCollection).updateMany(
+        {
+            _id: {$in: messageIds.map(id => new ObjectId(id))},
+            senderId: {$ne: new ObjectId(userId)},
+            isRead: false
+        },
+        {$set: {isRead: true}}
+    );
+}
+
+/**
+ * Creates a global conversation if it does not already exist.
+ *
+ * @async
+ * @returns {Promise<void>} - Resolves when the operation is complete.
+ *                           Logs success or failure messages.
+ */
+async function createGlobalConversation() {
+    const existingGlobal = await db.collection(conversationCollection)
+        .findOne({_id: new ObjectId(GLOBAL_CONVERSATION_ID)});
+
+    if (!existingGlobal) {
+        const result = await db.collection(conversationCollection).insertOne({
+            _id: new ObjectId(GLOBAL_CONVERSATION_ID),
+            createdAt: new Date(),
+            isGlobal: true
+        });
+
+        if (result.acknowledged && result.insertedId)
+            console.log(`Global conversation created successfully`);
+        else
+            console.error("Failed to create global conversation.");
+    } else
+        console.log("Global conversation already exists.");
+}
+
 module.exports = {
+    createGlobalConversation,
     deleteMessageWithOwner,
     getConversationWithMessagesBeforeDate,
     getUserConversationsWithLastMessage,
