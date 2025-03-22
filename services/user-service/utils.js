@@ -3,7 +3,10 @@ const USER_FIELDS = Object.freeze({
     name: 'name',
     password: 'password',
     answers: 'answers',
-    parameters: 'parameters'
+    parameters: "parameters",
+    elo: "elo",
+    league: "league",
+    friends: "friends"
 });
 
 const DATABASE_ERRORS = Object.freeze({
