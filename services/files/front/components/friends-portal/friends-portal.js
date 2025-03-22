@@ -11,7 +11,7 @@ export class FriendsPortal extends ListenerComponent {
         this.profilElement = null;
 
         this.addAutomaticEventListener(userService, "updateFriends", (data) => this.friendUpdateEvent(data));
-        this.addAutomaticEventListener(userService, "deleteFriend", (data) => this.friendUpdateEvent(data));
+        this.addAutomaticEventListener(userService, "deleteFriend", (data) => this.deleteFriend(data));
         this.addAutoCleanListener(this, "watchProfile", (event) => this.watchProfileEvent(event));
     }
 
@@ -50,13 +50,23 @@ export class FriendsPortal extends ListenerComponent {
         this.initialize();
     }
 
-    friendUpdateEvent(data) {
+    modificationStatus(data) {
         if (this.profilElement?.style.display === "block") {
             let user = data.friendData;
             user._id = data.id;
             this.profilElement.setAttribute("user", JSON.stringify(user));
         }
+    }
+
+    friendUpdateEvent(data) {
+        this.modificationStatus(data);
         this.shadowRoot.getElementById("friend-list").setFriendsList(userService.user.friends);
         this.shadowRoot.getElementById("not-friend-list").setFriendsList(userService.user.friends);
+    }
+
+    deleteFriend(data) {
+        this.modificationStatus(data);
+        this.shadowRoot.getElementById("friend-list").removeFromList(data.id);
+        this.shadowRoot.getElementById("not-friend-list").removeFromList(data.id);
     }
 }

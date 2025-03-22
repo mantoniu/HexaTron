@@ -46,6 +46,8 @@ export class UserFriendPart extends Component {
         await super.connectedCallback();
         this._elements = this.initializeElements(UserFriendPart.SELECTORS);
         this.update();
+        this._elements.REQUESTED.setAttribute("short-version", this.getAttribute("short-version"));
+        this._elements.FRIEND.setAttribute("deletion-desactivate", this.getAttribute("deletion-desactivate"));
     }
 
     update() {

@@ -8,10 +8,11 @@ export class UserFriendAddingPart extends Component {
 
     async connectedCallback() {
         await super.connectedCallback();
-        this.addAutoCleanListener(this.shadowRoot.getElementById("addFriend"), "click", () => this.handleAddFriend());
+        this.addAutoCleanListener(this.shadowRoot.getElementById("addFriend"), "click", (click) => this.handleAddFriend(click));
     }
 
-    async handleAddFriend() {
+    async handleAddFriend(click) {
+        click.stopPropagation();
         const event = new CustomEvent("addFriend", {
             detail: {player: this.player},
             bubbles: true,

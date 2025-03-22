@@ -319,8 +319,8 @@ class UserService extends EventEmitter {
      * Adds a new friend to the user's friend list.
      *
      * This function sends a POST request to the backend to add a friend by their ID. If the request is successful,
-     * it updates the user's friend list in the local storage and returns a success message.
-     * If the request fails, it returns an error message based on the response status.
+     * it updates the user's friend list in the local storage.
+     * If the request fails, it logs an error message based on the response status.
      *
      * @param {string} friendId - The unique identifier of the friend to be added.
      * @returns {Object} - Returns an object indicating the success or failure of the operation.
@@ -332,18 +332,18 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            return {success: true, message: "test."};
+            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friendId]});
+        } else {
+            console.log("Error during the addition of a friend.");
         }
-
-        return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.RESET_PASSWORD)};
     }
 
     /**
      * Accepts a friend request and updates the user's friend list.
      *
      * This function sends a PATCH request to the backend to accept a friend request by the provided friend's ID.
-     * If the request is successful, it updates the user's friend list in the local storage with the new friend's data
-     * and returns a success message. If the request fails, it returns an error message based on the response status.
+     * If the request is successful, it updates the user's friend list in the local storage with the new friend's data.
+     * If the request fails, it logs an error message based on the response status.
      *
      * @param {string} friendId - The unique identifier of the friend whose request is being accepted.
      * @returns {Object} - Returns an object indicating the success or failure of the operation.
@@ -355,19 +355,18 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            return {success: true, message: "test."};
+            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friendId]});
+        } else {
+            console.log("Error during the friend request acceptance.");
         }
-
-        return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.RESET_PASSWORD)};
     }
 
     /**
      * Removes a friend from the user's friend list.
      *
      * This function sends a DELETE request to the backend to remove a friend by their unique friend ID.
-     * If the request is successful, it updates the user's friend list by removing the specified friend's data
-     * from local storage and returns a success message. If the request fails, it returns an error message based
-     * on the response status.
+     * If the request is successful, it updates the user's friend list by removing the specified friend's data.
+     * If the request fails, it logs an error message based on the response status.
      *
      * @param {string} friendId - The unique identifier of the friend to be removed from the user's friend list.
      * @returns {Object} - Returns an object indicating the success or failure of the operation.
@@ -376,13 +375,15 @@ class UserService extends EventEmitter {
      */
     async removeFriend(friendId) {
         const response = await apiClient.request("DELETE", `api/user/friends/${friendId}`);
+        console.log(response);
         if (response.success) {
+            const friendData = this.user.friends[response.data.friendId];
             delete this.user.friends[response.data.friendId];
             this._saveToLocalStorage();
-            return {success: true, message: "test."};
+            this.emit("deleteFriend", {id: friendId, friendData: friendData});
+        } else {
+            console.log("Error during the deletion of the friend");
         }
-
-        return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.RESET_PASSWORD)};
     }
 
     /**
@@ -444,7 +445,6 @@ class UserService extends EventEmitter {
      */
     _setupFriendSocketListeners() {
         this.socket.on("update-status-friends", (friends) => {
-            console.log(friends, "update");
             this.user.friends[friends.id] = friends.friendData;
             this._saveToLocalStorage();
             this.emit("updateFriends", friends);

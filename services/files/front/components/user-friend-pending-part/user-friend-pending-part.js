@@ -18,11 +18,12 @@ export class UserFriendPendingPart extends Component {
     }
 
     setupEventListeners() {
-        this.addAutoCleanListener(this._elements.ACCEPT, "click", () => this.handleAcceptFriend());
-        this.addAutoCleanListener(this._elements.REFUSE, "click", () => this.handleRefuseFriend());
+        this.addAutoCleanListener(this._elements.ACCEPT, "click", (click) => this.handleAcceptFriend(click));
+        this.addAutoCleanListener(this._elements.REFUSE, "click", (click) => this.handleRefuseFriend(click));
     }
 
-    async handleAcceptFriend() {
+    async handleAcceptFriend(click) {
+        click.stopPropagation();
         const event = new CustomEvent("acceptFriend", {
             detail: {player: this.player},
             bubbles: true,
@@ -31,7 +32,8 @@ export class UserFriendPendingPart extends Component {
         this.dispatchEvent(event);
     }
 
-    async handleRefuseFriend() {
+    async handleRefuseFriend(click) {
+        click.stopPropagation();
         const event = new CustomEvent("refuseFriend", {
             detail: {player: this.player},
             bubbles: true,

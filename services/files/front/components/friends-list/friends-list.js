@@ -9,7 +9,7 @@ export class FriendsList extends Component {
 
         this.friendList = null;
         this.statusAccepted = [];
-
+        this.currentElements = {};
     }
 
     setFriendsList(friendList) {
@@ -29,6 +29,8 @@ export class FriendsList extends Component {
     async connectedCallback() {
         await super.connectedCallback();
         this.setupList();
+
+        this.shadowRoot.getElementById("list-title").textContent = this.title;
     }
 
     setupList() {
@@ -46,9 +48,18 @@ export class FriendsList extends Component {
                 element.id = friendId;
                 element.setPlayer(value);
                 this.shadowRoot.appendChild(element);
+                this.currentElements[friendId] = element;
             } else {
                 this.shadowRoot.getElementById(friendId).setPlayer(value);
             }
+        } else if (this.shadowRoot.getElementById(friendId)) {
+            this.shadowRoot.removeChild(this.shadowRoot.getElementById(friendId));
+        }
+    }
+
+    removeFromList(id) {
+        if (this.shadowRoot.getElementById(id)) {
+            this.shadowRoot.removeChild(this.shadowRoot.getElementById(id));
         }
     }
 }

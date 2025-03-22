@@ -38,3 +38,10 @@ h1 {
 #search-bar {
     flex-grow: 1;
 }
+
+#friends-container {
+    flex: 1 0 0;
+    display: flex;
+    width: 70%;
+    flex-direction: column;
+}
