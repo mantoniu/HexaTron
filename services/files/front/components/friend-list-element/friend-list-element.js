@@ -39,8 +39,12 @@ export class FriendListElement extends Component {
             if (this.shadowRoot.getElementById("name"))
                 this.shadowRoot.getElementById("name").textContent = this.player.name;
             if (this.shadowRoot.querySelector("user-friend-part")) {
-                this.shadowRoot.querySelector("user-friend-part").setAttribute("deletion-desactivate", true);
-                this.shadowRoot.querySelector("user-friend-part").setAttribute("short-version", true);
+                if (this.getAttribute("activate-friend-part")) {
+                    this.shadowRoot.querySelector("user-friend-part").setAttribute("deletion-desactivate", true);
+                    this.shadowRoot.querySelector("user-friend-part").setAttribute("short-version", true);
+                } else {
+                    this.shadowRoot.querySelector("user-friend-part").style.display = "none";
+                }
             }
         }
     }

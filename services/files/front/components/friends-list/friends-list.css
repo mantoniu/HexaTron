@@ -4,10 +4,11 @@
     border-radius: 8px;
     overflow: auto;
     max-height: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 #list-title {
-    background-color: #4a76a8;
+    background-color: #3498db;
     color: white;
     padding: 10px 15px;
     font-weight: bold;
@@ -21,4 +22,8 @@
 friend-list-element:hover {
     background-color: rgba(162, 162, 162, 0.22);
     cursor: pointer;
+}
+
+friend-list-element {
+    border-bottom: 1px solid #eee;
 }

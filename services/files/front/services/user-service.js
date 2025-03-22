@@ -387,6 +387,14 @@ class UserService extends EventEmitter {
     }
 
     /**
+     * Searches for friends based on the given query and emits the query to the server.
+     * @param {string} query - The search query to find friends.
+     */
+    async searchFriends(query) {
+        this.socket.emit("searchFriends", query);
+    }
+
+    /**
      * Sets user data after a successful authentication.
      * This includes the user object, access token, and refresh token.
      * The data is also saved to localStorage.
@@ -455,6 +463,10 @@ class UserService extends EventEmitter {
             delete this.user.friends[friendId];
             this._saveToLocalStorage();
             this.emit("deleteFriend", {id: friendId, friendData: friendData});
+        });
+
+        this.socket.on("searchFriendsResults", (searchResult) => {
+            this.emit("searchFriendsResults", searchResult);
         });
     }
 }

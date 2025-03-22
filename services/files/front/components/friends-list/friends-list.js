@@ -47,6 +47,7 @@ export class FriendsList extends Component {
                 const element = document.createElement("friend-list-element");
                 element.id = friendId;
                 element.setPlayer(value);
+                element.setAttribute("activate-friend-part", true);
                 this.shadowRoot.appendChild(element);
                 this.currentElements[friendId] = element;
             } else {

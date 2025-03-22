@@ -1,0 +1,26 @@
+:host {
+    display: flex;
+    flex-direction: row;
+    width: 70%;
+}
+
+#search-bar {
+    flex-grow: 1;
+}
+
+#search-result {
+    display: none;
+    position: absolute;
+    max-height: 300px;
+    overflow: auto;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 0 0 4px 4px;
+    z-index: 2;
+}
+
+friend-list-element {
+    border-bottom: 1px solid #eee;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}

@@ -29,16 +29,6 @@ h1 {
     color: #333333;
 }
 
-#search-container {
-    display: flex;
-    flex-direction: row;
-    width: 70%;
-}
-
-#search-bar {
-    flex-grow: 1;
-}
-
 #friends-container {
     flex: 1 0 0;
     display: flex;

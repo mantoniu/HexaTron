@@ -606,6 +606,36 @@ async function removeFriend(userId, friendId) {
     ));
 }
 
+/**
+ * Searches for players whose names start with the given query and returns the results after processing
+ * @param {string} query - The query to search users by name.
+ * @returns {Promise<Object[]>} - Returns a promise with a list of filtered and modified users.
+ */
+async function searchFroFriends(query) {
+    const result = await db.collection(userCollection).aggregate([
+        {
+            $match: {name: {$regex: "^" + query + ".*", $options: "i"}}
+        },
+        {
+            $addFields: {
+                league: {
+                    $switch: switchOptions("$elo")
+                }
+            }
+        },
+        {
+            $project: {
+                password: 0,
+                answers: 0,
+                friends: 0,
+                parameters: 0
+            }
+        }]).toArray();
+
+    result.forEach(user => user._id = user._id.toHexString());
+    return result;
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -621,5 +651,6 @@ module.exports = {
     getRank,
     addFriend,
     acceptFriend,
-    removeFriend
+    removeFriend,
+    searchFroFriends
 };

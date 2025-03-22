@@ -1,12 +1,14 @@
 import {FriendsList} from "../friends-list/friends-list.js";
 import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
+import {SearchFriendComponent} from "../search-friend-component/search-friend-component.js";
 
 export class FriendsPortal extends ListenerComponent {
     constructor() {
         super();
 
         FriendsList.register();
+        SearchFriendComponent.register();
 
         this.profilElement = null;
 
