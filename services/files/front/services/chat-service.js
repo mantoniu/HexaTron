@@ -1,32 +1,22 @@
 import {socketService} from "./socket-service.js";
-import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
-import {userService} from "./user-service.js";
+import {chatStore} from "../js/ChatStore.js";
+import {apiClient} from "../js/ApiClient.js";
+import {USER_EVENTS, userService} from "./user-service.js";
+import {EventEmitter} from "../js/EventEmitter.js";
 
 /**
- * Defines available chat actions.
+ *  Defines the chat events
  *
  * @constant {Object}
  */
-export const CHAT_ACTIONS = Object.freeze({
-    CREATE_CONVERSATION: "createConversation",
-    GET_CONVERSATION: "getConversation"
+export const CHAT_EVENTS = Object.freeze({
+    CONVERSATIONS_UPDATED: "CONVERSATIONS_UPDATED",
+    CONVERSATION_UPDATED: "CONVERSATION_UPDATED",
+    MESSAGE_ADDED: "MESSAGE_ADDED",
+    MESSAGE_REPLACED: "MESSAGE_REPLACED",
+    MESSAGE_DELETED: "MESSAGE_DELETED",
+    MESSAGE_SENT: "MESSAGE_SENT"
 });
-
-/**
- * Error messages mapped to chat actions and HTTP status codes.
- *
- * @constant {Object}
- */
-const ERROR_MESSAGES = {
-    [CHAT_ACTIONS.CREATE_CONVERSATION]: {
-        404: "One or more participants do not exits.",
-        400: "Unable to create conversation: invalid or missing data."
-    },
-    [CHAT_ACTIONS.GET_CONVERSATION]: {
-        404: "The requested conversation does not exist or may have been deleted.",
-        401: "You are not authorized to access this conversation."
-    }
-};
 
 /**
  * Service for chat management.
@@ -35,10 +25,12 @@ const ERROR_MESSAGES = {
  * @class GameService
  * @singleton
  */
-class ChatService {
+class ChatService extends EventEmitter {
     static _instance = null;
 
     constructor() {
+        super();
+
         if (ChatService._instance)
             return ChatService._instance;
 
@@ -47,6 +39,29 @@ class ChatService {
         this._setupListeners();
 
         ChatService._instance = this;
+
+        userService.on(USER_EVENTS.CONNECTION, () => this._fetchConversations());
+
+        this._chatStore = chatStore;
+    }
+
+    /**
+     * Initializes the chat service.
+     * If the user is already connected, it fetches their conversations.
+     * Also sets up listeners for login and logout events.
+     *
+     * @async
+     * @returns {Promise<void>} Resolves when the initialization is complete.
+     */
+    async init() {
+        if (userService.isConnected())
+            await this._fetchConversations();
+
+        userService.on(USER_EVENTS.CONNECTION, async () =>
+            await this._fetchConversations());
+
+        userService.on(USER_EVENTS.LOGOUT, () =>
+            this._chatStore.clear());
     }
 
     /**
@@ -67,39 +82,67 @@ class ChatService {
      * @private
      */
     _setupListeners() {
-        this._socket.on("message", (data) => console.log(data));
-        this._socket.on("deleteMessage", (conversationId, messageId) => console.log(conversationId, messageId));
+        this._socket.on("message", (conversationId, message) => {
+            this._chatStore.addMessage(conversationId, message);
+            this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
+        });
+
+        this._socket.on("deleteMessage", (conversationId, messageId) => {
+            this._chatStore.deleteMessage(conversationId, messageId);
+            this.emit(CHAT_EVENTS.MESSAGE_DELETED, conversationId, messageId);
+        });
+
         this._socket.on("error", (error) => console.error(error));
     }
 
     /**
-     * Retrieves an error message based on HTTP status and action type.
+     * Retrieves the global conversation.
      *
-     * @private
-     * @param {number} status - The HTTP status code.
-     * @param {string|null} action - The user action being performed.
-     * @returns {string} The corresponding error message.
+     * @returns {Object|null} The global conversation object or null if not found.
      */
-    _getErrorMessage(status, action = null) {
-        return ERROR_MESSAGES[action]?.[status] || DEFAULT_ERROR_MESSAGES[status] || "An unknown error has occurred.";
+    getGlobalConversation() {
+        return this.getConversation(this._chatStore.getGlobalConversationId());
     }
 
     /**
-     * Retrieves a conversation by its ID.
+     * Retrieves a specific conversation by its ID.
+     * If not already fetched, it fetches the conversation from the API.
      *
      * @async
      * @param {string} conversationId - The ID of the conversation to retrieve.
-     * @returns {Promise<{success: boolean, conversation?: Object, error?: string}>}
-     *          - success: Indicates if the request was successful.
-     *          - conversation (optional): The retrieved conversation if successful.
-     *          - error (optional): The error message if the request fails.
+     * @returns {Promise<Object|null>} The conversation object or null if not found.
      */
     async getConversation(conversationId) {
-        const response = await apiClient.request("GET", `${this._apiUrl}/conversations/${conversationId}`);
-        if (response.success) {
-            return {success: true, conversation: response.data.conversation};
+        if (this._chatStore.isFetched(conversationId)) {
+            const conversation = this._chatStore.getConversation(conversationId);
+
+            const toMark = Array.from(conversation?.messages.values())
+                .filter(message => !message.isRead)
+                .map(message => message._id);
+
+            if (toMark.length)
+                this._markMessagesAsRead(conversationId, toMark);
+
+            return this._chatStore.getConversation(conversationId);
         }
-        return {success: false, error: this._getErrorMessage(response.status, CHAT_ACTIONS.GET_CONVERSATION)};
+
+        await this._fetchConversation(conversationId);
+        return this._chatStore.getConversation(conversationId);
+    }
+
+    /**
+     * Retrieves all conversations for the current user.
+     * If conversations are not already fetched, it fetches them from the API.
+     *
+     * @async
+     * @returns {Promise<Object[]>} An array of conversation objects.
+     */
+    async getConversations() {
+        if (this._chatStore.areConversationsFetched())
+            return this._chatStore.getConversations();
+
+        await this._fetchConversations();
+        return this._chatStore.getConversations();
     }
 
     /**
@@ -109,45 +152,76 @@ class ChatService {
      * @param {Array<{_id: string}>} conversations - The list of conversations to join.
      */
     _joinConversations(conversations) {
-        conversations.forEach(conversation =>
-            this._socket.emit("joinConversation", conversation._id)
-        );
+        const conversationIds = conversations.map(conversation => conversation._id);
+        this._socket.emit("joinConversations", conversationIds);
     }
 
     /**
-     * Retrieves the list of conversations for the current user.
+     * Fetches a single conversation by its ID from the server.
+     * If successful, the conversation is stored locally.
      *
      * @async
-     * @returns {Promise<{success: boolean, conversations?: Object[], error?: string}>}
-     *          - success: Indicates if the request was successful.
-     *          - conversations (optional): An array of conversations if successful.
-     *          - error (optional): The error message if the request fails.
+     * @private
+     * @param {string} conversationId - The ID of the conversation to fetch.
+     * @returns {Promise<void>}
      */
-    async getConversations() {
+    async _fetchConversation(conversationId) {
+        const response = await apiClient.request("GET", `${this._apiUrl}/conversations/${conversationId}`);
+
+        if (!response.success) {
+            console.error("Error while fetching conversation", conversationId);
+            return;
+        }
+
+        this._chatStore.setConversation(response.data.conversation);
+        this._chatStore.markAsFetched(conversationId);
+    }
+
+    /**
+     * Fetches all conversations for the current user from the server.
+     * If successful, stores them locally and joins their WebSocket rooms.
+     *
+     * @async
+     * @private
+     * @returns {Promise<void>}
+     */
+    async _fetchConversations() {
         const response = await apiClient.request("GET", `${this._apiUrl}/conversations`);
-        if (response.success) {
-            this._joinConversations(response.data.conversations);
-            return {success: true, conversations: response.data.conversations};
+
+        if (!response.success) {
+            console.error("Error while fetching conversations");
+            return;
         }
-        return {success: false, error: this._getErrorMessage(response.status)};
+
+        this._joinConversations(response.data.conversations);
+
+        response.data.conversations.forEach(conv => this._chatStore.setConversation(conv));
+        this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
+        this._chatStore.markConversationsAsFetched();
     }
 
     /**
-     * Creates a new conversation with specified participants.
+     * Marks messages as read in a conversation and notifies the server.
      *
-     * @async
-     * @param {string[]} participants - The IDs of the participants to include in the conversation.
-     * @returns {Promise<{success: boolean, conversation?: Object, error?: string}>}
-     *          - success: Indicates if the request was successful.
-     *          - conversation (optional): The created conversation if successful.
-     *          - error (optional): The error message if the request fails.
+     * @private
+     * @param {string} conversationId - The ID of the conversation.
+     * @param {string[]} messageIds - The IDs of the messages to mark as read.
      */
-    async createConversation(participants) {
-        const response = await apiClient.request("POST", `${this._apiUrl}/conversations`, participants);
-        if (response.success) {
-            return {success: true, conversation: response.data.conversation};
-        }
-        return {success: false, error: this._getErrorMessage(response.status, CHAT_ACTIONS.CREATE_CONVERSATION)};
+    _markMessagesAsRead(conversationId, messageIds) {
+        this._socket.emit("messagesRead", messageIds, conversationId, userService.user._id);
+
+        messageIds.forEach(id =>
+            this._chatStore.updateMessage(conversationId, id, {isRead: true}));
+    }
+
+    /**
+     * Marks a single message as read.
+     *
+     * @param {string} conversationId - The ID of the conversation.
+     * @param {string} messageId - The ID of the message to mark as read.
+     */
+    markAsRead(conversationId, messageId) {
+        this._markMessagesAsRead(conversationId, [messageId]);
     }
 
     /**
@@ -157,17 +231,33 @@ class ChatService {
      * @param {string} content - The message content.
      */
     sendMessage(conversationId, content) {
-        this._socket.emit("message", content, conversationId, userService.user._id);
+        const tempId = `temp-${Date.now()}`;
+        const message = {
+            _id: tempId,
+            senderId: userService.user._id,
+            content,
+            timestamp: new Date().toISOString(),
+            isPending: true
+        };
+
+        this._chatStore.addMessage(conversationId, message);
+        this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
+        this._socket.emit("message", content, conversationId, userService.user._id, (serverMessage) => {
+            this._chatStore.replaceMessage(conversationId, tempId, serverMessage);
+            this.emit(CHAT_EVENTS.MESSAGE_SENT, tempId, serverMessage, conversationId);
+        });
     }
 
     /**
      * Deletes a message via WebSocket
      *
+     * @param {string} conversationId - The ID of the conversation
      * @param {string} messageId - The ID of the message to be deleted
      */
-    deleteMessage(messageId) {
+    deleteMessage(conversationId, messageId) {
         this._socket.emit("deleteMessage", messageId, userService.user._id);
     }
 }
 
 export const chatService = ChatService.getInstance();
+await chatService.init();
