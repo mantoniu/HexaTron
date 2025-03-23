@@ -2,10 +2,6 @@ import {Component} from "../component/component.js";
 
 export class UserFriendAddingPart extends Component {
 
-    constructor() {
-        super();
-    }
-
     async connectedCallback() {
         await super.connectedCallback();
         this.addAutoCleanListener(this.shadowRoot.getElementById("addFriend"), "click", (click) => this.handleAddFriend(click));

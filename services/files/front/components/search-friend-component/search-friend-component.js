@@ -63,7 +63,7 @@ export class SearchFriendComponent extends ListenerComponent {
         this.resultsContainer.innerHTML = "";
 
         if (this.searchResults.length === 0) {
-            this.resultsContainer.innerHTML = "<div class=\"no-results\">Aucun utilisateur trouvé</div>";
+            this.resultsContainer.innerHTML = "<div class=\"no-results\">No user found</div>";
             this.showResults();
             return;
         }

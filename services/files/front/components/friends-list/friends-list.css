@@ -27,3 +27,10 @@ friend-list-element:hover {
 friend-list-element {
     border-bottom: 1px solid #eee;
 }
+
+.no-messages {
+    text-align: center;
+    color: gray;
+    font-style: italic;
+    margin: 20px 0;
+}

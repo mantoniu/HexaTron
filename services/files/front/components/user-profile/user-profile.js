@@ -65,11 +65,12 @@ export class UserProfile extends BaseAuth {
         if (!this.isConnected && !this.user)
             return;
 
-        if (this.shadowRoot.querySelector(this.getAttribute("part"))) {
+        const part = this.shadowRoot.querySelector(this.getAttribute("part"));
+        if (part && userService.isConnected()) {
             if (this.getAttribute("part") === "user-friend-part") {
-                this.shadowRoot.querySelector(this.getAttribute("part")).setAttribute("friend-id", this.user._id);
+                part.setAttribute("friend-id", this.user._id);
             }
-            this.shadowRoot.querySelector(this.getAttribute("part")).style.display = "flex";
+            part.style.display = "flex";
         }
 
         if (this._elements.PROFILE_PICTURE && this.user.profilePicturePath) {

@@ -9,7 +9,6 @@ export class FriendsList extends Component {
 
         this.friendList = null;
         this.statusAccepted = [];
-        this.currentElements = {};
     }
 
     setFriendsList(friendList) {
@@ -34,7 +33,16 @@ export class FriendsList extends Component {
     }
 
     setupList() {
-        if (this.isConnected && this.friendList) {
+        if (!this.isConnected || !this.friendList) {
+            return;
+        }
+        if (Object.keys(this.friendList).length === 0) {
+            const noMessagesText = document.createElement("p");
+            noMessagesText.classList.add("no-messages");
+            noMessagesText.textContent = this.getAttribute("message");
+
+            this.shadowRoot.appendChild(noMessagesText);
+        } else {
             Object.entries(this.friendList).forEach(([friendId, value]) => {
                 this.setupElement(friendId, value);
             });
@@ -42,19 +50,20 @@ export class FriendsList extends Component {
     }
 
     setupElement(friendId, value) {
+        const shadowRoot = this.shadowRoot;
+        const element = shadowRoot.getElementById(friendId);
         if (this.statusAccepted.includes(value.status)) {
-            if (!this.shadowRoot.getElementById(friendId)) {
-                const element = document.createElement("friend-list-element");
-                element.id = friendId;
-                element.setPlayer(value);
-                element.setAttribute("activate-friend-part", true);
-                this.shadowRoot.appendChild(element);
-                this.currentElements[friendId] = element;
+            if (!element) {
+                const new_element = document.createElement("friend-list-element");
+                new_element.id = friendId;
+                new_element.setPlayer(value);
+                new_element.setAttribute("activate-friend-part", true);
+                shadowRoot.appendChild(new_element);
             } else {
-                this.shadowRoot.getElementById(friendId).setPlayer(value);
+                element.setPlayer(value);
             }
-        } else if (this.shadowRoot.getElementById(friendId)) {
-            this.shadowRoot.removeChild(this.shadowRoot.getElementById(friendId));
+        } else if (element) {
+            shadowRoot.removeChild(element);
         }
     }
 

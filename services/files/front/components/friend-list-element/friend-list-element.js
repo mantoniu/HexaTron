@@ -32,20 +32,30 @@ export class FriendListElement extends Component {
     }
 
     initialise() {
-        if (this.isConnected && this.player) {
-            this.shadowRoot.querySelector("user-friend-part").setAttribute("friend-id", this.player._id);
-            if (this.shadowRoot.getElementById("profile-picture"))
-                this.shadowRoot.getElementById("profile-picture").src = this.player.hasOwnProperty("profile-pictue") ? player["profile-pictue"] : "../../assets/profile.svg";
-            if (this.shadowRoot.getElementById("name"))
-                this.shadowRoot.getElementById("name").textContent = this.player.name;
-            if (this.shadowRoot.querySelector("user-friend-part")) {
-                if (this.getAttribute("activate-friend-part")) {
-                    this.shadowRoot.querySelector("user-friend-part").setAttribute("deletion-desactivate", true);
-                    this.shadowRoot.querySelector("user-friend-part").setAttribute("short-version", true);
-                } else {
-                    this.shadowRoot.querySelector("user-friend-part").style.display = "none";
-                }
+        if (!this.isConnected || !this.player)
+            return;
+
+        const shadowRoot = this.shadowRoot;
+        const userFriendPart = shadowRoot.querySelector("user-friend-part");
+        const profilePicture = shadowRoot.getElementById("profile-picture");
+        const playerName = shadowRoot.getElementById("name");
+        if (userFriendPart) {
+            userFriendPart.setAttribute("friend-id", this.player._id);
+
+            if (this.hasAttribute("activate-friend-part")) {
+                userFriendPart.setAttribute("deletion-desactivate", "true");
+                userFriendPart.setAttribute("short-version", "true");
+            } else {
+                userFriendPart.style.display = "none";
             }
+        }
+        if (profilePicture) {
+            profilePicture.src = this.player.hasOwnProperty("profile-picture")
+                ? this.player["profile-picture"]
+                : "../../assets/profile.svg";
+        }
+        if (playerName) {
+            playerName.textContent = this.player.name;
         }
     }
 }
