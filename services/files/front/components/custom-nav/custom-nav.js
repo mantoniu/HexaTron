@@ -24,15 +24,16 @@ export class CustomNav extends ListenerComponent {
                 button,
                 "click",
                 () => {
-                    const imageButton = button.querySelector("image-button");
-                    if (!imageButton)
+                    const navValue = button.getAttribute("id");
+
+                    if (!navValue)
                         return;
 
                     window.dispatchEvent(
                         new CustomEvent("openDrawer", {
                             bubbles: true,
                             composed: true,
-                            detail: {type: imageButton.id}
+                            detail: {type: navValue}
                         })
                     );
                 }
