@@ -23,25 +23,25 @@
 
 .sidenav {
     height: 100%;
-    width: 64px;
+    width: 0;
     position: fixed;
     z-index: 2;
     top: 0;
-    right: 0;
-    background-color: #ffffff;
-    border-left: 1px solid #0b0b0b;
+    right: var(--sidebar-width);
+    background-color: white;
     overflow-x: hidden;
-    transition: 0.5s;
     padding-top: 60px;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease;
 }
 
 .sidenav.open {
-    width: 50%;
+    width: 600px;
 }
 
 @media screen and (max-width: 750px) {
     .sidenav.open {
-        width: 100%;
+        width: calc(100% - var(--sidebar-width));
     }
 }
 
