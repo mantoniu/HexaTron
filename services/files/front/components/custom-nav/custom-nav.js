@@ -2,7 +2,6 @@ import {ImageButton} from "../image-button/image-button.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {gameService, GameStatus} from "../../services/game-service.js";
 
-
 export class CustomNav extends ListenerComponent {
     static HIDE_IN_GAME = ["leaderboard"];
 

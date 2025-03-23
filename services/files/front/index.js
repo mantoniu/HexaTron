@@ -4,12 +4,14 @@ import {HomeButton} from "./components/home-button/home-button.js";
 import {GameComponent} from "./components/game-component/game-component.js";
 import {DrawerMenu} from "./components/drawer-menu/drawer-menu.js";
 import {chatService} from "./services/chat-service.js";
+import {HexagonBackground} from "./components/hexagon-background/hexagon-background.js";
 
 ModeSelector.register();
 CustomNav.register();
 HomeButton.register();
 GameComponent.register();
 DrawerMenu.register();
+HexagonBackground.register();
 
 const routes = {
     "/": "<mode-selector></mode-selector>",
