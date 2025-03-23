@@ -5,7 +5,7 @@ import {USER_EVENTS, userService} from "../../services/user-service.js";
 
 export class CustomNav extends ListenerComponent {
     static HIDE_IN_GAME = ["leaderboard", "friends"];
-    static HIDE_NOT_CONNECTED = ["friends","message"];
+    static HIDE_NOT_CONNECTED = ["friends", "chat"];
 
     constructor() {
         super();

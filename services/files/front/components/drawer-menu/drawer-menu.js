@@ -15,8 +15,7 @@ export const DRAWER_CONTENT = Object.freeze({
     FORGOT_PASSWORD: "forgottenPassword",
     SETTINGS: "settings",
     LEADERBOARD: "leaderboard",
-    FRIENDS: "friends"
-    LEADERBOARD: "leaderboard",
+    FRIENDS: "friends",
     CHAT: "chat"
 });
 

@@ -41,7 +41,7 @@ export class ChatPortal extends ListenerComponent {
     }
 
     _setupChatListeners() {
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_ADDED, async (conversationId, message) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_ADDED, async (conversationId, message) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId) {
                 chatBox.messageAdded(conversationId, message);
@@ -53,13 +53,13 @@ export class ChatPortal extends ListenerComponent {
             this._updateFriendMessage(conversationId, message);
         });
 
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_SENT, (tempId, defMessage, conversationId) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_SENT, (tempId, defMessage, conversationId) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId)
                 chatBox.messageSent(tempId, defMessage);
         });
 
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_DELETED, (conversationId, messageId) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_DELETED, (conversationId, messageId) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId)
                 chatBox.messageDeleted(conversationId, messageId);

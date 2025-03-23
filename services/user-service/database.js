@@ -140,9 +140,9 @@ async function getUserWithFriend(filter, projection) {
         {
             $group: {
                 _id: "$_id",
-                ...Object.fromEntries(Object.keys(User).map(field =>
-                    field !== "friends" ? [field, {$first: `$${field}`}] : ["friends", {$push: "$friends"}]
-                )),
+                ...Object.fromEntries(Object.keys(User.properties)
+                    .filter(field => field !== "_id")
+                    .map(field => field !== "friends" ? [field, {$first: `$${field}`}] : ["friends", {$push: "$friends"}])),
                 hasFriends: {$first: "$hasFriends"}
             }
         },
