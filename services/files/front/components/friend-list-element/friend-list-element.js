@@ -23,7 +23,7 @@ export class FriendListElement extends Component {
         this.initialise();
         this.addEventListener("click", () => {
             const event = new CustomEvent("watchProfile", {
-                detail: {player: this.player},
+                detail: {player: this.player, element: this},
                 bubbles: true,
                 composed: true
             });

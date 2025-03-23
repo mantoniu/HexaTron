@@ -41,8 +41,6 @@ export class FriendsPortal extends ListenerComponent {
     }
 
     watchProfileEvent(event) {
-        event.stopPropagation();
-
         this.profilElement = document.createElement("user-profile");
 
         this.profilElement.setAttribute("id", event.detail.player._id);
@@ -52,6 +50,12 @@ export class FriendsPortal extends ListenerComponent {
 
         this.profilElement.style.display = "block";
 
+        this.initialize();
+    }
+
+    stopWatchingProfileEvent() {
+        this.shadowRoot.removeChild(this.profilElement);
+        this.profilElement = null;
         this.initialize();
     }
 

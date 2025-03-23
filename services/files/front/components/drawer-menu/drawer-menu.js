@@ -21,6 +21,7 @@ export class DrawerMenu extends Component {
     constructor() {
         super();
 
+        this.current = "";
         this.previous = "";
         this._oppened = false;
         LoginPortal.register();
@@ -44,25 +45,22 @@ export class DrawerMenu extends Component {
             this.loadContent(event.detail);
         });
 
-        this.addAutoCleanListener(
-            this.shadowRoot.getElementById("close-btn"),
-            "click",
-            () => this.nav(this.previous)
-        );
+        this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
 
         this.addAutoCleanListener(document, "click", (event) => {
             if (!(event.composedPath().some(element => element.localName === "drawer-menu" || element.localName === "custom-nav")) && this._oppened) {
-                this.nav(this.previous);
+                this.nav(this.current);
             }
         });
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
             event.stopPropagation();
+            this.previous = this.current;
             if (event.detail.name === userService.user.name) {
-                this.previous = DRAWER_CONTENT.PROFILE;
+                this.current = DRAWER_CONTENT.PROFILE;
                 this.loadContent(DRAWER_CONTENT.PROFILE);
             } else {
-                this.previous = DRAWER_CONTENT.FRIENDS;
+                this.current = DRAWER_CONTENT.FRIENDS;
                 this.loadContent(DRAWER_CONTENT.FRIENDS);
                 const newEvent = new CustomEvent("watchProfile", {
                     detail: {player: event.detail},
@@ -71,6 +69,15 @@ export class DrawerMenu extends Component {
                 });
                 this.shadowRoot.querySelector("friends-portal").dispatchEvent(newEvent);
             }
+        });
+
+        this.addAutoCleanListener(this, "watchProfile", (event) => {
+            event.stopPropagation();
+            this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
+            this.shadowRoot.getElementById("close-btn").onclick = () => {
+                this.shadowRoot.querySelector("friends-portal").stopWatchingProfileEvent();
+                this.setInitialState();
+            };
         });
     }
 
@@ -111,7 +118,7 @@ export class DrawerMenu extends Component {
         const sidenav = this.shadowRoot.getElementById("mySidenav");
         const closeBtn = this.shadowRoot.getElementById("close-btn");
 
-        if (this._oppened && this.previous === type) {
+        if (this._oppened && this.current === type) {
             closeBtn.style.visibility = "hidden";
             sidenav.classList.remove("open");
             this.shadowRoot.getElementById("content").innerHTML = "";
@@ -122,6 +129,11 @@ export class DrawerMenu extends Component {
             sidenav.classList.add("open");
             this._oppened = true;
         }
-        this.previous = type;
+        this.current = type;
+    }
+
+    setInitialState() {
+        this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
+        this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
     }
 }
