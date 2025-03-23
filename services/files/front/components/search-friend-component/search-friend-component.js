@@ -13,7 +13,6 @@ export class SearchFriendComponent extends ListenerComponent {
         await super.connectedCallback();
 
         this.searchInput = this.shadowRoot.getElementById("search-bar");
-        this.searchButton = this.shadowRoot.getElementById("search");
         this.resultsContainer = this.shadowRoot.getElementById("search-result");
         this.addAutomaticEventListener(userService, "searchFriendsResults", (results) => {
             this.searchResults = results;
@@ -26,11 +25,6 @@ export class SearchFriendComponent extends ListenerComponent {
     addEventListeners() {
         this.addAutoCleanListener(this.searchInput, "input", this.handleSearchInput.bind(this));
         this.addAutoCleanListener(this.searchInput, "click", this.handleSearchInput.bind(this));
-
-
-        //this.addAutoCleanListener(this.searchButton, "click", () => {
-        //    this.performSearch(this.searchInput.value);
-        //});
 
         document.addEventListener("click", (event) => {
             if (!this.contains(event.target) && !this.resultsContainer.contains(event.target)) {

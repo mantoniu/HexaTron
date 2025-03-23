@@ -375,7 +375,6 @@ class UserService extends EventEmitter {
      */
     async removeFriend(friendId) {
         const response = await apiClient.request("DELETE", `api/user/friends/${friendId}`);
-        console.log(response);
         if (response.success) {
             const friendData = this.user.friends[response.data.friendId];
             delete this.user.friends[response.data.friendId];
