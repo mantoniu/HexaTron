@@ -4,6 +4,10 @@ export class Component extends HTMLElement {
 
         this._listeners = new Set();
         this.attachShadow({ mode: 'open' });
+
+        this._connectedPromise = new Promise((resolve) => {
+            this._resolveConnected = resolve;
+        });
     }
 
     static get elementName() {
@@ -19,9 +23,14 @@ export class Component extends HTMLElement {
             customElements.define(this.elementName, this);
     }
 
+    get whenConnected() {
+        return this._connectedPromise;
+    }
+
     async connectedCallback() {
         try {
             await this.loadResources();
+            this._resolveConnected();
         } catch (err) {
             console.error(`Error in component ${this.constructor.elementName}:`, err);
         }

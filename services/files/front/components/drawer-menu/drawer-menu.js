@@ -6,13 +6,15 @@ import {RegisterPortal} from "../register-portal/register-portal.js";
 import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-password-portal.js";
 import {SettingsPortal} from "../settings-portal/settings-portal.js";
 import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
+import {ChatPortal} from "../chat-portal/chat-portal.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
     REGISTER: "register",
     FORGOT_PASSWORD: "forgottenPassword",
     SETTINGS: "settings",
-    LEADERBOARD: "leaderboard"
+    LEADERBOARD: "leaderboard",
+    CHAT: "chat"
 });
 
 export class DrawerMenu extends Component {
@@ -27,10 +29,12 @@ export class DrawerMenu extends Component {
         ForgottenPasswordPortal.register();
         LeaderboardPortal.register();
         SettingsPortal.register();
+        ChatPortal.register();
     }
 
     async connectedCallback() {
         await super.connectedCallback();
+        this._content = this.shadowRoot.getElementById("content");
 
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             if (this.loadContent(event.detail.type))
@@ -81,12 +85,14 @@ export class DrawerMenu extends Component {
             case DRAWER_CONTENT.LEADERBOARD:
                 component = "<leaderboard-portal></leaderboard-portal>";
                 break;
+            case DRAWER_CONTENT.CHAT:
+                component = "<chat-portal></chat-portal>";
+                break;
             default:
                 console.warn("This type is not yet supported");
                 return false;
         }
-
-        this.shadowRoot.getElementById("content").innerHTML = component;
+        this._content.innerHTML = component;
         return true;
     }
 

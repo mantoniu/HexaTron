@@ -37,6 +37,7 @@
 
 .sidenav.open {
     width: 600px;
+    padding: 60px;
 }
 
 @media screen and (max-width: 750px) {
@@ -79,6 +80,9 @@
 }
 
 #content {
+    margin: auto;
+    display: flex;
+    justify-content: center;
     width: 100%;
     height: 100%;
 }

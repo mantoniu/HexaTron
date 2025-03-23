@@ -1,0 +1,17 @@
+:host {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#conversations {
+    flex: 1 0 0;
+    overflow-y: auto;
+}
+
+.no-conversations {
+    text-align: center;
+    color: gray;
+    font-style: italic;
+    margin-top: 20px;
+}

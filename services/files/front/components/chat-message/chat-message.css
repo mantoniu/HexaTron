@@ -1,0 +1,89 @@
+:host {
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    max-width: 70%;
+    word-wrap: break-word;
+    position: relative;
+    clear: both;
+}
+
+:host(.received) {
+    background-color: #f1f1f1;
+    float: left;
+    border-bottom-left-radius: 5px;
+}
+
+:host(.sent) {
+    background-color: #0084ff;
+    color: white;
+    float: right;
+    border-bottom-right-radius: 5px;
+}
+
+:host(.pending) {
+    opacity: 0.6;
+    filter: grayscale(50%);
+}
+
+:host(.pending)::after {
+    content: "⏳";
+    font-size: 12px;
+    position: absolute;
+    bottom: -15px;
+    right: 10px;
+    opacity: 0.8;
+}
+
+#message-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    margin-bottom: 4px;
+}
+
+#username {
+    font-weight: bold;
+}
+
+#timestamp {
+    display: block;
+    font-size: 0.75em;
+    opacity: 0.7;
+    text-align: right;
+    margin-top: 4px;
+}
+
+:host.sent #message-header {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+#message-content {
+    word-break: break-word;
+}
+
+#delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ff5252;
+    color: white;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    padding: 0;
+    text-align: center;
+}
+
+:host(:hover) #delete-btn {
+    display: block;
+}
+
+:host(.received:hover) #delete-btn {
+    display: none;
+}

@@ -48,5 +48,3 @@ window.onpopstate = () => {
 };
 
 updateView();
-
-window.chatService = chatService;
