@@ -1,0 +1,53 @@
+:host {
+    flex: 1 0 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#messages {
+    flex: 1 0 0;
+    overflow-y: auto;
+    padding: 15px 15px 0 15px;
+    background-color: #f9f9f9;
+    min-height: 0;
+}
+
+.date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 15px 0;
+    font-size: 0.9em;
+    color: #777;
+    position: relative;
+}
+
+.date-separator::before,
+.date-separator::after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background: #ddd;
+    margin: 0 10px;
+}
+
+chat-message::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+#messages::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.no-messages {
+    text-align: center;
+    color: gray;
+    font-style: italic;
+    margin: 20px 0;
+}

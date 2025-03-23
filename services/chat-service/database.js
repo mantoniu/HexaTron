@@ -10,6 +10,9 @@ const uri = process.env.URI;
 const client = new MongoClient(uri);
 const db = client.db(dbName);
 
+const GLOBAL_CONVERSATION_ID = process.env.GLOBAL_CONVERSATION_ID;
+const DEFAULT_MESSAGE_LIMIT = 100;
+
 /**
  * Handles MongoDB-specific errors and throws a more descriptive error if applicable.
  *
@@ -45,53 +48,28 @@ async function mongoOperation(operation) {
 }
 
 /**
- * Retrieves all conversations of a user with their latest message in a single query.
+ * Retrieves conversations along with their messages based on the specified filters.
+ * Optionally removes the current user from the participants list.
  *
  * @async
- * @param {string} userId - The ID of the user.
- * @returns {Promise<Array>} - List of conversations with the last message.
+ * @param {Object} params - Parameters for the function.
+ * @param {Object} params.conversationFilter - Filters to select conversations (e.g., a specific user in the participants).
+ * @param {Object} [params.messageFilter={}] - Filters to refine the messages (e.g., by sender or date).
+ * @param {number} [params.messageLimit=DEFAULT_MESSAGE_LIMIT] - Limit the number of messages returned for each conversation.
+ * @param {string|null} [params.excludeUserId=null] - The user ID to exclude from the participants list (optional).
+ * @param {number} [params.sortMessageOrder=1] - Sorting order for messages (-1 for descending, 1 for ascending).
+ * @returns {Promise<Array>} - A promise that resolves to an array of conversations, each with an array of messages.
  */
-async function getUserConversationsWithLastMessage(userId) {
+async function getConversationsWithMessages({
+                                                conversationFilter,
+                                                messageFilter = {},
+                                                messageLimit = DEFAULT_MESSAGE_LIMIT,
+                                                excludeUserId = null,
+                                                sortMessageOrder = 1
+                                            }) {
     return await mongoOperation(() =>
         db.collection(conversationCollection).aggregate([
-            {$match: {participants: userId}},
-            {
-                $lookup: {
-                    from: messageCollection,
-                    let: {convId: "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$conversationId", "$$convId"]}}},
-                        {$sort: {timestamp: -1}},
-                        {$limit: 1}
-                    ],
-                    as: "lastMessage"
-                }
-            },
-            {
-                $addFields: {
-                    lastMessage: {$arrayElemAt: ["$lastMessage", 0]}
-                }
-            }
-        ]).toArray()
-    );
-}
-
-/**
- * Retrieves a conversation with a limited number of recent messages from a specified date.
- *
- * @async
- * @param {string} conversationId - The ID of the conversation.
- * @param {string} userId - The ID of the user (to check if he is in the conversation)
- * @param {string|Date} date - The reference date to fetch messages before.
- * @param {number} limit - The number of messages to retrieve.
- * @throws {Error} `CONVERSATION_NOT_FOUND` - If the conversation does not exist
- * @throws {Error} `USER_NOT_PARTICIPANT` - If the user is not a participant of the conversation
- * @returns {Promise<Object|null>} - The conversation object with its recent messages, or null if not found.
- */
-async function getConversationWithMessagesBeforeDate(conversationId, userId, date, limit = 10) {
-    const conversation = await mongoOperation(() =>
-        db.collection(conversationCollection).aggregate([
-            {$match: {_id: new ObjectId(conversationId)}},
+            {$match: conversationFilter},
             {
                 $lookup: {
                     from: messageCollection,
@@ -100,30 +78,158 @@ async function getConversationWithMessagesBeforeDate(conversationId, userId, dat
                         {
                             $match: {
                                 $expr: {$eq: ["$conversationId", "$$convId"]},
-                                timestamp: {$lt: new Date(date)}
+                                ...messageFilter
                             }
                         },
-                        {$sort: {timestamp: -1}},
-                        {$limit: limit}
+                        {$sort: {timestamp: sortMessageOrder}},
+                        {$limit: messageLimit},
+                        {
+                            $project: {
+                                _id: 1, content: 1, senderId: 1, timestamp: 1, isRead: 1
+                            }
+                        }
                     ],
                     as: "messages"
+                }
+            },
+            {
+                $addFields: {
+                    lastMessageDate: {
+                        $cond: {
+                            if: {$gt: [{$size: "$messages"}, 0]},
+                            then: {$arrayElemAt: ["$messages.timestamp", 0]},
+                            else: "$createdAt"
+                        }
+                    }
+                }
+            },
+            {
+                $sort: {lastMessageDate: -1}
+            },
+            {
+                $addFields: {
+                    messages: {
+                        $arrayToObject: {
+                            $map: {
+                                input: "$messages",
+                                as: "msg",
+                                in: {k: {$toString: "$$msg._id"}, v: "$$msg"}
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $addFields: {
+                    participants: {
+                        $map: {
+                            input: "$participants",
+                            as: "participant",
+                            in: {$toString: "$$participant"}
+                        }
+                    }
+                }
+            },
+            ...(excludeUserId
+                    ? [{
+                        $set: {
+                            participants: {
+                                $filter: {
+                                    input: "$participants",
+                                    as: "participant",
+                                    cond: {$ne: ["$$participant", new ObjectId(excludeUserId)]}
+                                }
+                            }
+                        }
+                    }]
+                    : []
+            ),
+            {
+                $project: {
+                    _id: 1,
+                    participants: 1,
+                    isGlobal: {$cond: {if: {$gt: ["$isGlobal", null]}, then: "$isGlobal", else: "$$REMOVE"}},
+                    messages: 1,
+                    createdAt: 1
                 }
             }
         ]).toArray()
     );
+}
 
-    if (!conversation.length)
+/**
+ * Retrieves all conversations of a user with their latest message.
+ *
+ * @async
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<Array>} - List of conversations with the last message.
+ */
+async function getUserConversationsWithLastMessage(userId) {
+    const conversations = await getConversationsWithMessages({
+        conversationFilter: {participants: new ObjectId(userId)},
+        messageLimit: 1,
+        excludeUserId: userId,
+        sortMessageOrder: -1
+    });
+
+    const globalConversation = await getConversationsWithMessages({
+        conversationFilter: {_id: new ObjectId(GLOBAL_CONVERSATION_ID)},
+        messageLimit: DEFAULT_MESSAGE_LIMIT
+    });
+
+    if (globalConversation.length)
+        conversations.push(globalConversation[0]);
+
+    return conversations;
+}
+
+/**
+ * Retrieves a conversation with a limited number of recent messages from a specified date.
+ *
+ * @async
+ * @param {string} conversationId - The ID of the conversation.
+ * @param {string} userId - The ID of the user (to check if he is in the conversation)
+ * @param {string|Date|null} date - The reference date to fetch messages before.
+ * @param {number} limit - The number of messages to retrieve.
+ * @throws {Error} `CONVERSATION_NOT_FOUND` - If the conversation does not exist
+ * @throws {Error} `USER_NOT_PARTICIPANT` - If the user is not a participant of the conversation
+ * @returns {Promise<Object|null>} - The conversation object with its recent messages, or null if not found.
+ */
+async function getConversationWithMessagesBeforeDate(conversationId, userId, date, limit = DEFAULT_MESSAGE_LIMIT) {
+    const referenceDate = date ? new Date(date) : new Date();
+
+    const conversations = await getConversationsWithMessages({
+        conversationFilter: {
+            _id: new ObjectId(conversationId),
+            $or: [
+                {participants: {$in: [new ObjectId(userId)]}},
+                {isGlobal: true}
+            ]
+        },
+        messageFilter: {timestamp: {$lt: new Date(referenceDate)}},
+        messageLimit: limit,
+        excludeUserId: userId
+    });
+
+    if (!conversations.length)
         throw new Error(DATABASE_ERRORS.CONVERSATION_NOT_FOUND);
 
-    const participants = conversation[0].participants;
-    const isParticipant = participants.some(participantId =>
-        participantId.toString() === userId.toString()
-    );
+    const conversation = conversations[0];
 
-    if (!isParticipant)
-        throw new Error(DATABASE_ERRORS.USER_NOT_PARTICIPANT);
+    if (conversation.messages) {
+        const messagesNotRead = Object.values(conversation.messages)
+            .filter(message => !message.isRead)
+            .map(message => message._id);
 
-    return conversation[0];
+        await markMessagesAsRead(messagesNotRead, userId);
+
+        messagesNotRead.forEach(msgId => {
+            if (conversation.messages[msgId])
+                conversation.messages[msgId].isRead = true;
+        });
+    }
+
+    return conversation;
 }
 
 /**
@@ -165,41 +271,6 @@ async function deleteMessageWithOwner(messageId, userId) {
 }
 
 /**
- * Adds a participant to an existing conversation.
- *
- * @async
- * @param {string} conversationId - The ID of the conversation.
- * @param {string} userId - The ID of the user to add.
- * @throws {Error} If the conversation does not exist.
- * @returns {Promise<void>}
- */
-async function addParticipant(conversationId, userId) {
-    const result = await mongoOperation(() =>
-        db.collection(conversationCollection).updateOne(
-            {_id: new ObjectId(conversationId)},
-            {$addToSet: {participants: userId}}
-        ));
-
-    if (result.matchedCount === 0)
-        throw new Error(`Conversation with ID ${conversationId} not found.`);
-
-    if (result.modifiedCount === 0)
-        throw new Error(`User ${userId} is already a participant.`);
-}
-
-/**
- * Checks if a user exists in the database.
- *
- * @async
- * @param {string} userId - The ID of the user.
- * @returns {Promise<boolean>} - `true` if the user exists, otherwise `false`.
- */
-async function userExists(userId) {
-    const user = await db.collection(userCollection).findOne({_id: new ObjectId(userId)});
-    return !!user;
-}
-
-/**
  * Check is list of users exists in the database
  *
  * @async
@@ -207,12 +278,11 @@ async function userExists(userId) {
  * @returns {Promise<boolean>} - `true` if the users exists, otherwise `false`.
  */
 async function allUsersExist(userIds) {
-    const userExistenceChecks = await Promise.all(
-        userIds.map(async (userId) => {
-            return await userExists(userId);
-        })
-    );
-    return userExistenceChecks.every((exists) => exists);
+    const users = await db.collection(userCollection).find({
+        _id: {$in: userIds.map(id => new ObjectId(id))}
+    }).toArray();
+
+    return users.length === userIds.length;
 }
 
 /**
@@ -224,12 +294,11 @@ async function allUsersExist(userIds) {
  * @returns {Promise<Object>} - The created conversation object.
  */
 async function createConversation(participantIds) {
-    if (!await allUsersExist(participantIds)) {
+    if (!await allUsersExist(participantIds))
         throw new Error(DATABASE_ERRORS.PARTICIPANT_NOT_FOUND);
-    }
 
     const conversation = {
-        participants: participantIds,
+        participants: participantIds.map(id => new ObjectId(id)),
         createdAt: new Date()
     };
 
@@ -239,10 +308,59 @@ async function createConversation(participantIds) {
     return {_id: result.insertedId, ...conversation};
 }
 
+/**
+ * Marks specific messages as read in the database.
+ *
+ * @async
+ * @param {string[]} messageIds - Array of message IDs to be marked as read.
+ * @param {string} userId - The ID of the user making the request.
+ *                          Ensures the user cannot mark their own messages as read.
+ * @returns {Promise<void>} Resolves when the update is complete.
+ * @throws {Error} Throws an error if the database operation fails.
+ */
+async function markMessagesAsRead(messageIds, userId) {
+    await db.collection(messageCollection).updateMany(
+        {
+            _id: {$in: messageIds.map(id => new ObjectId(id))},
+            senderId: {$ne: new ObjectId(userId)},
+            isRead: false
+        },
+        {$set: {isRead: true}}
+    );
+}
+
+/**
+ * Creates a global conversation if it does not already exist.
+ *
+ * @async
+ * @returns {Promise<void>} - Resolves when the operation is complete.
+ *                           Logs success or failure messages.
+ */
+async function createGlobalConversation() {
+    const existingGlobal = await db.collection(conversationCollection)
+        .findOne({_id: new ObjectId(GLOBAL_CONVERSATION_ID)});
+
+    if (!existingGlobal) {
+        const result = await db.collection(conversationCollection).insertOne({
+            _id: new ObjectId(GLOBAL_CONVERSATION_ID),
+            createdAt: new Date(),
+            isGlobal: true
+        });
+
+        if (result.acknowledged && result.insertedId)
+            console.log(`Global conversation created successfully`);
+        else
+            console.error("Failed to create global conversation.");
+    } else
+        console.log("Global conversation already exists.");
+}
+
 module.exports = {
+    createGlobalConversation,
     deleteMessageWithOwner,
     getConversationWithMessagesBeforeDate,
     getUserConversationsWithLastMessage,
     createConversation,
-    saveMessage
+    saveMessage,
+    markMessagesAsRead
 };

@@ -33,9 +33,6 @@ exports.getConversations = async (req, res) => {
         if (error.message === DATABASE_ERRORS.CONVERSATION_NOT_FOUND)
             throw new HttpError(404, "Conversation not found.");
 
-        if (error.message === DATABASE_ERRORS.USER_NOT_PARTICIPANT)
-            throw new HttpError(401, "The user is not a participant of the conversation");
-
         throw new HttpError(500, error.message);
     }
 };
@@ -55,7 +52,7 @@ exports.createConversation = async (req, res) => {
             throw new HttpError(404, "One or more participants do not exist.");
 
         if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
-            throw new HttpError(400, "Invalid conversation data");
+            throw new HttpError(400, "The conversation data is invalid.");
 
         throw new HttpError(500, error.message);
     }
