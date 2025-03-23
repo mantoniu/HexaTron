@@ -22,6 +22,7 @@
 }
 
 .sidenav {
+    box-sizing: border-box;
     height: 100%;
     width: 0;
     position: fixed;
@@ -30,14 +31,13 @@
     right: var(--sidebar-width);
     background-color: white;
     overflow-x: hidden;
-    padding-top: 60px;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
     transition: width 0.3s ease;
 }
 
 .sidenav.open {
-    width: 600px;
     padding: 60px;
+    width: 600px;
 }
 
 @media screen and (max-width: 750px) {

@@ -19,16 +19,20 @@ export class CustomNav extends ListenerComponent {
         this.addEventListener(userService, USER_EVENTS.CONNECTION, () => this.showOnConnection());
         this.addEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
 
-        this.shadowRoot.querySelectorAll("image-button").forEach(button => {
+        this.shadowRoot.querySelectorAll(".nav-button").forEach(button => {
             this.addAutoCleanListener(
                 button,
                 "click",
                 () => {
+                    const imageButton = button.querySelector("image-button");
+                    if (!imageButton)
+                        return;
+
                     window.dispatchEvent(
                         new CustomEvent("openDrawer", {
                             bubbles: true,
                             composed: true,
-                            detail: {type: button.id}
+                            detail: {type: imageButton.id}
                         })
                     );
                 }
