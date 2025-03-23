@@ -2,6 +2,7 @@ import {FriendsList} from "../friends-list/friends-list.js";
 import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {SearchFriendComponent} from "../search-friend-component/search-friend-component.js";
+import {PopupComponent} from "../popup-component/popup-component.js";
 
 export class FriendsPortal extends ListenerComponent {
     constructor() {
@@ -9,6 +10,7 @@ export class FriendsPortal extends ListenerComponent {
 
         FriendsList.register();
         SearchFriendComponent.register();
+        PopupComponent.register();
 
         this.profilElement = null;
 
@@ -56,7 +58,7 @@ export class FriendsPortal extends ListenerComponent {
     modificationStatus(data) {
         if (this.profilElement?.style.display === "block") {
             if (data.deleted) {
-                console.log(this.profilElement);
+                this.createPopUp();
                 this.shadowRoot.removeChild(this.profilElement);
                 this.profilElement = null;
                 this.initialize();
@@ -78,5 +80,13 @@ export class FriendsPortal extends ListenerComponent {
         this.modificationStatus(data);
         this.shadowRoot.getElementById("friend-list").removeFromList(data.id);
         this.shadowRoot.getElementById("not-friend-list").removeFromList(data.id);
+    }
+
+    createPopUp() {
+        const popup = document.createElement("popup-component");
+        this.shadowRoot.appendChild(popup);
+        popup.setAttribute("text", "The user has been deleted");
+        popup.setAttribute("color", "#dc3545");
+        popup.open();
     }
 }
