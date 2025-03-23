@@ -208,7 +208,6 @@ async function getConversationWithMessagesBeforeDate(conversationId, userId, dat
         },
         messageFilter: {timestamp: {$lt: new Date(referenceDate)}},
         messageLimit: limit,
-        markAsRead: true,
         excludeUserId: userId
     });
 
