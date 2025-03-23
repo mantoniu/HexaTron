@@ -16,13 +16,13 @@ const collectionSchemas = {
 
 // Define the indexes for each collection with unique constraints when necessary
 const collectionIndexes = {
-    // Index on 'participants' field in the 'conversations' collection.
-    // This will improve query performance when searching for conversations by participants.
+    // Index on 'participants' field in the conversation collection.
+    // This helps speed up queries looking for conversations that involve specific participants.
     [process.env.CONVERSATION_COLLECTION]: [
-        {keys: {participants: 1}, options: {unique: false}}
+        {keys: {participants: 1}}
     ],
-    // Index on 'conversationId' field in the 'messages' collection.
-    // This will improve query performance when searching for messages by conversation.
+    // Index on 'conversationId' field in the message collection.
+    // This improves performance when retrieving messages for a specific conversation.
     [process.env.MESSAGE_COLLECTION]: [
         {keys: {conversationId: 1}, options: {unique: false}}
     ],
@@ -125,9 +125,8 @@ async function startService() {
                 await db.createCollection(collName, {
                     validator: {
                         $jsonSchema: {
-                            bsonType: "object",
-                            required: Object.keys(schema),
-                            properties: schema
+                            ...schema,
+                            additionalProperties: false
                         }
                     }
                 });

@@ -1,39 +1,64 @@
 /* TYPE DEFINITION */
 const Conversation = {
-    participants: {
-        bsonType: "array",
-        items: {
-            bsonType: "string"
+    bsonType: "object",
+    required: ["createdAt"],
+    properties: {
+        _id: {
+            bsonType: "objectId"
         },
-        minItems: 2,
-        uniqueItems: true
+        participants: {
+            bsonType: "array",
+            items: {
+                bsonType: "objectId"
+            },
+            minItems: 2,
+            uniqueItems: true
+        },
+        createdAt: {
+            bsonType: "date"
+        },
+        isGlobal: {
+            bsonType: "bool"
+        }
     },
-    createdAt: {
-        bsonType: "date"
-    }
+    oneOf: [
+        {required: ["participants"]},
+        {required: ["isGlobal"]}
+    ]
 };
 
 const Message = {
-    conversationId: {
-        bsonType: "objectId"
-    },
-    senderId: {
-        bsonType: "objectId"
-    },
-    content: {
-        bsonType: "string"
-    },
-    timestamp: {
-        bsonType: "date"
-    },
-    isRead: {
-        bsonType: "bool"
+    bsonType: "object",
+    required: ["conversationId", "senderId", "content", "timestamp", "isRead"],
+    properties: {
+        _id: {
+            bsonType: "objectId"
+        },
+        conversationId: {
+            bsonType: "objectId"
+        },
+        senderId: {
+            bsonType: "objectId"
+        },
+        content: {
+            bsonType: "string"
+        },
+        timestamp: {
+            bsonType: "date"
+        },
+        isRead: {
+            bsonType: "bool"
+        }
     }
 };
 
 const Parameters = {
     bsonType: "object",
+    required: ["keysPlayers", "playersColors"],
     properties: {
+        _id: {
+            bsonType: "objectId"
+        },
         keysPlayers: {
             bsonType: "array",
             items: {
@@ -54,41 +79,48 @@ const Parameters = {
 };
 
 const User = {
-    name: {
-        bsonType: "string",
-        minLength: 4,
-        maxLength: 20,
-        pattern: "^[a-zA-Z0-9_\\-]+$"
-    },
-    parameters: Parameters,
-    password: {
-        bsonType: "string",
-        minLength: 8,
-        maxLength: 64
-    },
-    answers: {
-        bsonType: "array",
-        minItems: 3,
-        maxItems: 3,
-        items: {
+    bsonType: "object",
+    required: ["name", "parameters", "password", "answers", "elo"],
+    properties: {
+        _id: {
+            bsonType: "objectId"
+        },
+        name: {
             bsonType: "string",
-            minLength: 1,
-            maxLength: 50
-        }
-    },
-    elo: {
-        bsonType: "number"
-    },
-    friends: {
-        bsonType: "array",
-        items: {
-            bsonType: "object",
-            properties: {
-                friendId: {
-                    bsonType: "objectId"
-                },
-                status: {
-                    bsonType: "string"
+            minLength: 4,
+            maxLength: 20,
+            pattern: "^[a-zA-Z0-9_\\-]+$"
+        },
+        parameters: Parameters,
+        password: {
+            bsonType: "string",
+            minLength: 8,
+            maxLength: 64
+        },
+        answers: {
+            bsonType: "array",
+            minItems: 3,
+            maxItems: 3,
+            items: {
+                bsonType: "string",
+                minLength: 1,
+                maxLength: 50
+            }
+        },
+        elo: {
+            bsonType: "number"
+        },
+        friends: {
+            bsonType: "array",
+            items: {
+                bsonType: "object",
+                properties: {
+                    friendId: {
+                        bsonType: "objectId"
+                    },
+                    status: {
+                        bsonType: "string"
+                    }
                 }
             }
         }
@@ -96,11 +128,18 @@ const User = {
 };
 
 const RefreshToken = {
-    userId: {
-        bsonType: "string"
-    },
-    refreshToken: {
-        bsonType: "string"
+    bsonType: "object",
+    required: ["userId", "refreshToken"],
+    properties: {
+        _id: {
+            bsonType: "objectId"
+        },
+        userId: {
+            bsonType: "string"
+        },
+        refreshToken: {
+            bsonType: "string"
+        }
     }
 };
 

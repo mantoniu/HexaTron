@@ -5,7 +5,7 @@ import {USER_EVENTS, userService} from "../../services/user-service.js";
 
 export class CustomNav extends ListenerComponent {
     static HIDE_IN_GAME = ["leaderboard", "friends"];
-    static HIDE_NOT_CONNECTED = ["friends"];
+    static HIDE_NOT_CONNECTED = ["friends","message"];
 
     constructor() {
         super();
@@ -47,6 +47,8 @@ export class CustomNav extends ListenerComponent {
     }
 
     showElementOnConnection() {
-        CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "block");
+        CustomNav.HIDE_NOT_CONNECTED.forEach(id => {
+            this.shadowRoot.getElementById(id).style.display = "block"
+        });
     }
 }
