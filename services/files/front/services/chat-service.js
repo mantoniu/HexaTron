@@ -1,7 +1,7 @@
+import {USER_EVENTS, userService} from "./user-service.js";
 import {socketService} from "./socket-service.js";
 import {chatStore} from "../js/ChatStore.js";
 import {apiClient} from "../js/ApiClient.js";
-import {USER_EVENTS, userService} from "./user-service.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 
 /**
@@ -34,15 +34,25 @@ class ChatService extends EventEmitter {
         if (ChatService._instance)
             return ChatService._instance;
 
-        this._socket = socketService.chatSocket;
         this._apiUrl = "api/chat";
-        this._setupListeners();
-
         ChatService._instance = this;
 
-        userService.on(USER_EVENTS.CONNECTION, () => this._fetchConversations());
-
         this._chatStore = chatStore;
+    }
+
+    /**
+     * Gets the socket connection for the user.
+     *
+     * @returns {Socket} The socket instance.
+     */
+    get socket() {
+        if (!this._socket.connected)
+            this._socket.connect();
+        return this._socket;
+    }
+
+    set socket(socket) {
+        this._socket = socket;
     }
 
     /**
@@ -54,14 +64,14 @@ class ChatService extends EventEmitter {
      * @returns {Promise<void>} Resolves when the initialization is complete.
      */
     async init() {
-        if (userService.isConnected())
-            await this._fetchConversations();
-
-        userService.on(USER_EVENTS.CONNECTION, async () =>
-            await this._fetchConversations());
-
         userService.on(USER_EVENTS.LOGOUT, () =>
             this._chatStore.clear());
+
+        socketService.on(socketService.SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
+            this._socket = socket;
+            this._setupChatSocketListeners();
+            await this._fetchConversations();
+        });
     }
 
     /**
@@ -79,9 +89,8 @@ class ChatService extends EventEmitter {
     /**
      * Sets up event listeners for chat updates received from the server.
      *
-     * @private
      */
-    _setupListeners() {
+    _setupChatSocketListeners() {
         this._socket.on("message", (conversationId, message) => {
             this._chatStore.addMessage(conversationId, message);
             this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
@@ -90,6 +99,22 @@ class ChatService extends EventEmitter {
         this._socket.on("deleteMessage", (conversationId, messageId) => {
             this._chatStore.deleteMessage(conversationId, messageId);
             this.emit(CHAT_EVENTS.MESSAGE_DELETED, conversationId, messageId);
+        });
+
+        this._socket.on("newConversation", (conversation, creatorId) => {
+            conversation.messages = new Map();
+            this._chatStore.setConversation(conversation);
+            this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
+            this._chatStore.markAsFetched(conversation._id);
+            if (userService.user._id === creatorId)
+                this.emit("openConversation", conversation);
+        });
+
+
+        this._socket.on("conversationExists", (conversationId, creatorId) => {
+            const conversation = this._chatStore.getConversation(conversationId);
+            if (userService.user._id === creatorId)
+                this.emit("openConversation", conversation);
         });
 
         this._socket.on("error", (error) => console.error(error));
@@ -128,6 +153,11 @@ class ChatService extends EventEmitter {
 
         await this._fetchConversation(conversationId);
         return this._chatStore.getConversation(conversationId);
+    }
+
+
+    createConversation(friendId) {
+        this.socket.emit("createConversation", userService.user._id, friendId);
     }
 
     /**

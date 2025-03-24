@@ -47,8 +47,9 @@ const servicesConfig = {
         ws: {
             namespace: '/chat',
         },
-        auth: null
+        auth: ["userId"]
     },
+
 
     game: {
         target: process.env.GAME_SERVICE_URL,

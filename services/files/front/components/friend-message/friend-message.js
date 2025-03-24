@@ -1,6 +1,7 @@
-import {Component} from "../component/component.js";
+import {userService} from "../../services/user-service.js";
+import {ListenerComponent} from "../component/listener-component.js";
 
-export class FriendMessage extends Component {
+export class FriendMessage extends ListenerComponent {
     constructor() {
         super();
 
@@ -19,6 +20,10 @@ export class FriendMessage extends Component {
         this._timeElem = this.shadowRoot.getElementById("friend-message-time");
 
         this._update();
+
+        this.addAutomaticEventListener(userService, "updateFriends", () => {
+            this._update();
+        });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -47,7 +52,7 @@ export class FriendMessage extends Component {
         this._lastMessageElem.innerHTML = this._lastMessage || "The conversation is empty.";
 
         if (this._name)
-            this._nameElem.innerHTML = this._name;
+            this._nameElem.innerHTML = userService.getNameById(this._name);
         if (this._time)
             this._timeElem.innerHTML = this._time;
 

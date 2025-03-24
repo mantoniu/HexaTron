@@ -1,4 +1,3 @@
-import {Component} from "../component/component.js";
 import {LoginPortal} from "../login-portal/login-portal.js";
 import {userService} from "../../services/user-service.js";
 import {UserProfile} from "../user-profile/user-profile.js";
@@ -8,6 +7,8 @@ import {SettingsPortal} from "../settings-portal/settings-portal.js";
 import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 import {ChatPortal} from "../chat-portal/chat-portal.js";
 import {FriendsPortal} from "../friends-portal/friends-portal.js";
+import {ListenerComponent} from "../component/listener-component.js";
+import {chatService} from "../../services/chat-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -19,7 +20,7 @@ export const DRAWER_CONTENT = Object.freeze({
     CHAT: "chat"
 });
 
-export class DrawerMenu extends Component {
+export class DrawerMenu extends ListenerComponent {
     constructor() {
         super();
 
@@ -82,6 +83,14 @@ export class DrawerMenu extends Component {
                 this.shadowRoot.querySelector("friends-portal").stopWatchingProfileEvent();
                 this.setInitialState();
             };
+        });
+
+        this.addAutomaticEventListener(chatService, "openConversation", async (conversation) => {
+            this.loadContent(DRAWER_CONTENT.CHAT);
+            this.shadowRoot.querySelector("chat-portal").connectedCallback().then(async () => {
+                await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
+                this.shadowRoot.querySelector("chat-portal")._openChatBox(conversation);
+            });
         });
     }
 

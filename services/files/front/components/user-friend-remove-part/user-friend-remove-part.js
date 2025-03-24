@@ -1,4 +1,5 @@
 import {Component} from "../component/component.js";
+import {chatService} from "../../services/chat-service.js";
 
 export class UserFriendRemovePart extends Component {
     static SELECTORS = {
@@ -37,6 +38,6 @@ export class UserFriendRemovePart extends Component {
 
     sendMessage(click) {
         click.stopPropagation();
-        //TODO go to the message page
+        chatService.createConversation(this.getAttribute("friendId"));
     }
 }

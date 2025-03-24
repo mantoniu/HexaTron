@@ -8,11 +8,6 @@ const routes = [
         handler: controller.getConversations
     },
     {
-        method: "POST",
-        path: ["conversations"],
-        handler: controller.createConversation
-    },
-    {
         method: "GET",
         path: ["health"],
         handler: controller.health

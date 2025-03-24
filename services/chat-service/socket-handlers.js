@@ -1,8 +1,10 @@
-const {saveMessage, deleteMessageWithOwner, markMessagesAsRead} = require("./database");
+const {saveMessage, deleteMessageWithOwner, markMessagesAsRead, createConversation, getConversationIdIfExists} = require("./database");
+const {DATABASE_ERRORS} = require("./utils");
 
 module.exports = (io) => {
     io.on('connection', (gatewaySocket) => {
         console.log("Socket connected", gatewaySocket.id);
+        gatewaySocket.join(gatewaySocket.handshake.auth.userId);
 
         gatewaySocket.on("messagesRead", async (messageIds, conversationId, userId) => {
             try {
@@ -52,6 +54,38 @@ module.exports = (io) => {
                 console.error("Error saving message:", error);
                 gatewaySocket.emit("error", {message: "Failed to send message"});
             }
+        });
+
+        gatewaySocket.on("createConversation", async (userId, friendsId) => {
+            try {
+                const conversationId = await getConversationIdIfExists(userId, friendsId);
+
+                if (conversationId.length !== 0) {
+                    gatewaySocket.emit("conversationExists", conversationId[0]._id, userId);
+                } else {
+                    let conversation = await createConversation([userId, friendsId]);
+                    let conversationForFriend = structuredClone(conversation);
+
+                    conversation.participants = conversation.participants.filter(id => id.toString() !== userId);
+                    conversationForFriend.participants = conversationForFriend.participants.filter(id => id.toString() !== friendsId);
+
+                    const socketFriend = await io.in(friendsId).fetchSockets();
+                    socketFriend.forEach(socket => {
+                        socket.join(conversation._id);
+                        socket.emit("newConversation", conversationForFriend, userId);
+                    });
+                    gatewaySocket.join(conversation._id);
+                    gatewaySocket.emit("newConversation", conversation, userId);
+                }
+            } catch (error) {
+                if (error.message === DATABASE_ERRORS.PARTICIPANT_NOT_FOUND)
+                    gatewaySocket.emit("error", {message: "One or more participants do not exist."});
+                else if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
+                    gatewaySocket.emit("error", {message: "The conversation data is invalid."});
+                else
+                    gatewaySocket.emit("error", {message: error.message});
+            }
+
         });
     });
 };

@@ -48,6 +48,7 @@ export class UserFriendPart extends Component {
         this.update();
         this._elements.REQUESTED.setAttribute("short-version", this.getAttribute("short-version"));
         this._elements.FRIEND.setAttribute("deletion-desactivate", this.getAttribute("deletion-desactivate"));
+        this._elements.FRIEND.setAttribute("friendId", this._friendId);
     }
 
     update() {

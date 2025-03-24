@@ -1,11 +1,16 @@
-import {userService} from "./user-service.js";
+import {EventEmitter} from "../js/EventEmitter.js";
 
 /**
  * Service for managing Socket.IO connections.
  *
  * @class
  */
-class SocketService {
+class SocketService extends EventEmitter {
+    SOCKET_SERVICE_EVENT = Object.freeze({
+        CHAT_SOCKET_CONNECTED: "chatSocketConnected",
+        FRIENDS_SOCKET_CONNECTED: "friendsSocketConnected"
+    });
+
     /**
      * Singleton instance of SocketService.
      *
@@ -33,6 +38,8 @@ class SocketService {
      * @private
      */
     constructor() {
+        super();
+
         if (SocketService._instance)
             return SocketService._instance;
 
@@ -72,6 +79,22 @@ class SocketService {
         return this._sockets.friendsSocket;
     }
 
+    connectChatSocket(userId) {
+        this._sockets.chat = io(`${this.baseUrl}/chat`,
+            {
+                auth: {
+                    userId: userId
+                },
+                autoConnect: true
+            });
+        this._sockets.chat.on("connect", () => {
+            this.emit(socketService.SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, this._sockets.chat);
+            console.log("[ChatSocket] Connected:", this._sockets.chat.id);
+        });
+        this._sockets.chat.on("disconnect", () => console.warn("[ChatSocket] Disconnected!"));
+    }
+
+
     /**
      * Connects the user to the friends-related socket server.
      *
@@ -93,8 +116,7 @@ class SocketService {
                 autoConnect: true
             });
         this._sockets.friends.on("connect", () => {
-            userService.socket = this._sockets.friends;
-            userService._setupFriendSocketListeners();
+            this.emit(socketService.SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, this._sockets.friends);
             console.log("[FriendSocket] Connected:", this._sockets.friends.id);
         });
         this._sockets.friends.on("disconnect", () => console.warn("[FriendSocket] Disconnected!"));
@@ -121,9 +143,6 @@ class SocketService {
     setupListeners() {
         this._sockets.game.on('connect', () => console.log('[GameSocket] Connected:', this._sockets.game.id));
         this._sockets.game.on('disconnect', () => console.warn('[GameSocket] Disconnected!'));
-
-        this._sockets.chat.on('connect', () => console.log('[ChatSocket] Connected:', this._sockets.chat.id));
-        this._sockets.chat.on('disconnect', () => console.warn('[ChatSocket] Disconnected!'));
     }
 }
 

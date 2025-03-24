@@ -2,7 +2,7 @@ const {parse} = require('url');
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const {
     getUserConversationsWithLastMessage,
-    createConversation, getConversationWithMessagesBeforeDate
+    getConversationWithMessagesBeforeDate
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 
@@ -32,27 +32,6 @@ exports.getConversations = async (req, res) => {
 
         if (error.message === DATABASE_ERRORS.CONVERSATION_NOT_FOUND)
             throw new HttpError(404, "Conversation not found.");
-
-        throw new HttpError(500, error.message);
-    }
-};
-
-exports.createConversation = async (req, res) => {
-    try {
-        const participants = req.body;
-        const conversation = await createConversation(participants);
-
-        res.writeHead(201, {"Content-Type": "application/json"});
-        res.end(JSON.stringify({
-            message: "Conversation successfully created.",
-            conversation: conversation
-        }));
-    } catch (error) {
-        if (error.message === DATABASE_ERRORS.PARTICIPANT_NOT_FOUND)
-            throw new HttpError(404, "One or more participants do not exist.");
-
-        if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
-            throw new HttpError(400, "The conversation data is invalid.");
 
         throw new HttpError(500, error.message);
     }

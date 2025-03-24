@@ -31,6 +31,7 @@ export class ChatPortal extends ListenerComponent {
 
         this.shadowRoot.addEventListener("open-conversation", async (event) => {
             const conversation = await chatService.getConversation(event.detail.conversationId);
+            console.log(conversation);
             this._openChatBox(conversation);
         });
 
@@ -69,6 +70,11 @@ export class ChatPortal extends ListenerComponent {
     _setupListeners() {
         this._setupPortalListeners();
         this._setupChatListeners();
+    }
+
+    async _changeToggleSelected(value) {
+        this._toggleChoice = value;
+        this.shadowRoot.getElementById("chat-type").setAttribute("selected", value);
     }
 
     _openChatBox(conversation) {

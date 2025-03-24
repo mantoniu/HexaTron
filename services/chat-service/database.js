@@ -137,7 +137,7 @@ async function getConversationsWithMessages({
                                 $filter: {
                                     input: "$participants",
                                     as: "participant",
-                                    cond: {$ne: ["$$participant", new ObjectId(excludeUserId)]}
+                                    cond: {$ne: [{$toString: "$$participant"}, excludeUserId]}
                                 }
                             }
                         }
@@ -179,7 +179,6 @@ async function getUserConversationsWithLastMessage(userId) {
 
     if (globalConversation.length)
         conversations.push(globalConversation[0]);
-
     return conversations;
 }
 
@@ -355,6 +354,24 @@ async function createGlobalConversation() {
         console.log("Global conversation already exists.");
 }
 
+async function getConversationIdIfExists(userId1, userId2) {
+    return await mongoOperation(() =>
+        db.collection(conversationCollection).aggregate([
+            {
+                $match: {
+                    participants: {$all: [new ObjectId(userId1), new ObjectId(userId2)]},
+                    isGlobal: {$ne: true}
+                }
+            },
+            {
+                $project: {
+                    _id: 1
+                }
+            }
+        ]).toArray()
+    );
+}
+
 module.exports = {
     createGlobalConversation,
     deleteMessageWithOwner,
@@ -362,5 +379,6 @@ module.exports = {
     getUserConversationsWithLastMessage,
     createConversation,
     saveMessage,
-    markMessagesAsRead
+    markMessagesAsRead,
+    getConversationIdIfExists
 };

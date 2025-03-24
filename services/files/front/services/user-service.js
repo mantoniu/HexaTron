@@ -96,11 +96,17 @@ class UserService extends EventEmitter {
 
         if (this._connected) {
             socketService.connectFriendsSocket(this._user._id);
+            socketService.connectChatSocket(this._user._id);
         }
 
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
         }
+
+        socketService.on(socketService.SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, (socket) => {
+            this._socket = socket;
+            this._setupFriendSocketListeners();
+        });
 
         UserService._instance = this;
     }
@@ -127,6 +133,14 @@ class UserService extends EventEmitter {
      */
     get user() {
         return this._user;
+    }
+
+    getNameById(id) {
+        if (this.user._id === id) {
+            return this.user.name;
+
+        }
+        return this.user.friends[id].name;
     }
 
     /**
@@ -195,8 +209,10 @@ class UserService extends EventEmitter {
     async _authenticate(endpoint, data, action) {
         const response = await apiClient.request("POST", endpoint, data);
         if (response.success) {
+            this.emit(USER_EVENTS.CONNECTION);
             this._setUserData(response.data);
             socketService.connectFriendsSocket(this._user._id);
+            socketService.connectChatSocket(this._user._id);
             return {success: true, user: this._user};
         }
         return {success: false, error: this._getErrorMessage(response.status, action)};
@@ -406,7 +422,6 @@ class UserService extends EventEmitter {
         apiClient.setTokens(data.accessToken, data.refreshToken);
         this._connected = true;
         this._saveToLocalStorage();
-        this.emit(USER_EVENTS.CONNECTION);
     }
 
     /**
