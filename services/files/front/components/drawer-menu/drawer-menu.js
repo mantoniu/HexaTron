@@ -17,7 +17,8 @@ export const DRAWER_CONTENT = Object.freeze({
     SETTINGS: "settings",
     LEADERBOARD: "leaderboard",
     FRIENDS: "friends",
-    CHAT: "chat"
+    CHAT: "chat",
+    VOID: ""
 });
 
 export class DrawerMenu extends ListenerComponent {
@@ -42,8 +43,11 @@ export class DrawerMenu extends ListenerComponent {
         this._content = this.shadowRoot.getElementById("content");
 
         this.addAutoCleanListener(window, "openDrawer", (event) => {
-            if (this.loadContent(event.detail.type))
+            if (this.loadContent(event.detail.type)) {
+                this.previous = event.detail.type;
+                this.setInitialState();
                 this.nav(event.detail.type);
+            }
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
@@ -61,28 +65,20 @@ export class DrawerMenu extends ListenerComponent {
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
             event.stopPropagation();
             this.previous = this.current;
-            if (event.detail.name === userService.user.name) {
+            if (event.detail.player._id === userService.user._id) {
                 this.current = DRAWER_CONTENT.PROFILE;
                 this.loadContent(DRAWER_CONTENT.PROFILE);
             } else {
-                this.current = DRAWER_CONTENT.FRIENDS;
-                this.loadContent(DRAWER_CONTENT.FRIENDS);
-                const newEvent = new CustomEvent("watchProfile", {
-                    detail: {player: event.detail},
-                    bubbles: true,
-                    composed: true
-                });
-                this.shadowRoot.querySelector("friends-portal").dispatchEvent(newEvent);
-            }
-        });
+                this.current = DRAWER_CONTENT.VOID;
 
-        this.addAutoCleanListener(this, "watchProfile", (event) => {
-            event.stopPropagation();
-            this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
-            this.shadowRoot.getElementById("close-btn").onclick = () => {
-                this.shadowRoot.querySelector("friends-portal").stopWatchingProfileEvent();
-                this.setInitialState();
-            };
+                this._content.innerHTML = `<user-profile user='${JSON.stringify(event.detail.player)}' editable='false' part='user-friend-part'></user-profile>`;
+
+                this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
+                this.shadowRoot.getElementById("close-btn").onclick = () => {
+                    this.loadContent(this.previous);
+                    this.setInitialState();
+                };
+            }
         });
 
         this.addAutomaticEventListener(chatService, "openConversation", async (conversation) => {
