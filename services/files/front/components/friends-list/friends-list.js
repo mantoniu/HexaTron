@@ -34,25 +34,22 @@ export class FriendsList extends Component {
 
     setupList() {
         const shadowRoot = this.shadowRoot;
+        const element = shadowRoot.querySelector(".no-messages");
 
         if (!this.isConnected || !this.friendList) {
             return;
         }
-        if (Object.keys(this.friendList).length === 0) {
+        if (!element && Object.keys(this.friendList).filter(id => this.statusAccepted.includes(this.friendList[id].status)).length === 0) {
             const noMessagesText = document.createElement("p");
             noMessagesText.classList.add("no-messages");
             noMessagesText.textContent = this.getAttribute("message");
-
             shadowRoot.appendChild(noMessagesText);
-        } else {
-            const element = shadowRoot.querySelector(".no-messages");
-            if (element) {
+        } else if (element && Object.keys(this.friendList).filter(id => this.statusAccepted.includes(this.friendList[id].status)).length !== 0) {
                 shadowRoot.removeChild(element);
-            }
-            Object.entries(this.friendList).forEach(([friendId, value]) => {
-                this.setupElement(friendId, value);
-            });
         }
+        Object.entries(this.friendList).forEach(([friendId, value]) => {
+            this.setupElement(friendId, value);
+        });
     }
 
     setupElement(friendId, value) {
@@ -77,5 +74,6 @@ export class FriendsList extends Component {
         if (this.shadowRoot.getElementById(id)) {
             this.shadowRoot.removeChild(this.shadowRoot.getElementById(id));
         }
+        this.setupList();
     }
 }
