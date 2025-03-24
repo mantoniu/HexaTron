@@ -1,4 +1,3 @@
-import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 
 export class UsernameBar extends ListenerComponent {
@@ -17,10 +16,6 @@ export class UsernameBar extends ListenerComponent {
         });
 
         this._update();
-
-        this.addAutomaticEventListener(userService, "updateFriends", () => {
-            this._update();
-        });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -33,6 +28,6 @@ export class UsernameBar extends ListenerComponent {
     _update() {
         const usernameElem = this.shadowRoot.getElementById("username");
         if (usernameElem && this._username)
-            usernameElem.textContent = userService.getNameById(this._username);
+            usernameElem.textContent = this._username;
     }
 }

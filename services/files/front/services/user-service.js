@@ -135,14 +135,6 @@ class UserService extends EventEmitter {
         return this._user;
     }
 
-    getNameById(id) {
-        if (this.user._id === id) {
-            return this.user.name;
-
-        }
-        return this.user.friends[id].name;
-    }
-
     /**
      * Retrieves the singleton instance of UserService.
      *

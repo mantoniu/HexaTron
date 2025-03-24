@@ -1,4 +1,3 @@
-import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 
 export class ChatMessage extends ListenerComponent {
@@ -28,10 +27,6 @@ export class ChatMessage extends ListenerComponent {
         });
 
         this._update();
-
-        this.addAutomaticEventListener(userService, "updateFriends", () => {
-            this._update();
-        });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -60,9 +55,9 @@ export class ChatMessage extends ListenerComponent {
         if (!this._usernameLabel || !this._messageContent || !this._timeStampLabel)
             return;
 
-        this._usernameLabel.innerHTML = userService.getNameById(this._sender);
-        this._messageContent.innerHTML = this._content;
-        this._timeStampLabel.innerHTML = this._time;
+        this._usernameLabel.textContent = this._sender;
+        this._messageContent.textContent = this._content;
+        this._timeStampLabel.textContent = this._time;
 
         this.className = '';
         this.classList.add(this._type);

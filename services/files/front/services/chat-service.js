@@ -12,6 +12,7 @@ import {EventEmitter} from "../js/EventEmitter.js";
 export const CHAT_EVENTS = Object.freeze({
     CONVERSATIONS_UPDATED: "CONVERSATIONS_UPDATED",
     CONVERSATION_UPDATED: "CONVERSATION_UPDATED",
+    NEW_CONVERSATION: "NEW_CONVERSATION",
     MESSAGE_ADDED: "MESSAGE_ADDED",
     MESSAGE_REPLACED: "MESSAGE_REPLACED",
     MESSAGE_DELETED: "MESSAGE_DELETED",
@@ -104,10 +105,11 @@ class ChatService extends EventEmitter {
         this._socket.on("newConversation", (conversation, creatorId) => {
             conversation.messages = new Map();
             this._chatStore.setConversation(conversation);
-            this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
             this._chatStore.markAsFetched(conversation._id);
             if (userService.user._id === creatorId)
                 this.emit("openConversation", conversation);
+            else
+                this.emit(CHAT_EVENTS.NEW_CONVERSATION);
         });
 
 
@@ -156,6 +158,16 @@ class ChatService extends EventEmitter {
     }
 
 
+    /**
+     * Initiates a conversation with a specific friend by emitting an event to the server.
+     *
+     * This function sends a "createConversation" event to the socket server, requesting
+     * the creation of a conversation between the current user and the specified friend.
+     *
+     * @function
+     * @param {string} friendId - The ID of the friend to start the conversation with.
+     * @event createConversation - Sent to the server with the user ID and friend ID.
+     */
     createConversation(friendId) {
         this.socket.emit("createConversation", userService.user._id, friendId);
     }
@@ -226,7 +238,6 @@ class ChatService extends EventEmitter {
         this._joinConversations(response.data.conversations);
 
         response.data.conversations.forEach(conv => this._chatStore.setConversation(conv));
-        this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         this._chatStore.markConversationsAsFetched();
     }
 
@@ -272,7 +283,7 @@ class ChatService extends EventEmitter {
 
         this._chatStore.addMessage(conversationId, message);
         this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
-        this._socket.emit("message", content, conversationId, userService.user._id, (serverMessage) => {
+        this._socket.emit("message", content, conversationId, userService.user._id, userService.user.name, (serverMessage) => {
             this._chatStore.replaceMessage(conversationId, tempId, serverMessage);
             this.emit(CHAT_EVENTS.MESSAGE_SENT, tempId, serverMessage, conversationId);
         });
@@ -286,6 +297,11 @@ class ChatService extends EventEmitter {
      */
     deleteMessage(conversationId, messageId) {
         this._socket.emit("deleteMessage", messageId, userService.user._id);
+    }
+
+    updateFriend(friend) {
+        this._chatStore.updateFriend(friend);
+        this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
     }
 }
 

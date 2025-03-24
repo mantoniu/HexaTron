@@ -39,6 +39,10 @@ export class ChatPortal extends ListenerComponent {
             await this._openFriendList();
             event.stopPropagation();
         });
+
+        this.addAutomaticEventListener(userService, "updateFriends", async (friend) => {
+            chatService.updateFriend(friend);
+        });
     }
 
     _setupChatListeners() {
@@ -65,6 +69,21 @@ export class ChatPortal extends ListenerComponent {
             if (chatBox && chatBox.getAttribute("id") === conversationId)
                 chatBox.messageDeleted(conversationId, messageId);
         });
+
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.NEW_CONVERSATION, async () => {
+            await this._openFriendList();
+        });
+
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATIONS_UPDATED, async () => {
+            const chatBox = this.shadowRoot.querySelector("chat-box");
+            if (chatBox) {
+                const conversation = await chatService.getConversation(chatBox.id);
+                if (conversation)
+                    chatBox.refresh(conversation);
+            } else {
+                await this.loadContent();
+            }
+        });
     }
 
     _setupListeners() {
@@ -82,7 +101,7 @@ export class ChatPortal extends ListenerComponent {
         const chatBox = document.createElement("chat-box");
         this._content.appendChild(chatBox);
 
-        const friendUsername = conversation.participants?.[0];
+        const friendUsername = conversation.participants?.[0]?.name;
         const messages = (Array.from(conversation.messages.values()) ?? []);
         chatBox.setAttribute("id", conversation._id);
 
@@ -113,7 +132,8 @@ export class ChatPortal extends ListenerComponent {
         if (this._toggleChoice === "global") {
             const globalConversation = await chatService.getGlobalConversation();
             this._openChatBox(globalConversation);
-        } else await this._openFriendList();
+        } else
+            await this._openFriendList();
     }
 
     _updateFriendMessage(conversationId, message) {

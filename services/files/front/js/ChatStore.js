@@ -227,6 +227,19 @@ class ChatStore {
         this._fetchedConversations.clear();
         this._conversationsFetched = false;
     }
+
+    updateFriend(friend) {
+        this._conversations.forEach((conversation, _) => {
+            conversation.participants.forEach(participant => {
+                if (participant.id === friend.id)
+                    participant.name = friend.friendData.name;
+            });
+            conversation.messages.forEach((message, _) => {
+                if (message.senderId === friend.id)
+                    message.senderName = friend.friendData.name;
+            });
+        });
+    }
 }
 
 export const chatStore = new ChatStore();

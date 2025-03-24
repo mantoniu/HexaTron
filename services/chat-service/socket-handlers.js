@@ -1,4 +1,11 @@
-const {saveMessage, deleteMessageWithOwner, markMessagesAsRead, createConversation, getConversationIdIfExists} = require("./database");
+const {
+    saveMessage,
+    deleteMessageWithOwner,
+    markMessagesAsRead,
+    createConversation,
+    getConversationIdIfExists,
+    getConversationWithMessagesBeforeDate
+} = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 
 module.exports = (io) => {
@@ -87,7 +94,7 @@ module.exports = (io) => {
          * @event message - Emitted when a new message is sent to the conversation.
          * @event error - Emitted if required fields are missing or message saving fails.
          */
-        gatewaySocket.on("message", async (content, conversationId, senderId, callback) => {
+        gatewaySocket.on("message", async (content, conversationId, senderId, senderName, callback) => {
             try {
                 if (!content || !conversationId || !senderId) {
                     return gatewaySocket.emit("error", {message: "Missing required fields"});
@@ -102,7 +109,7 @@ module.exports = (io) => {
                 };
 
                 const messageId = await saveMessage(message);
-                const newMessage = {_id: messageId, ...message};
+                const newMessage = {_id: messageId, ...message, senderName: senderName};
 
                 if (callback)
                     callback(newMessage);
@@ -137,18 +144,17 @@ module.exports = (io) => {
                 if (conversationId.length !== 0) {
                     gatewaySocket.emit("conversationExists", conversationId[0]._id, userId);
                 } else {
-                    let conversation = await createConversation([userId, friendsId]);
-                    let conversationForFriend = structuredClone(conversation);
+                    const conversationId = await createConversation([userId, friendsId]);
 
-                    conversation.participants = conversation.participants.filter(id => id.toString() !== userId);
-                    conversationForFriend.participants = conversationForFriend.participants.filter(id => id.toString() !== friendsId);
+                    const conversation = await getConversationWithMessagesBeforeDate(conversationId.toString(), userId);
+                    const conversationForFriend = await getConversationWithMessagesBeforeDate(conversationId.toString(), friendsId);
 
                     const socketFriend = await io.in(friendsId).fetchSockets();
                     socketFriend.forEach(socket => {
-                        socket.join(conversation._id);
+                        socket.join(conversationId);
                         socket.emit("newConversation", conversationForFriend, userId);
                     });
-                    gatewaySocket.join(conversation._id);
+                    gatewaySocket.join(conversationId);
                     gatewaySocket.emit("newConversation", conversation, userId);
                 }
             } catch (error) {

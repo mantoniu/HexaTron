@@ -51,4 +51,8 @@ export class ChatBox extends Component {
     messageDeleted(conversationId, messageId) {
         this._chatWindow?.deleteMessage(messageId);
     }
+
+    refresh(messages) {
+        this._chatWindow.refresh(messages);
+    }
 }

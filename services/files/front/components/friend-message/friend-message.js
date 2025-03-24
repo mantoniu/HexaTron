@@ -1,4 +1,3 @@
-import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 
 export class FriendMessage extends ListenerComponent {
@@ -20,10 +19,6 @@ export class FriendMessage extends ListenerComponent {
         this._timeElem = this.shadowRoot.getElementById("friend-message-time");
 
         this._update();
-
-        this.addAutomaticEventListener(userService, "updateFriends", () => {
-            this._update();
-        });
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -49,12 +44,12 @@ export class FriendMessage extends ListenerComponent {
         if (!this._nameElem || !this._lastMessageElem || !this._timeElem)
             return;
 
-        this._lastMessageElem.innerHTML = this._lastMessage || "The conversation is empty.";
+        this._lastMessageElem.textContent = this._lastMessage || "The conversation is empty.";
 
         if (this._name)
-            this._nameElem.innerHTML = userService.getNameById(this._name);
+            this._nameElem.textContent = this._name;
         if (this._time)
-            this._timeElem.innerHTML = this._time;
+            this._timeElem.textContent = this._time;
 
         if (this._unread)
             this.classList.add("unread");

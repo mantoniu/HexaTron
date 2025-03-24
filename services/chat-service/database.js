@@ -84,12 +84,47 @@ async function getConversationsWithMessages({
                         {$sort: {timestamp: sortMessageOrder}},
                         {$limit: messageLimit},
                         {
+                            $lookup: {
+                                from: "users",
+                                localField: "senderId",
+                                foreignField: "_id",
+                                as: "senderInfo"
+                            }
+                        },
+                        {
+                            $addFields: {
+                                senderInfo: {$arrayElemAt: ["$senderInfo", 0]}
+                            }
+                        },
+                        {
                             $project: {
-                                _id: 1, content: 1, senderId: 1, timestamp: 1, isRead: 1
+                                _id: 1, content: 1, senderId: 1, senderName: "$senderInfo.name", timestamp: 1, isRead: 1
                             }
                         }
                     ],
                     as: "messages"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "participants",
+                    foreignField: "_id",
+                    as: "participantsInfo"
+                }
+            },
+            {
+                $addFields: {
+                    participants: {
+                        $map: {
+                            input: "$participantsInfo",
+                            as: "participant",
+                            in: {
+                                id: {$toString: "$$participant._id"},
+                                name: "$$participant.name"
+                            }
+                        }
+                    }
                 }
             },
             {
@@ -119,17 +154,6 @@ async function getConversationsWithMessages({
                     }
                 }
             },
-            {
-                $addFields: {
-                    participants: {
-                        $map: {
-                            input: "$participants",
-                            as: "participant",
-                            in: {$toString: "$$participant"}
-                        }
-                    }
-                }
-            },
             ...(excludeUserId
                     ? [{
                         $set: {
@@ -137,7 +161,7 @@ async function getConversationsWithMessages({
                                 $filter: {
                                     input: "$participants",
                                     as: "participant",
-                                    cond: {$ne: [{$toString: "$$participant"}, excludeUserId]}
+                                    cond: {$ne: ["$$participant.id", excludeUserId]}
                                 }
                             }
                         }
@@ -194,9 +218,7 @@ async function getUserConversationsWithLastMessage(userId) {
  * @throws {Error} `USER_NOT_PARTICIPANT` - If the user is not a participant of the conversation
  * @returns {Promise<Object|null>} - The conversation object with its recent messages, or null if not found.
  */
-async function getConversationWithMessagesBeforeDate(conversationId, userId, date, limit = DEFAULT_MESSAGE_LIMIT) {
-    const referenceDate = date ? new Date(date) : new Date();
-
+async function getConversationWithMessagesBeforeDate(conversationId, userId, date = new Date(), limit = DEFAULT_MESSAGE_LIMIT) {
     const conversations = await getConversationsWithMessages({
         conversationFilter: {
             _id: new ObjectId(conversationId),
@@ -205,7 +227,7 @@ async function getConversationWithMessagesBeforeDate(conversationId, userId, dat
                 {isGlobal: true}
             ]
         },
-        messageFilter: {timestamp: {$lt: new Date(referenceDate)}},
+        messageFilter: {timestamp: {$lt: new Date(date)}},
         messageLimit: limit,
         excludeUserId: userId
     });
@@ -304,7 +326,7 @@ async function createConversation(participantIds) {
     const result = await mongoOperation(() =>
         db.collection(conversationCollection).insertOne(conversation));
 
-    return {_id: result.insertedId, ...conversation};
+    return result.insertedId.toString();
 }
 
 /**
