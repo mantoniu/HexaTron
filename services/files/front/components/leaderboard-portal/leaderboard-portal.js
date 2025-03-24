@@ -35,21 +35,10 @@ export class LeaderboardPortal extends Component {
 
         this.shadowRoot.getElementById("league-selector").value = "Global";
         this.selectLeague();
-        this.addAutoCleanListener(this, "watchProfile", (event) => this.handleEvent(event));
     }
 
     selectLeague() {
         const league = this.shadowRoot.getElementById("league-selector").value;
         this.shadowRoot.getElementById("leaderboard").setLeague(league, this.leaderboard[league], this.rank);
-    }
-
-    handleEvent(event) {
-        event.stopPropagation();
-        const newEvent = new CustomEvent("showUserProfile", {
-            bubbles: true,
-            composed: true,
-            detail: event.detail.player
-        });
-        this.dispatchEvent(newEvent);
     }
 }
