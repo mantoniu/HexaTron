@@ -297,6 +297,7 @@ const routes = [
          *       - User service
          *     responses:
          *       204:
+         *          description: Only the http code of the response
          */
         method: "GET",
         path: ["health"],

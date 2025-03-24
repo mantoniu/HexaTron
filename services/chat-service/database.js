@@ -354,6 +354,19 @@ async function createGlobalConversation() {
         console.log("Global conversation already exists.");
 }
 
+/**
+ * Retrieves the ID of an existing conversation between two users.
+ *
+ * This function searches the conversation collection for a private (non-global) conversation
+ * that contains exactly the two specified users. It returns the conversation ID if found.
+ *
+ * @async
+ * @function getConversationIdIfExists
+ * @param {string} userId1 - The ID of the first user.
+ * @param {string} userId2 - The ID of the second user.
+ * @returns {Promise<Object[]>} A promise resolving to an array containing the conversation ID if found,
+ *                              or an empty array if no conversation exists.
+ */
 async function getConversationIdIfExists(userId1, userId2) {
     return await mongoOperation(() =>
         db.collection(conversationCollection).aggregate([
