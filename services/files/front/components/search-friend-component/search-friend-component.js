@@ -70,7 +70,7 @@ export class SearchFriendComponent extends ListenerComponent {
 
         this.searchResults.forEach(user => {
             const element = document.createElement("friend-list-element");
-            element.id = user.id;
+            element.id = user._id;
             element.setPlayer(user);
 
             this.resultsContainer.appendChild(element);

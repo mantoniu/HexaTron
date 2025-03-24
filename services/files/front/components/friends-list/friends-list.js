@@ -33,6 +33,8 @@ export class FriendsList extends Component {
     }
 
     setupList() {
+        const shadowRoot = this.shadowRoot;
+
         if (!this.isConnected || !this.friendList) {
             return;
         }
@@ -41,8 +43,12 @@ export class FriendsList extends Component {
             noMessagesText.classList.add("no-messages");
             noMessagesText.textContent = this.getAttribute("message");
 
-            this.shadowRoot.appendChild(noMessagesText);
+            shadowRoot.appendChild(noMessagesText);
         } else {
+            const element = shadowRoot.querySelector(".no-messages");
+            if (element) {
+                shadowRoot.removeChild(element);
+            }
             Object.entries(this.friendList).forEach(([friendId, value]) => {
                 this.setupElement(friendId, value);
             });
