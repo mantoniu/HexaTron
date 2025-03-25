@@ -1,3 +1,5 @@
+import {AlertMessage} from "../components/alert-message/alert-message.js";
+
 export function resizeCanvas(percentWidth, percentHeight, id, drawingFunction) {
     const rect = this.getBoundingClientRect();
     const canvas = this.shadowRoot.getElementById(id);
@@ -47,4 +49,23 @@ export async function waitForElm(context, id) {
 
 export function getRandomInt(max) {
     return Math.floor(Math.random() * max);
+}
+
+export function createAlertMessage(container, type, text, timer = 4000) {
+    AlertMessage.register();
+
+    if (!container)
+        return;
+
+    let existingAlert = container.querySelector("alert-message");
+    if (existingAlert)
+        existingAlert.remove();
+
+    const alert = document.createElement("alert-message");
+
+    alert.setAttribute("type", type);
+    alert.setAttribute("timer", timer.toString());
+    alert.innerText = text;
+
+    container.appendChild(alert);
 }
