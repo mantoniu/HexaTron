@@ -3,7 +3,7 @@ import {BaseAuth} from "../base-auth/base-auth.js";
 import {userService} from "../../services/user-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
 import {createAlertMessage} from "../../js/utils.js";
-import {FormInput} from "../form-input/form-input";
+import {FormInput} from "../form-input/form-input.js";
 
 export class RegisterPortal extends BaseAuth {
     constructor() {
