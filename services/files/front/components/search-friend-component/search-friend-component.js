@@ -1,5 +1,5 @@
 import {ListenerComponent} from "../component/listener-component.js";
-import {userService} from "../../services/user-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 
 export class SearchFriendComponent extends ListenerComponent {
     constructor() {
@@ -14,7 +14,7 @@ export class SearchFriendComponent extends ListenerComponent {
 
         this.searchInput = this.shadowRoot.getElementById("search-bar");
         this.resultsContainer = this.shadowRoot.getElementById("search-result");
-        this.addAutomaticEventListener(userService, "searchFriendsResults", (results) => {
+        this.addAutomaticEventListener(userService, USER_EVENTS.SEARCH_RESULT, (results) => {
             this.searchResults = results;
             this.displayResults();
         });

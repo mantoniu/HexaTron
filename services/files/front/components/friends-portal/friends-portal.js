@@ -1,5 +1,5 @@
 import {FriendsList} from "../friends-list/friends-list.js";
-import {userService} from "../../services/user-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {SearchFriendComponent} from "../search-friend-component/search-friend-component.js";
 import {PopupComponent} from "../popup-component/popup-component.js";
@@ -12,10 +12,8 @@ export class FriendsPortal extends ListenerComponent {
         SearchFriendComponent.register();
         PopupComponent.register();
 
-        this.profilElement = null;
-
-        this.addAutomaticEventListener(userService, "updateFriends", (data) => this.friendUpdateEvent(data));
-        this.addAutomaticEventListener(userService, "deleteFriend", (data) => this.deleteFriend(data));
+        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (_) => this.friendUpdateEvent());
+        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (data) => this.deleteFriend(data));
     }
 
     async connectedCallback() {
@@ -28,42 +26,19 @@ export class FriendsPortal extends ListenerComponent {
     }
 
     initialize() {
-        if (this.profilElement) {
-            this.shadowRoot.appendChild(this.profilElement);
-            if (this.shadowRoot.getElementById("friends-part"))
-                this.shadowRoot.getElementById("friends-part").style.display = "none";
-        } else {
-            this.shadowRoot.getElementById("friends-part").style.display = "flex";
-            this.shadowRoot.getElementById("friend-list").setFriendsList(userService.user.friends);
-            this.shadowRoot.getElementById("not-friend-list").setFriendsList(userService.user.friends);
-        }
-    }
-
-    modificationStatus(data) {
-        if (this.profilElement?.style.display === "block") {
-            if (data.deleted) {
-                this.createPopUp();
-                this.shadowRoot.removeChild(this.profilElement);
-                this.profilElement = null;
-                this.initialize();
-            } else {
-                let user = data.friendData;
-                user._id = data.id;
-                this.profilElement.setAttribute("user", JSON.stringify(user));
-            }
-        }
-    }
-
-    friendUpdateEvent(data) {
-        this.modificationStatus(data);
+        this.shadowRoot.getElementById("friends-part").style.display = "flex";
         this.shadowRoot.getElementById("friend-list").setFriendsList(userService.user.friends);
         this.shadowRoot.getElementById("not-friend-list").setFriendsList(userService.user.friends);
     }
 
+    friendUpdateEvent() {
+        this.shadowRoot.getElementById("friend-list")?.setFriendsList(userService.user.friends);
+        this.shadowRoot.getElementById("not-friend-list")?.setFriendsList(userService.user.friends);
+    }
+
     deleteFriend(data) {
-        this.modificationStatus(data);
-        this.shadowRoot.getElementById("friend-list").removeFromList(data.id);
-        this.shadowRoot.getElementById("not-friend-list").removeFromList(data.id);
+        this.shadowRoot.getElementById("friend-list")?.removeFromList(data.id);
+        this.shadowRoot.getElementById("not-friend-list")?.removeFromList(data.id);
     }
 
     createPopUp() {

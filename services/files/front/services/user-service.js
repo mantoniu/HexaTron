@@ -10,7 +10,10 @@ import {socketService} from "./socket-service.js";
  */
 export const USER_EVENTS = Object.freeze({
     CONNECTION: "CONNECTION",
-    LOGOUT: "LOGOUT"
+    LOGOUT: "LOGOUT",
+    UPDATE_FRIEND: "UPDATE_FRIEND",
+    DELETE_FRIEND: "DELETE_FRIEND",
+    SEARCH_RESULT: "SEARCH_RESULT"
 });
 
 /**
@@ -340,7 +343,7 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friends.id]});
+            this.emit(USER_EVENTS.UPDATE_FRIEND, {id: friendId, friendData: this.user.friends[response.data.friends.id]});
         } else {
             console.log("Error during the addition of a friend.");
         }
@@ -363,7 +366,7 @@ class UserService extends EventEmitter {
         if (response.success) {
             this.user.friends[response.data.friends.id] = response.data.friends.friendData;
             this._saveToLocalStorage();
-            this.emit("updateFriends", {id: friendId, friendData: this.user.friends[response.data.friends.id]});
+            this.emit(USER_EVENTS.UPDATE_FRIEND, {id: friendId, friendData: this.user.friends[response.data.friends.id]});
         } else {
             console.log("Error during the friend request acceptance.");
         }
@@ -387,7 +390,7 @@ class UserService extends EventEmitter {
             const friendData = this.user.friends[response.data.friendId];
             delete this.user.friends[response.data.friendId];
             this._saveToLocalStorage();
-            this.emit("deleteFriend", {id: friendId, friendData: friendData});
+            this.emit(USER_EVENTS.DELETE_FRIEND, {id: friendId, friendData: friendData});
         } else {
             console.log("Error during the deletion of the friend");
         }
@@ -461,18 +464,18 @@ class UserService extends EventEmitter {
         this.socket.on("update-status-friends", (friends) => {
             this.user.friends[friends.id] = friends.friendData;
             this._saveToLocalStorage();
-            this.emit("updateFriends", friends);
+            this.emit(USER_EVENTS.UPDATE_FRIEND, friends);
         });
 
         this.socket.on("delete-friends", (friendId, deleted) => {
             const friendData = this.user.friends[friendId];
             delete this.user.friends[friendId];
             this._saveToLocalStorage();
-            this.emit("deleteFriend", {id: friendId, friendData: friendData, deleted: deleted});
+            this.emit(USER_EVENTS.DELETE_FRIEND, {id: friendId, friendData: friendData, deleted: deleted});
         });
 
         this.socket.on("searchFriendsResults", (searchResult) => {
-            this.emit("searchFriendsResults", searchResult);
+            this.emit(USER_EVENTS.SEARCH_RESULT, searchResult);
         });
     }
 }

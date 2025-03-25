@@ -1,11 +1,11 @@
-import {Component} from "../component/component.js";
 import {UserFriendRemovePart} from "../user-friend-remove-part/user-friend-remove-part.js";
 import {UserFriendPendingPart} from "../user-friend-pending-part/user-friend-pending-part.js";
 import {UserFriendAddingPart} from "../user-friend-adding-part/user-friend-adding-part.js";
-import {userService} from "../../services/user-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {UserFriendRequestedPart} from "../user-friend-requested-part/user-friend-requested-part.js";
+import {ListenerComponent} from "../component/listener-component.js";
 
-export class UserFriendPart extends Component {
+export class UserFriendPart extends ListenerComponent {
     static EVENTS = {
         ACCEPT: "acceptFriend",
         DELETE_FRIEND: "deleteFriend",
@@ -31,6 +31,9 @@ export class UserFriendPart extends Component {
         Object.values(UserFriendPart.EVENTS).map(value => this.addAutoCleanListener(this, value, (event) => this.handleEvents(event, value)));
         this._elements = {};
         this._friendId = null;
+
+        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (_) => this.update());
+        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (_) => this.update());
     }
 
     static get observedAttributes() {

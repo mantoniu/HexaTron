@@ -1,5 +1,5 @@
 import {LoginPortal} from "../login-portal/login-portal.js";
-import {userService} from "../../services/user-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {UserProfile} from "../user-profile/user-profile.js";
 import {RegisterPortal} from "../register-portal/register-portal.js";
 import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-password-portal.js";
@@ -82,12 +82,19 @@ export class DrawerMenu extends ListenerComponent {
         });
 
         this.addAutomaticEventListener(chatService, "openConversation", async (conversation) => {
-            this.loadContent(DRAWER_CONTENT.CHAT);
+            if (this.loadContent(DRAWER_CONTENT.CHAT)) {
+                this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
+                this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
+                this.nav(DRAWER_CONTENT.CHAT);
+            }
             this.shadowRoot.querySelector("chat-portal").connectedCallback().then(async () => {
                 await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
                 this.shadowRoot.querySelector("chat-portal")._openChatBox(conversation);
             });
         });
+
+        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (data) => this.modificationStatus(data));
+        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (data) => this.modificationStatus(data));
     }
 
     loadContent(type) {
@@ -146,5 +153,19 @@ export class DrawerMenu extends ListenerComponent {
     setInitialState() {
         this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
         this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
+    }
+
+    modificationStatus(data) {
+        const element = this._content.querySelector("user-profile");
+        if (element && element.user._id === data.id) {
+            if (data.deleted) {
+                this.loadContent(this.previous);
+                this.setInitialState();
+            } else {
+                let user = data.friendData;
+                user._id = data.id;
+                element.setAttribute("user", JSON.stringify(user));
+            }
+        }
     }
 }

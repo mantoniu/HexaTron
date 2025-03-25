@@ -3,7 +3,7 @@ import {ChatBox} from "../chat-box/chat-box.js";
 import {FriendMessages} from "../friend-messages/friend-messages.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
-import {userService} from "../../services/user-service.js";
+import {USER_EVENTS, userService} from "../../services/user-service.js";
 
 export class ChatPortal extends ListenerComponent {
     constructor() {
@@ -40,7 +40,7 @@ export class ChatPortal extends ListenerComponent {
             event.stopPropagation();
         });
 
-        this.addAutomaticEventListener(userService, "updateFriends", async (friend) => {
+        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, async (friend) => {
             chatService.updateFriend(friend);
         });
     }
