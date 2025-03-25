@@ -43,11 +43,8 @@ export class DrawerMenu extends ListenerComponent {
         this._content = this.shadowRoot.getElementById("content");
 
         this.addAutoCleanListener(window, "openDrawer", (event) => {
-            if (this.loadContent(event.detail.type)) {
-                this.previous = event.detail.type;
-                this.setInitialState();
-                this.nav(event.detail.type);
-            }
+            this.previous = event.detail.type;
+            this.setInitialState(this.previous);
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
@@ -70,26 +67,14 @@ export class DrawerMenu extends ListenerComponent {
                 this.loadContent(DRAWER_CONTENT.PROFILE);
             } else {
                 this.current = DRAWER_CONTENT.VOID;
-
                 this._content.innerHTML = `<user-profile user='${JSON.stringify(event.detail.player)}' editable='false' part='user-friend-part'></user-profile>`;
-
-                this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
-                this.shadowRoot.getElementById("close-btn").onclick = () => {
-                    if (this.loadContent(this.previous)) {
-                        this.nav(this.previous);
-                    }
-                    this.setInitialState();
-                };
+                this.replaceCloseWithBack();
             }
         });
 
         this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
             if (open) {
-                if (this.loadContent(DRAWER_CONTENT.CHAT)) {
-                    this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
-                    this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
-                    this.nav(DRAWER_CONTENT.CHAT);
-                }
+                this.setInitialState(DRAWER_CONTENT.CHAT);
                 this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
                     await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
                     await this.shadowRoot.querySelector("chat-portal")._openFriendList();
@@ -155,9 +140,19 @@ export class DrawerMenu extends ListenerComponent {
         this.current = type;
     }
 
-    setInitialState() {
+    setInitialState(type) {
         this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
         this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
+        if (this.loadContent(type)) {
+            this.nav(type);
+        }
+    }
+
+    replaceCloseWithBack() {
+        this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
+        this.shadowRoot.getElementById("close-btn").onclick = () => {
+            this.setInitialState(this.previous);
+        };
     }
 
     modificationStatus(data) {
