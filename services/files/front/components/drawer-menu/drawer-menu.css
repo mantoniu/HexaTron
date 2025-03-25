@@ -21,7 +21,7 @@
     background: rgba(90, 90, 90, 0.9);
 }
 
-.sidenav {
+:host {
     box-sizing: border-box;
     height: 100%;
     width: 0;
@@ -35,19 +35,17 @@
     transition: width 0.3s ease;
 }
 
-.sidenav.open {
-    padding: 60px;
+:host(.open) {
     width: 600px;
 }
 
 @media screen and (max-width: 750px) {
-    .sidenav.open {
+    :host(.open) {
         width: calc(100% - var(--sidebar-width));
     }
 }
 
-.sidenav a {
-    padding: 8px 8px 8px 32px;
+:host a {
     text-decoration: none;
     font-size: 25px;
     color: #818181;
@@ -55,35 +53,50 @@
     transition: 0.3s;
 }
 
-.sidenav a:hover {
+:host a:hover {
     color: #f1f1f1;
 }
 
-.sidenav .close-btn {
-    visibility: hidden;
-    position: absolute;
-    top: 10px;
-    left: 5px;
-    font-size: 36px;
-    margin-right: 50px;
+#close-btn {
+    margin: 15px 0 0 15px;
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    font-size: 30px;
+    border-radius: 50%;
+    background-color: var(--card-bg);
+    color: black;
     cursor: pointer;
+    visibility: visible;
+    transition: background 0.3s ease;
+}
+
+.scrolled {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 @media screen and (max-height: 450px) {
-    .sidenav {
+    :host {
         padding-top: 15px;
     }
 
-    .sidenav a {
+    :host a {
         font-size: 18px;
     }
 }
 
 #content {
+    box-sizing: border-box;
+    padding: 70px;
     margin: auto;
     display: flex;
     justify-content: center;
-    width: 100%;
     height: 100%;
 }
 

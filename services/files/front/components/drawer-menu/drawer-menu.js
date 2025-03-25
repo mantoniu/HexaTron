@@ -35,6 +35,7 @@ export class DrawerMenu extends Component {
     async connectedCallback() {
         await super.connectedCallback();
         this._content = this.shadowRoot.getElementById("content");
+        this._closeBtn = this.shadowRoot.getElementById("close-btn");
 
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             if (this.loadContent(event.detail.type))
@@ -62,6 +63,10 @@ export class DrawerMenu extends Component {
             this.previous = DRAWER_CONTENT.PROFILE;
             this.loadContent(DRAWER_CONTENT.PROFILE);
         });
+
+        this.addEventListener("scroll", () => {
+            this._closeBtn.classList.toggle("scrolled", this.scrollTop > 0);
+        });
     }
 
     loadContent(type) {
@@ -70,7 +75,7 @@ export class DrawerMenu extends Component {
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
                 component = (userService.isConnected())
-                    ? `<user-profile user='${JSON.stringify(userService.user)}' editable='true' part='user-password-part'></user-profile>`
+                    ? `<user-profile user='${JSON.stringify(userService.user)}' part='account-information'></user-profile>`
                     : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
@@ -97,18 +102,15 @@ export class DrawerMenu extends Component {
     }
 
     nav(type) {
-        const sidenav = this.shadowRoot.getElementById("mySidenav");
-        const closeBtn = this.shadowRoot.getElementById("close-btn");
-
         if (this._oppened && this.previous === type) {
-            closeBtn.style.visibility = "hidden";
-            sidenav.classList.remove("open");
+            this._closeBtn.style.visibility = "hidden";
+            this.classList.remove("open");
             this.shadowRoot.getElementById("content").innerHTML = "";
             this._oppened = !this._oppened;
 
         } else {
-            closeBtn.style.visibility = "visible";
-            sidenav.classList.add("open");
+            this._closeBtn.style.visibility = "visible";
+            this.classList.add("open");
             this._oppened = true;
         }
         this.previous = type;
