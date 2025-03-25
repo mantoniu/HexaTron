@@ -31,7 +31,6 @@ export class ChatPortal extends ListenerComponent {
 
         this.addAutoCleanListener(this, "open-conversation", async (event) => {
             const conversation = await chatService.getConversation(event.detail.conversationId);
-            console.log(conversation);
             this._openChatBox(conversation);
         });
 

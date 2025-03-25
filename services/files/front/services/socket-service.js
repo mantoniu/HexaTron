@@ -1,15 +1,16 @@
 import {EventEmitter} from "../js/EventEmitter.js";
 
+export const SOCKET_SERVICE_EVENT = Object.freeze({
+    CHAT_SOCKET_CONNECTED: "chatSocketConnected",
+    FRIENDS_SOCKET_CONNECTED: "friendsSocketConnected"
+});
+
 /**
  * Service for managing Socket.IO connections.
  *
  * @class
  */
 class SocketService extends EventEmitter {
-    SOCKET_SERVICE_EVENT = Object.freeze({
-        CHAT_SOCKET_CONNECTED: "chatSocketConnected",
-        FRIENDS_SOCKET_CONNECTED: "friendsSocketConnected"
-    });
 
     /**
      * Singleton instance of SocketService.
@@ -88,7 +89,7 @@ class SocketService extends EventEmitter {
                 autoConnect: true
             });
         this._sockets.chat.on("connect", () => {
-            this.emit(socketService.SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, this._sockets.chat);
+            this.emit(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, this._sockets.chat);
             console.log("[ChatSocket] Connected:", this._sockets.chat.id);
         });
         this._sockets.chat.on("disconnect", () => console.warn("[ChatSocket] Disconnected!"));
@@ -116,7 +117,7 @@ class SocketService extends EventEmitter {
                 autoConnect: true
             });
         this._sockets.friends.on("connect", () => {
-            this.emit(socketService.SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, this._sockets.friends);
+            this.emit(SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, this._sockets.friends);
             console.log("[FriendSocket] Connected:", this._sockets.friends.id);
         });
         this._sockets.friends.on("disconnect", () => console.warn("[FriendSocket] Disconnected!"));

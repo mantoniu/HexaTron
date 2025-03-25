@@ -75,7 +75,9 @@ export class DrawerMenu extends ListenerComponent {
 
                 this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
                 this.shadowRoot.getElementById("close-btn").onclick = () => {
-                    this.loadContent(this.previous);
+                    if (this.loadContent(this.previous)) {
+                        this.nav(this.previous);
+                    }
                     this.setInitialState();
                 };
             }

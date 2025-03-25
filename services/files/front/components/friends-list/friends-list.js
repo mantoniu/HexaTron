@@ -33,18 +33,22 @@ export class FriendsList extends Component {
     }
 
     setupList() {
-        const shadowRoot = this.shadowRoot;
-        const element = shadowRoot.querySelector(".no-messages");
-
         if (!this.isConnected || !this.friendList) {
             return;
         }
-        if (!element && Object.keys(this.friendList).filter(id => this.statusAccepted.includes(this.friendList[id].status)).length === 0) {
+
+        const shadowRoot = this.shadowRoot;
+        const element = shadowRoot.querySelector(".no-messages");
+        const hasFriends = Object.values(this.friendList).some(friend =>
+            this.statusAccepted.includes(friend.status)
+        );
+
+        if (!hasFriends && !element) {
             const noMessagesText = document.createElement("p");
             noMessagesText.classList.add("no-messages");
             noMessagesText.textContent = this.getAttribute("message");
             shadowRoot.appendChild(noMessagesText);
-        } else if (element && Object.keys(this.friendList).filter(id => this.statusAccepted.includes(this.friendList[id].status)).length !== 0) {
+        } else if (hasFriends && element) {
                 shadowRoot.removeChild(element);
         }
         Object.entries(this.friendList).forEach(([friendId, value]) => {

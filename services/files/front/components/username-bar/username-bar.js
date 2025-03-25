@@ -1,6 +1,6 @@
-import {ListenerComponent} from "../component/listener-component.js";
+import {Component} from "../component/component.js";
 
-export class UsernameBar extends ListenerComponent {
+export class UsernameBar extends Component {
     static get observedAttributes() {
         return ['username'];
     }

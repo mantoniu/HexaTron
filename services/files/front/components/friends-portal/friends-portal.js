@@ -2,7 +2,6 @@ import {FriendsList} from "../friends-list/friends-list.js";
 import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {SearchFriendComponent} from "../search-friend-component/search-friend-component.js";
-import {PopupComponent} from "../popup-component/popup-component.js";
 
 export class FriendsPortal extends ListenerComponent {
     constructor() {
@@ -10,7 +9,6 @@ export class FriendsPortal extends ListenerComponent {
 
         FriendsList.register();
         SearchFriendComponent.register();
-        PopupComponent.register();
 
         this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (_) => this.friendUpdateEvent());
         this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (data) => this.deleteFriend(data));
@@ -39,13 +37,5 @@ export class FriendsPortal extends ListenerComponent {
     deleteFriend(data) {
         this.shadowRoot.getElementById("friend-list")?.removeFromList(data.id);
         this.shadowRoot.getElementById("not-friend-list")?.removeFromList(data.id);
-    }
-
-    createPopUp() {
-        const popup = document.createElement("popup-component");
-        this.shadowRoot.appendChild(popup);
-        popup.setAttribute("text", "The user has been deleted");
-        popup.setAttribute("color", "#dc3545");
-        popup.open();
     }
 }

@@ -1,6 +1,6 @@
-import {ListenerComponent} from "../component/listener-component.js";
+import {Component} from "../component/component.js";
 
-export class FriendMessage extends ListenerComponent {
+export class FriendMessage extends Component {
     constructor() {
         super();
 

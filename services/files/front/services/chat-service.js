@@ -1,5 +1,5 @@
 import {USER_EVENTS, userService} from "./user-service.js";
-import {socketService} from "./socket-service.js";
+import {SOCKET_SERVICE_EVENT, socketService} from "./socket-service.js";
 import {chatStore} from "../js/ChatStore.js";
 import {apiClient} from "../js/ApiClient.js";
 import {EventEmitter} from "../js/EventEmitter.js";
@@ -68,7 +68,7 @@ class ChatService extends EventEmitter {
         userService.on(USER_EVENTS.LOGOUT, () =>
             this._chatStore.clear());
 
-        socketService.on(socketService.SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
+        socketService.on(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
             this._socket = socket;
             this._setupChatSocketListeners();
             await this._fetchConversations();

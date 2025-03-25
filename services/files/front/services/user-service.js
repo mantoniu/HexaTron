@@ -1,7 +1,7 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
-import {socketService} from "./socket-service.js";
+import {SOCKET_SERVICE_EVENT, socketService} from "./socket-service.js";
 
 /**
  * Defines user-related events.
@@ -106,7 +106,7 @@ class UserService extends EventEmitter {
             localStorage.setItem("user", JSON.stringify(this._user));
         }
 
-        socketService.on(socketService.SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, (socket) => {
+        socketService.on(SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, (socket) => {
             this._socket = socket;
             this._setupFriendSocketListeners();
         });
