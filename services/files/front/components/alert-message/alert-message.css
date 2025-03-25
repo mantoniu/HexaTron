@@ -1,0 +1,36 @@
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+:host {
+    position: fixed;
+    width: 400px;
+    max-width: 80vw;
+    padding: 15px 20px;
+    border: 1px solid;
+    border-radius: 8px;
+    display: flex;
+    animation: slideIn 0.5s ease-out forwards;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: red;
+}
