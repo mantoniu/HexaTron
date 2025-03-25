@@ -12,7 +12,7 @@ import {EventEmitter} from "../js/EventEmitter.js";
 export const CHAT_EVENTS = Object.freeze({
     CONVERSATIONS_UPDATED: "CONVERSATIONS_UPDATED",
     CONVERSATION_UPDATED: "CONVERSATION_UPDATED",
-    NEW_CONVERSATION: "NEW_CONVERSATION",
+    CONVERSATION_CREATED: "CONVERSATION_CREATED",
     MESSAGE_ADDED: "MESSAGE_ADDED",
     MESSAGE_REPLACED: "MESSAGE_REPLACED",
     MESSAGE_DELETED: "MESSAGE_DELETED",
@@ -65,8 +65,12 @@ class ChatService extends EventEmitter {
      * @returns {Promise<void>} Resolves when the initialization is complete.
      */
     async init() {
-        userService.on(USER_EVENTS.LOGOUT, () =>
-            this._chatStore.clear());
+        userService.on(USER_EVENTS.LOGOUT, () => this._chatStore.clear());
+
+        userService.on(USER_EVENTS.UPDATE_FRIEND, (friend) => {
+            this._chatStore.updateFriend(friend);
+            this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
+        });
 
         socketService.on(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
             this._socket = socket;
@@ -106,10 +110,7 @@ class ChatService extends EventEmitter {
             conversation.messages = new Map();
             this._chatStore.setConversation(conversation);
             this._chatStore.markAsFetched(conversation._id);
-            if (userService.user._id === creatorId)
-                this.emit("openConversation", conversation._id);
-            else
-                this.emit(CHAT_EVENTS.NEW_CONVERSATION);
+            this.emit(CHAT_EVENTS.CONVERSATION_CREATED, conversation._id, userService.user._id === creatorId);
         });
 
 
@@ -296,11 +297,6 @@ class ChatService extends EventEmitter {
      */
     deleteMessage(conversationId, messageId) {
         this._socket.emit("deleteMessage", messageId, userService.user._id);
-    }
-
-    updateFriend(friend) {
-        this._chatStore.updateFriend(friend);
-        this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
     }
 }
 

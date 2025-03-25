@@ -8,7 +8,7 @@ import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 import {ChatPortal} from "../chat-portal/chat-portal.js";
 import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
-import {chatService} from "../../services/chat-service.js";
+import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -83,17 +83,19 @@ export class DrawerMenu extends ListenerComponent {
             }
         });
 
-        this.addAutomaticEventListener(chatService, "openConversation", async (conversationId) => {
-            if (this.loadContent(DRAWER_CONTENT.CHAT)) {
-                this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
-                this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
-                this.nav(DRAWER_CONTENT.CHAT);
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
+            if (open) {
+                if (this.loadContent(DRAWER_CONTENT.CHAT)) {
+                    this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
+                    this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
+                    this.nav(DRAWER_CONTENT.CHAT);
+                }
+                this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
+                    await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
+                    await this.shadowRoot.querySelector("chat-portal")._openFriendList();
+                    this.shadowRoot.querySelector("chat-portal")._openChatBox(await chatService.getConversation(conversationId));
+                });
             }
-            this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
-                await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
-                await this.shadowRoot.querySelector("chat-portal")._openFriendList();
-                this.shadowRoot.querySelector("chat-portal")._openChatBox(await chatService.getConversation(conversationId));
-            });
         });
 
         this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (data) => this.modificationStatus(data));

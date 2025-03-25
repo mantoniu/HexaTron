@@ -3,7 +3,7 @@ import {ChatBox} from "../chat-box/chat-box.js";
 import {FriendMessages} from "../friend-messages/friend-messages.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
-import {USER_EVENTS, userService} from "../../services/user-service.js";
+import {userService} from "../../services/user-service.js";
 
 export class ChatPortal extends ListenerComponent {
     constructor() {
@@ -38,10 +38,6 @@ export class ChatPortal extends ListenerComponent {
             await this._openFriendList();
             event.stopPropagation();
         });
-
-        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, async (friend) => {
-            chatService.updateFriend(friend);
-        });
     }
 
     _setupChatListeners() {
@@ -69,8 +65,11 @@ export class ChatPortal extends ListenerComponent {
                 chatBox.messageDeleted(conversationId, messageId);
         });
 
-        this.addAutomaticEventListener(chatService, CHAT_EVENTS.NEW_CONVERSATION, async () => {
-            await this._openFriendList();
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async () => {
+            const chatBox = this.shadowRoot.querySelector("chat-box");
+            if (!chatBox) {
+                await this.loadContent();
+            }
         });
 
         this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATIONS_UPDATED, async () => {
