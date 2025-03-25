@@ -107,7 +107,6 @@ class ChatService extends EventEmitter {
         });
 
         this._socket.on("newConversation", (conversation, creatorId) => {
-            conversation.messages = new Map();
             this._chatStore.setConversation(conversation);
             this._chatStore.markAsFetched(conversation._id);
             this.emit(CHAT_EVENTS.CONVERSATION_CREATED, conversation._id, userService.user._id === creatorId);
@@ -115,8 +114,7 @@ class ChatService extends EventEmitter {
 
 
         this._socket.on("conversationExists", (conversationId, creatorId) => {
-            if (userService.user._id === creatorId)
-                this.emit("openConversation", conversationId);
+            this.emit(CHAT_EVENTS.CONVERSATION_CREATED, conversationId, userService.user._id === creatorId);
         });
 
         this._socket.on("error", (error) => console.error(error));
