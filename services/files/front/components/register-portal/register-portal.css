@@ -1,20 +1,24 @@
 :host {
     width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
     flex-direction: column;
+}
+
+#register {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
     opacity: 0;
     transform: translateY(-20px);
     animation: fadeIn 0.5s ease-out forwards;
 }
 
 form {
-    padding-right: 20px;
-    overflow-y: auto;
+    width: 100%;
+    padding-bottom: 60px;
     margin-top: 2rem;
-    width: 70%;
-    max-width: 400px;
 }
 
 @keyframes fadeIn {
@@ -31,11 +35,9 @@ form {
 h1 {
     font-size: 28px;
     margin-bottom: 20px;
-    color: #333333;
 }
 
 h2 {
     font-size: 20px;
     margin-bottom: 20px;
-    color: #0b0b0b;
 }
