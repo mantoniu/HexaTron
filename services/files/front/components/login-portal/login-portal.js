@@ -2,6 +2,7 @@ import {SubmitButton} from "../submit-button/submit-button.js";
 import {userService} from "../../services/user-service.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
+import {createAlertMessage} from "../../js/utils.js";
 
 export class LoginPortal extends BaseAuth {
     constructor() {
@@ -19,6 +20,11 @@ export class LoginPortal extends BaseAuth {
         });
     }
 
+    async handleSubmit() {
+        const res = await userService.login(this.getFormData());
+        this._loginHandler(res);
+    }
+
     _loginHandler(data) {
         if (data.success) {
             this.dispatchEvent(new CustomEvent("changeContent", {
@@ -26,7 +32,8 @@ export class LoginPortal extends BaseAuth {
                 composed: true,
                 detail: DRAWER_CONTENT.PROFILE,
             }));
-        } else alert(data.error);
+        } else
+            createAlertMessage(this.shadowRoot, "error", data.error);
     }
 
     handleActionClick(event) {
@@ -38,10 +45,5 @@ export class LoginPortal extends BaseAuth {
                 detail: action,
             }));
         }
-    }
-
-    handleSubmit() {
-        userService.login(this.getFormData())
-            .then((data) => this._loginHandler(data));
     }
 }

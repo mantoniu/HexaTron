@@ -1,7 +1,6 @@
 :host {
     width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
     flex-direction: column;
     opacity: 0;
@@ -28,9 +27,9 @@
 }
 
 form {
+    width: 100%;
+    margin-bottom: 15px;
     margin-top: 2rem;
-    width: 70%;
-    max-width: 400px;
 }
 
 @keyframes fadeIn {
@@ -47,5 +46,4 @@ form {
 h1 {
     font-size: 28px;
     margin-bottom: 20px;
-    color: #333333;
 }
