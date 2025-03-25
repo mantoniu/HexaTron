@@ -21,7 +21,7 @@ export class ChatBox extends Component {
             }));
         });
 
-        this.shadowRoot.addEventListener("message-deleted", (event) => {
+        this.addAutoCleanListener(this, "message-deleted", (event) => {
             this.dispatchEvent(new CustomEvent("delete-message", {
                 detail: {conversationId: this.getAttribute("id"), messageId: event.detail.messageId}
             }));

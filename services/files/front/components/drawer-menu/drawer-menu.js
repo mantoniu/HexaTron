@@ -81,15 +81,16 @@ export class DrawerMenu extends ListenerComponent {
             }
         });
 
-        this.addAutomaticEventListener(chatService, "openConversation", async (conversation) => {
+        this.addAutomaticEventListener(chatService, "openConversation", async (conversationId) => {
             if (this.loadContent(DRAWER_CONTENT.CHAT)) {
                 this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
                 this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
                 this.nav(DRAWER_CONTENT.CHAT);
             }
-            this.shadowRoot.querySelector("chat-portal").connectedCallback().then(async () => {
+            this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
                 await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
-                this.shadowRoot.querySelector("chat-portal")._openChatBox(conversation);
+                await this.shadowRoot.querySelector("chat-portal")._openFriendList();
+                this.shadowRoot.querySelector("chat-portal")._openChatBox(await chatService.getConversation(conversationId));
             });
         });
 

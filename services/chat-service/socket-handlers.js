@@ -140,9 +140,8 @@ module.exports = (io) => {
         gatewaySocket.on("createConversation", async (userId, friendsId) => {
             try {
                 const conversationId = await getConversationIdIfExists(userId, friendsId);
-
                 if (conversationId.length !== 0) {
-                    gatewaySocket.emit("conversationExists", conversationId[0]._id, userId);
+                    gatewaySocket.emit("conversationExists", conversationId[0]._id.toString(), userId);
                 } else {
                     const conversationId = await createConversation([userId, friendsId]);
 

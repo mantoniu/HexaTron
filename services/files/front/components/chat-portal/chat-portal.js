@@ -29,13 +29,13 @@ export class ChatPortal extends ListenerComponent {
             await this.loadContent();
         });
 
-        this.shadowRoot.addEventListener("open-conversation", async (event) => {
+        this.addAutoCleanListener(this, "open-conversation", async (event) => {
             const conversation = await chatService.getConversation(event.detail.conversationId);
             console.log(conversation);
             this._openChatBox(conversation);
         });
 
-        this.shadowRoot.addEventListener("conv-return", async (event) => {
+        this.addAutoCleanListener(this, "conv-return", async (event) => {
             await this._openFriendList();
             event.stopPropagation();
         });
@@ -108,12 +108,12 @@ export class ChatPortal extends ListenerComponent {
         chatBox.whenConnected.then(() =>
             chatBox.initialize(messages, friendUsername, userService.user._id));
 
-        chatBox.addEventListener("new-message", (event) => {
+        this.addAutoCleanListener(chatBox, "new-message", (event) => {
             const {conversationId, message} = event.detail;
             chatService.sendMessage(conversationId, message);
         });
 
-        chatBox.addEventListener("delete-message", (event) => {
+        this.addAutoCleanListener(chatBox, "delete-message", (event) => {
             const {conversationId, messageId} = event.detail;
             chatService.deleteMessage(conversationId, messageId);
         });
