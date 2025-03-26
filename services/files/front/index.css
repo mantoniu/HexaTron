@@ -4,6 +4,10 @@
     --background: #f5f7fa;
     --text-color: #2c3e50;
     --card-bg: #ffffff;
+    --red: #e74c3c;
+    --dark-red: #c0392b;
+    --gray: #e0e0e0;
+    --dark-gray: #d0d0d0;
     --shadow: rgba(0, 0, 0, 0.1);
     --sidebar-width: 80px;
 }
