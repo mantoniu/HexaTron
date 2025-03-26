@@ -2,7 +2,8 @@ const {parse} = require('url');
 const {getIDInRequest, HttpError} = require("../utils/controller-utils");
 const {
     getUserConversationsWithLastMessage,
-    getConversationWithMessagesBeforeDate
+    getConversationWithMessagesBeforeDate,
+    deleteUser
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../utils/api-utils");
@@ -47,6 +48,29 @@ exports.getConversations = async (req, res) => {
 
         if (error.message === DATABASE_ERRORS.CONVERSATION_NOT_FOUND)
             throw new HttpError(404, "Conversation not found.");
+
+        throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * * Deletes all conversations and messages related to the given user ID.
+ *
+ * @async
+ * @function
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @throws {HttpError} 500 - If there is a general server error.
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        await deleteUser(userId);
+        res.writeHead(200, {"Content-Type": "application/json"});
+        res.end();
+    } catch (error) {
+        if (error instanceof HttpError)
+            throw error;
 
         throw new HttpError(500, error.message);
     }

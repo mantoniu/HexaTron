@@ -72,6 +72,13 @@ class ChatService extends EventEmitter {
             this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         });
 
+        userService.on(USER_EVENTS.DELETE_FRIEND, (friend) => {
+            if (friend.deleted) {
+                this._chatStore.deleteFriend(friend.id);
+                this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
+            }
+        });
+
         socketService.on(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
             this._socket = socket;
             this._setupChatSocketListeners();
@@ -141,9 +148,11 @@ class ChatService extends EventEmitter {
         if (this._chatStore.isFetched(conversationId)) {
             const conversation = this._chatStore.getConversation(conversationId);
 
-            const toMark = Array.from(conversation?.messages.values())
+            const toMark = conversation
+                ? Array.from(conversation?.messages.values())
                 .filter(message => !message.isRead)
-                .map(message => message._id);
+                    .map(message => message._id)
+                : [];
 
             if (toMark.length)
                 this._markMessagesAsRead(conversationId, toMark);

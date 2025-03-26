@@ -53,6 +53,11 @@ const routes = [
         method: "GET",
         path: ["doc"],
         handler: controller.documentation
+    },
+    {
+        method: "DELETE",
+        path: ["deleteUser"],
+        handler: controller.deleteUser
     }
 ];
 

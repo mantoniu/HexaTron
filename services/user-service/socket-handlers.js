@@ -73,5 +73,11 @@ module.exports = (io) => {
                 socket.emit("delete-friends", message.userId, deleted);
             });
         }
+        if (deleted)
+            await fetch("http://chat-service:8005/api/chat/deleteUser", {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({userId: message.friendId})
+            });
     });
 };

@@ -137,7 +137,7 @@ export class ChatWindow extends Component {
     refresh(conversation) {
         this.shadowRoot.querySelector("username-bar")?.setAttribute("username", conversation.participants?.[0].name);
         conversation.messages.forEach(message => {
-            this.shadowRoot.getElementById(message._id).setAttribute("sender", message.senderName);
+            this.shadowRoot.getElementById(message._id)?.setAttribute("sender", message.senderName);
         });
     }
 }

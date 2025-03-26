@@ -377,6 +377,22 @@ async function createGlobalConversation() {
 }
 
 /**
+ * Deletes all messages and conversations related to the given user.
+ *
+ * @async
+ * @function
+ * @param {string} userId - The ID of the user whose messages and conversations should be deleted.
+ * @throws {Error} If there is a failure in the MongoDB operations.
+ */
+async function deleteUser(userId) {
+    await mongoOperation(() => db.collection(messageCollection).deleteMany({senderId: new ObjectId(userId)}));
+    await mongoOperation(() => db.collection(conversationCollection).deleteMany({
+        participants: new ObjectId(userId),
+        $expr: {$eq: [{$size: "$participants"}, 2]}
+    }));
+}
+
+/**
  * Retrieves the ID of an existing conversation between two users.
  *
  * This function searches the conversation collection for a private (non-global) conversation
@@ -415,5 +431,6 @@ module.exports = {
     createConversation,
     saveMessage,
     markMessagesAsRead,
-    getConversationIdIfExists
+    getConversationIdIfExists,
+    deleteUser
 };

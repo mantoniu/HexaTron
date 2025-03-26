@@ -157,7 +157,8 @@ class ChatStore {
     getConversations() {
         return this._conversationOrder
             .filter(id => id !== this._globalConversationId)
-            .map(id => this._conversations.get(id));
+            .map(id => this._conversations.get(id))
+            .filter(conversation => conversation !== undefined);
     }
 
     /**
@@ -235,7 +236,6 @@ class ChatStore {
      */
     updateFriend(friend) {
         this._conversations.forEach((conversation, _) => {
-            console.log(conversation.isGlobal);
             let participate = false;
             conversation.participants.forEach(participant => {
                 if (participant.id === friend.id) {
@@ -247,6 +247,29 @@ class ChatStore {
                 conversation.messages.forEach((message, _) => {
                     if (message.senderId === friend.id)
                         message.senderName = friend.friendData.name;
+                });
+        });
+    }
+
+    /**
+     * Deletes a friend's messages and removes them from conversations in which they participate.
+     *
+     *
+     * @function
+     * @param {string} friendId - The ID of the friend to be deleted.
+     * @returns {void}
+     */
+    deleteFriend(friendId) {
+        this._conversations.forEach((conversation, conversationId) => {
+            let participate = false;
+            conversation.participants.forEach(participant => {
+                if (participant.id === friendId)
+                    this._conversations.delete(conversationId);
+            });
+            if (conversation.isGlobal || participate)
+                conversation.messages.forEach((message, _) => {
+                    if (message.senderId === friendId)
+                        this._conversations.delete(message.id);
                 });
         });
     }

@@ -159,8 +159,7 @@ export class DrawerMenu extends ListenerComponent {
         const element = this._content.querySelector("user-profile");
         if (element && element.user._id === data.id) {
             if (data.deleted) {
-                this.loadContent(this.previous);
-                this.setInitialState();
+                this.setInitialState(this.previous);
             } else {
                 let user = data.friendData;
                 user._id = data.id;

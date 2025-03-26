@@ -73,11 +73,16 @@ export class ChatPortal extends ListenerComponent {
         });
 
         this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATIONS_UPDATED, async () => {
-            const chatBox = this.shadowRoot.querySelector("chat-box");
+            const shadowRoot = this.shadowRoot;
+            const chatBox = shadowRoot.querySelector("chat-box");
             if (chatBox) {
                 const conversation = await chatService.getConversation(chatBox.id);
-                if (conversation)
+                if (conversation) {
                     chatBox.refresh(conversation);
+                } else {
+                    shadowRoot.getElementById("content").removeChild(chatBox);
+                    await this.loadContent();
+                }
             } else {
                 await this.loadContent();
             }
