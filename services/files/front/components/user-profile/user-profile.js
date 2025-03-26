@@ -2,7 +2,8 @@ import {AccountInformation} from "../account-information/account-information.js"
 import {userService} from "../../services/user-service.js";
 import {ProfileHeader} from "../profile-header/profile-header.js";
 import {Component} from "../component/component.js";
-import {createAlertMessage} from "../../js/utils.js";
+import {ModalDialog} from "../modal-dialog/modal-dialog.js";
+import {AlertMessage} from "../alert-message/alert-message.js";
 
 export class UserProfile extends Component {
     constructor() {
@@ -10,6 +11,8 @@ export class UserProfile extends Component {
 
         AccountInformation.register();
         ProfileHeader.register();
+        ModalDialog.register();
+        AlertMessage.register();
     }
 
     static get observedAttributes() {
@@ -31,6 +34,7 @@ export class UserProfile extends Component {
             elem.user = this.user;
         }
 
+        this._accountInformation = this.shadowRoot.querySelector("account-information");
         this._profileHeader = this.shadowRoot.querySelector("profile-header");
         this._updateProfileHeader();
         this._setupListeners();
@@ -45,11 +49,13 @@ export class UserProfile extends Component {
 
     _setupListeners() {
         this.shadowRoot.addEventListener("updateInformation", async (event) => {
+            event.stopPropagation();
             const res = await userService.updateUser(event.detail);
             this._handleUpdateResponse(res);
         });
 
         this.shadowRoot.addEventListener("updatePassword", async (event) => {
+            event.stopPropagation();
             const data = event.detail;
 
             const res = await userService.updatePassword(
@@ -58,22 +64,63 @@ export class UserProfile extends Component {
 
             this._handlePasswordUpdate(res);
         });
+
+        this._setupAccountInformationListeners();
+    }
+
+    _setupAccountInformationListeners() {
+        this._accountInformation.addEventListener("delete-user",
+            () => this._createModalPopup());
+
+        this._accountInformation.addEventListener("disconnect-user",
+            () => this._handleLogout());
+    }
+
+    async _handleLogout() {
+        await userService.logout();
+        window.location.href = "/";
+    }
+
+    _createModalPopup() {
+        const modalPopup = document.createElement("modal-dialog");
+
+        modalPopup.setAttribute("modal-title", "⚠️ Delete your account ?");
+        modalPopup.innerText = "Once you proceed with deletion, all your account information will be permanently removed. This includes your personal details, settings, and your Elo rating, which cannot be recovered. Please make sure you want to continue before confirming this action.";
+
+        modalPopup.addEventListener("action", () => this._handleDelete());
+
+        document.body.appendChild(modalPopup);
+    }
+
+    async _handleDelete() {
+        const data = await userService.delete();
+        if (data.success)
+            window.location.href = "/";
+        else
+            this._createAlertMessageEvent("error", data.error);
     }
 
     _handleUpdateResponse(res) {
         if (res.success) {
-            createAlertMessage(this.shadowRoot, "success", "Information successfully updated");
+            this._createAlertMessageEvent("success", "Information successfully updated");
             this.user = userService.user;
             this._updateProfileHeader();
         } else
-            createAlertMessage(this.shadowRoot, "error", res.error);
+            this._createAlertMessageEvent("error", res.error);
     }
 
     _handlePasswordUpdate(res) {
         if (res.success)
-            createAlertMessage(this.shadowRoot, "success", "Password successfully updated");
+            this._createAlertMessageEvent("success", "Password successfully updated");
         else
-            createAlertMessage(this.shadowRoot, "error", res.error);
+            this._createAlertMessageEvent("error", res.error);
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
     }
 
     _updateProfileHeader() {
