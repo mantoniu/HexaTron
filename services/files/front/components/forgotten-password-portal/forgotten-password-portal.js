@@ -1,7 +1,6 @@
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {userService} from "../../services/user-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
-import {createAlertMessage} from "../../js/utils.js";
 import {FormInput} from "../form-input/form-input.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 
@@ -21,7 +20,14 @@ export class ForgottenPasswordPortal extends BaseAuth {
                 detail: DRAWER_CONTENT.PROFILE,
             }));
         } else
-            createAlertMessage(this.shadowRoot, "error", data.error);
+            this._createAlertMessageEvent("error", data.error);
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
     }
 
     async handleSubmit() {

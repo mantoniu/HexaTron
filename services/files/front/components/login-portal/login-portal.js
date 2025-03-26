@@ -2,7 +2,6 @@ import {SubmitButton} from "../submit-button/submit-button.js";
 import {userService} from "../../services/user-service.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
-import {createAlertMessage} from "../../js/utils.js";
 
 export class LoginPortal extends BaseAuth {
     constructor() {
@@ -33,7 +32,14 @@ export class LoginPortal extends BaseAuth {
                 detail: DRAWER_CONTENT.PROFILE,
             }));
         } else
-            createAlertMessage(this.shadowRoot, "error", data.error);
+            this._createAlertMessageEvent("error", data.error);
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
     }
 
     handleActionClick(event) {
