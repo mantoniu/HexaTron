@@ -68,4 +68,5 @@ export function createAlertMessage(container, type, text, timer = 4000) {
     alert.innerText = text;
 
     container.appendChild(alert);
+    return alert;
 }
