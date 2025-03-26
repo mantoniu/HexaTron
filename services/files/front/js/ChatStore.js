@@ -228,16 +228,26 @@ class ChatStore {
         this._conversationsFetched = false;
     }
 
+    /**
+     * Updates a friend's name in all relevant conversations.
+     *
+     * @param {Object} friend - The friend object containing updated information.
+     */
     updateFriend(friend) {
         this._conversations.forEach((conversation, _) => {
+            console.log(conversation.isGlobal);
+            let participate = false;
             conversation.participants.forEach(participant => {
-                if (participant.id === friend.id)
+                if (participant.id === friend.id) {
                     participant.name = friend.friendData.name;
+                    participate = true;
+                }
             });
-            conversation.messages.forEach((message, _) => {
-                if (message.senderId === friend.id)
-                    message.senderName = friend.friendData.name;
-            });
+            if (conversation.isGlobal || participate)
+                conversation.messages.forEach((message, _) => {
+                    if (message.senderId === friend.id)
+                        message.senderName = friend.friendData.name;
+                });
         });
     }
 }
