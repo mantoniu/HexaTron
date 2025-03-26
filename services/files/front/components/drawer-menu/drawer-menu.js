@@ -7,6 +7,7 @@ import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-pa
 import {SettingsPortal} from "../settings-portal/settings-portal.js";
 import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 import {ChatPortal} from "../chat-portal/chat-portal.js";
+import {createAlertMessage} from "../../js/utils.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -36,6 +37,7 @@ export class DrawerMenu extends Component {
         await super.connectedCallback();
         this._content = this.shadowRoot.getElementById("content");
         this._closeBtn = this.shadowRoot.getElementById("close-btn");
+        this._drawer = this.shadowRoot.getElementById("drawer");
 
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             if (this.loadContent(event.detail.type))
@@ -52,10 +54,10 @@ export class DrawerMenu extends Component {
             () => this.nav(this.previous)
         );
 
-        this.addAutoCleanListener(document, "click", (event) => {
-            if (!(event.composedPath().some(element => element.localName === "drawer-menu" || element.localName === "custom-nav")) && this._oppened) {
-                this.nav(this.previous);
-            }
+        const returnDiv = this.shadowRoot.getElementById("return");
+        this.addAutoCleanListener(returnDiv, "click", () => {
+            this._alertMessage?.remove();
+            this.nav(this.previous);
         });
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
@@ -64,13 +66,20 @@ export class DrawerMenu extends Component {
             this.loadContent(DRAWER_CONTENT.PROFILE);
         });
 
-        this.addEventListener("scroll", () => {
-            this._closeBtn.classList.toggle("scrolled", this.scrollTop > 0);
+        this._drawer.addEventListener("scroll", () => {
+            this._closeBtn.classList.toggle("scrolled", this._drawer.scrollTop > 0);
+        });
+
+        this._content.addEventListener("createAlert", (event) => {
+            const {type, text} = event.detail;
+            this._alertMessage = createAlertMessage(this.shadowRoot.getElementById("alert-container"), type, text);
         });
     }
 
     loadContent(type) {
         let component;
+        this._content.classList.remove('animate');
+        this._alertMessage?.remove();
 
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
@@ -97,7 +106,12 @@ export class DrawerMenu extends Component {
                 console.warn("This type is not yet supported");
                 return false;
         }
+
         this._content.innerHTML = component;
+        setTimeout(() => {
+            this._content.classList.add('animate');
+        }, 50);
+
         return true;
     }
 
@@ -105,9 +119,8 @@ export class DrawerMenu extends Component {
         if (this._oppened && this.previous === type) {
             this._closeBtn.style.visibility = "hidden";
             this.classList.remove("open");
-            this.shadowRoot.getElementById("content").innerHTML = "";
+            this._content.innerHTML = "";
             this._oppened = !this._oppened;
-
         } else {
             this._closeBtn.style.visibility = "visible";
             this.classList.add("open");
