@@ -33,7 +33,7 @@ export class UserFriendPart extends ListenerComponent {
         this._friendId = null;
 
         this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (_) => this.update());
-        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (_) => this.update());
+        this.addAutomaticEventListener(userService, USER_EVENTS.REMOVE_FRIEND, (_) => this.update());
     }
 
     static get observedAttributes() {

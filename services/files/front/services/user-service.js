@@ -12,8 +12,9 @@ export const USER_EVENTS = Object.freeze({
     CONNECTION: "CONNECTION",
     LOGOUT: "LOGOUT",
     UPDATE_FRIEND: "UPDATE_FRIEND",
-    DELETE_FRIEND: "DELETE_FRIEND",
-    SEARCH_RESULT: "SEARCH_RESULT"
+    REMOVE_FRIEND: "REMOVE_FRIEND",
+    SEARCH_RESULT: "SEARCH_RESULT",
+    DELETE_USER: "DELETE_USER"
 });
 
 /**
@@ -390,7 +391,7 @@ class UserService extends EventEmitter {
             const friendData = this.user.friends[response.data.friendId];
             delete this.user.friends[response.data.friendId];
             this._saveToLocalStorage();
-            this.emit(USER_EVENTS.DELETE_FRIEND, {id: friendId, friendData: friendData});
+            this.emit(USER_EVENTS.REMOVE_FRIEND, {id: friendId, friendData: friendData});
         } else {
             console.log("Error during the deletion of the friend");
         }
@@ -467,11 +468,17 @@ class UserService extends EventEmitter {
             this.emit(USER_EVENTS.UPDATE_FRIEND, friends);
         });
 
-        this.socket.on("delete-friends", (friendId, deleted) => {
+        this.socket.on("remove-friend", (friendId) => {
             const friendData = this.user.friends[friendId];
             delete this.user.friends[friendId];
             this._saveToLocalStorage();
-            this.emit(USER_EVENTS.DELETE_FRIEND, {id: friendId, friendData: friendData, deleted: deleted});
+            this.emit(USER_EVENTS.REMOVE_FRIEND, {id: friendId, friendData: friendData});
+        });
+
+        this.socket.on("delete-user", (userId) => {
+            delete this.user.friends[userId];
+            this._saveToLocalStorage();
+            this.emit(USER_EVENTS.DELETE_USER, {id: userId});
         });
 
         this.socket.on("searchFriendsResults", (searchResult) => {

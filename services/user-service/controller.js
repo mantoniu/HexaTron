@@ -31,18 +31,13 @@ async function hashPassword(password) {
  * Notifies all friends of a user when user's information are updated.
  *
  * @param {string} id - The ID of the user whose data has been modified.
- * @param modification - If the event is the modification of a user, apply cascading changes.
  */
-async function notifyFriendOfEvent(id, modification) {
+async function notifyFriendOfEvent(id) {
     const {friends, ...user} = await getUserByID(id, [USER_FIELDS.parameters, USER_FIELDS.answers, USER_FIELDS.password]);
     for (const friend in friends) {
-        if (modification) {
-            const status = await getFriendStatus(new ObjectId(id), new ObjectId(friend));
-            const friendData = {id: user._id, friendData: {...user, status: status}};
-            eventBus.emit("update-status-friends", {friendId: friend, friendFriends: friendData});
-        } else {
-            eventBus.emit("delete-friends", {userId: id, friendId: friend}, true);
-        }
+        const status = await getFriendStatus(new ObjectId(id), new ObjectId(friend));
+        const friendData = {id: user._id, friendData: {...user, status: status}};
+        eventBus.emit("update-status-friends", {friendId: friend, friendFriends: friendData});
     }
 }
 
@@ -279,10 +274,10 @@ exports.disconnect = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
-        await notifyFriendOfEvent(userID, false);
         await deleteUserByID(userID);
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
+        eventBus.emit("delete-user", userID);
     } catch (error) {
         if (error.message === DATABASE_ERRORS.USER_NOT_FOUND)
             throw new HttpError(404, "User not found");
@@ -448,7 +443,7 @@ exports.removeFriend = async (req, res) => {
     try {
         await removeFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend successfully deleted", friendId: friendId}));
-        eventBus.emit("delete-friends", {userId: userId, friendId: friendId}, false);
+        eventBus.emit("remove-friend", {userId: userId, friendId: friendId});
     } catch (error) {
         throw new HttpError(500, error.message);
     }

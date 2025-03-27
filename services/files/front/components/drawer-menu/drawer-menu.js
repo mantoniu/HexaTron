@@ -84,7 +84,9 @@ export class DrawerMenu extends ListenerComponent {
         });
 
         this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (data) => this.modificationStatus(data));
-        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (data) => this.modificationStatus(data));
+        this.addAutomaticEventListener(userService, USER_EVENTS.REMOVE_FRIEND, (data) => this.modificationStatus(data, false));
+        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_USER, (data) => this.modificationStatus(data, true));
+
     }
 
     loadContent(type) {
@@ -155,10 +157,10 @@ export class DrawerMenu extends ListenerComponent {
         };
     }
 
-    modificationStatus(data) {
+    modificationStatus(data, deleted) {
         const element = this._content.querySelector("user-profile");
         if (element && element.user._id === data.id) {
-            if (data.deleted) {
+            if (deleted) {
                 this.setInitialState(this.previous);
             } else {
                 let user = data.friendData;

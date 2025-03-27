@@ -36,6 +36,7 @@ module.exports = (io) => {
      * When a friend's status is updated by the user, it emits an "update-status-friends" event to the friend by friend's socket,
      * notifying the friend about the updated status.
      *
+     * @async
      * @function
      * @param {Object} message - The message containing the user and updated status information.
      * @param {string} message.friendId - The ID of the friend whose status is being updated.
@@ -55,29 +56,42 @@ module.exports = (io) => {
     /**
      * Handles the deletion of a friend from a user's friend list, triggered by the user through the controller.
      *
-     * When a friend is deleted, it emits a "delete-friends" event to the corresponding socket,
-     * notifying the friend about the deletion.
-     *
+     * @async
      * @function
      * @param {Object} message - The message containing the user and friend information.
      * @param {string} message.userId - The ID of the user performing the deletion.
      * @param {string} message.friendId - The ID of the friend being deleted.
      * @param {boolean} deleted - The status of the deletion (true if deleted).
      * @listens delete-friends
-     * @event delete-friends - Emitted to the friend when the deletion is confirmed by the user.
+     * @event remove-friend - Emitted to the friend when the deletion is confirmed by the user.
      */
-    eventBus.on("delete-friends", async (message, deleted) => {
+    eventBus.on("remove-friend", async (message) => {
+
         const socketFriend = await io.in(message.friendId).fetchSockets();
+
         if (socketFriend) {
             socketFriend.forEach(socket => {
-                socket.emit("delete-friends", message.userId, deleted);
+                socket.emit("remove-friend", message.userId);
             });
         }
-        if (deleted)
-            await fetch("http://chat-service:8005/api/chat/deleteUser", {
-                method: "DELETE",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({userId: message.friendId})
-            });
+    });
+
+    /**
+     * Handles the "delete-user" event by sending a DELETE request to the chat service to remove the user's data.
+     *
+     * @async
+     * @event delete-user
+     * @async
+     * @param {string} userId - The ID of the user to be deleted.
+     * @event delete-user - Emitted to all the client connected to the service
+     */
+    eventBus.on("delete-user", async (userId) => {
+        console.log("delete");
+        await fetch("http://chat-service:8005/api/chat/deleteUser", {
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({userId: userId})
+        });
+        io.emit("delete-user", userId);
     });
 };

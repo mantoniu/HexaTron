@@ -162,6 +162,16 @@ class ChatStore {
     }
 
     /**
+     * Retrieves all stored conversations.
+     *
+     * @function
+     * @returns {Map<string, Object>} A map where the keys are conversation IDs and the values are conversation objects.
+     */
+    getAllConversations() {
+        return this._conversations;
+    }
+
+    /**
      * Retrieves a conversation by its ID.
      *
      * @param {string} conversationId - The ID of the conversation.
@@ -252,26 +262,15 @@ class ChatStore {
     }
 
     /**
-     * Deletes a friend's messages and removes them from conversations in which they participate.
+     * Deletes a conversation.
      *
      *
      * @function
-     * @param {string} friendId - The ID of the friend to be deleted.
+     * @param {string} conversationId - The ID of the conversation to be deleted.
      * @returns {void}
      */
-    deleteFriend(friendId) {
-        this._conversations.forEach((conversation, conversationId) => {
-            let participate = false;
-            conversation.participants.forEach(participant => {
-                if (participant.id === friendId)
-                    this._conversations.delete(conversationId);
-            });
-            if (conversation.isGlobal || participate)
-                conversation.messages.forEach((message, _) => {
-                    if (message.senderId === friendId)
-                        this._conversations.delete(message.id);
-                });
-        });
+    deleteConversation(conversationId) {
+        this._conversations.delete(conversationId);
     }
 }
 

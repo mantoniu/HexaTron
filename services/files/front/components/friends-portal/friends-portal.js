@@ -11,7 +11,8 @@ export class FriendsPortal extends ListenerComponent {
         SearchFriendComponent.register();
 
         this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (_) => this.friendUpdateEvent());
-        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_FRIEND, (data) => this.deleteFriend(data));
+        this.addAutomaticEventListener(userService, USER_EVENTS.REMOVE_FRIEND, (data) => this.deleteFriend(data));
+        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_USER, (data) => this.deleteFriend(data));
     }
 
     async connectedCallback() {

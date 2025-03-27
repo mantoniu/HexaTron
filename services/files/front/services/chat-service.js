@@ -72,11 +72,9 @@ class ChatService extends EventEmitter {
             this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         });
 
-        userService.on(USER_EVENTS.DELETE_FRIEND, (friend) => {
-            if (friend.deleted) {
-                this._chatStore.deleteFriend(friend.id);
-                this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
-            }
+        userService.on(USER_EVENTS.DELETE_USER, (user) => {
+            this.deleteUser(user.id);
+            this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         });
 
         socketService.on(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
@@ -304,6 +302,33 @@ class ChatService extends EventEmitter {
      */
     deleteMessage(conversationId, messageId) {
         this._socket.emit("deleteMessage", messageId, userService.user._id);
+    }
+
+    /**
+     * Deletes a user from all conversations and removes their messages from global chats.
+     *
+     * @function
+     * @param {string} userId - The ID of the user to be deleted from conversations.
+     * @event CHAT_EVENTS.MESSAGE_DELETED - When a message from the deleted user is removed from a global conversation.
+     */
+    deleteUser(userId) {
+        this._chatStore.getAllConversations().forEach((conversation) => {
+            let participate = false;
+            conversation.participants.forEach(participant => {
+                if (participant.id === userId) {
+                    participate = true;
+                    this._chatStore.deleteConversation(conversation._id);
+                }
+            });
+            if (conversation.isGlobal) {
+                conversation.messages.forEach((message, _) => {
+                    if (message.senderId === userId) {
+                        this._chatStore.deleteMessage(conversation._id, message._id);
+                        this.emit(CHAT_EVENTS.MESSAGE_DELETED, conversation._id, message._id);
+                    }
+                });
+            }
+        });
     }
 }
 
