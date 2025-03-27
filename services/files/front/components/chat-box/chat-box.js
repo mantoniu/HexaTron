@@ -53,6 +53,6 @@ export class ChatBox extends Component {
     }
 
     refresh(messages) {
-        this._chatWindow.refresh(messages);
+        this._chatWindow?.refresh(messages);
     }
 }
