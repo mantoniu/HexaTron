@@ -347,8 +347,10 @@ io.on('connection', (gatewaySocket) => {
             return;
 
         const gameEngine = activeGames.get(gameId);
-        if (gameEngine.game.type !== GameType.RANKED)
-            activeGames.delete(gameId);
+        if (gameEngine.game.type === GameType.RANKED)
+            return;
+
+        activeGames.delete(gameId);
         gatewaySocket.leave(gameId);
     });
 

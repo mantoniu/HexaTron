@@ -5,6 +5,14 @@ import {MovementTypes} from "../js/game/GameUtils.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {socketService} from "./socket-service.js";
 
+
+/**
+ * Enum representing the possible errors
+ */
+export const GameErrors = Object.freeze({
+    ALREADY_IN_GAME: "ALREADY_IN_GAME"
+});
+
 /**
  * Enum representing the possible statuses of a game.
  *
@@ -238,8 +246,10 @@ class GameService extends EventEmitter {
      */
     errorListener() {
         this.socket.on("error", (error) => {
-            console.error(error.message);
-            alert("An error has occurred please try again");
+            if (error?.type === GameErrors.ALREADY_IN_GAME)
+                alert("You are currently in a game. Please wait until it ends.");
+            else
+                alert("An error occurred, please try again later.");
             window.location.href = "/";
         });
     }
