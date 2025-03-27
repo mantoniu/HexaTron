@@ -28,6 +28,9 @@ export class GameComponent extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
+        const gameType = Number(this.getAttribute("type"));
+        gameService.startGame(gameType);
+
         const gameDiv = this.shadowRoot.getElementById("game");
         this.hideLoader = () => {
             const loader = this.shadowRoot.getElementById("loader");
@@ -48,5 +51,11 @@ export class GameComponent extends ListenerComponent {
 
         this.addEventListener(gameService, GameStatus.GAME_END,
             () => this.showResultScreen());
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+
+        gameService.leaveGame();
     }
 }
