@@ -3,6 +3,8 @@ import {CustomNav} from "./components/custom-nav/custom-nav.js";
 import {HomeButton} from "./components/home-button/home-button.js";
 import {GameComponent} from "./components/game-component/game-component.js";
 import {DrawerMenu} from "./components/drawer-menu/drawer-menu.js";
+import {userService} from "./services/user-service.js";
+import {GameType} from "./js/game/Game.js";
 
 ModeSelector.register();
 CustomNav.register();
@@ -11,37 +13,63 @@ GameComponent.register();
 DrawerMenu.register();
 
 const routes = {
-    "/": "<mode-selector></mode-selector>",
-    "/game": "<game-component></game-component>",
+    "/": {
+        template: "<mode-selector></mode-selector>",
+        authRequired: false
+    },
+    "/local": {
+        template: `<game-component type='${GameType.LOCAL}'></game-component>`,
+        authRequired: false
+    },
+    "/ai": {
+        template: `<game-component type='${GameType.AI}'></game-component>`,
+        authRequired: false
+    },
+    "/ranked": {
+        template: `<game-component type='${GameType.RANKED}'></game-component>`,
+        authRequired: true
+    }
 };
 
-function navigateTo(url) {
-    if (routes[url]) {
-        history.pushState({path: url}, "", url);
-        document.getElementById("outlet").innerHTML = routes[url];
-    } else {
-        document.getElementById("outlet").innerHTML = "<h1>404 - Not found</h1>";
+const navigateTo = (url) => {
+    const route = routes[url];
+
+    if (!route) {
+        redirectTo("/");
+        return;
     }
-}
+
+    if (route.authRequired && !userService.isConnected()) {
+        redirectTo("/");
+        return;
+    }
+
+    history.pushState({path: url}, "", url);
+    document.getElementById("outlet").innerHTML = route.template;
+
+    window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url}}));
+};
+
+const redirectTo = (path) => {
+    history.pushState({path}, "", path);
+    updateView();
+};
+
+const updateView = () => {
+    const route = window.location.pathname;
+    navigateTo(route);
+};
 
 window.addEventListener("navigate", (event) => {
     const route = event.detail.route;
     navigateTo(route);
 });
 
-function updateView() {
-    const route = window.location.pathname;
-    if (routes[route]) {
-        document.getElementById("outlet").innerHTML = routes[route];
-    } else {
-        document.getElementById("outlet").innerHTML = "<h1>404 - Not found</h1>";
-    }
-}
-
 window.onpopstate = () => {
     updateView();
-    const routeChangeEvent = new CustomEvent("routeChange");
-    window.dispatchEvent(routeChangeEvent);
 };
 
-updateView();
+if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', updateView);
+else
+    updateView();
