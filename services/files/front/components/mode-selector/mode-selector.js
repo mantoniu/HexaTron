@@ -1,8 +1,9 @@
 import {CustomButton} from "../custom-button/custom-button.js";
-import {gameService} from "../../services/game-service.js";
 import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {GameType} from "../../js/game/Game.js";
 import {ListenerComponent} from "../component/listener-component.js";
+
+export const gameTypes = ["local", "ai", "ranked"];
 
 export class ModeSelector extends ListenerComponent {
     constructor() {
@@ -13,7 +14,6 @@ export class ModeSelector extends ListenerComponent {
 
     async connectedCallback() {
         await super.connectedCallback();
-
         this._rankedButton = this.shadowRoot.querySelector(`custom-button[game-type="${GameType.RANKED}"]`);
 
         const buttons = this.shadowRoot.querySelectorAll("custom-button");
@@ -24,13 +24,9 @@ export class ModeSelector extends ListenerComponent {
                 this.lockRankedButton();
 
             const handler = () => {
-                gameService.startGame(gameType);
-
-                setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent("navigate", {
-                        detail: {route: "/game"}
-                    }));
-                }, 200);
+                window.dispatchEvent(new CustomEvent("navigate", {
+                    detail: {route: `/${gameTypes[gameType]}`}
+                }));
             };
 
             this.addAutoCleanListener(button, 'click', handler);
