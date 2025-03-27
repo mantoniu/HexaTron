@@ -218,6 +218,11 @@ function startGameIfReady(gameEngine) {
         if (pendingGames.has(gameEngine.id))
             pendingGames.delete(gameEngine.id);
 
+        io.to(gameEngine.id).emit("refreshStatus", {
+            status: CREATED,
+            data: {id: gameEngine.id, players: Object.fromEntries(gameEngine.game.players)}
+        });
+
         gameEngine.start().then().catch(({type, _}) => {
             io.to(gameEngine.id).emit("error", {
                 type: type || ErrorTypes.GAME_ERROR,
@@ -226,10 +231,6 @@ function startGameIfReady(gameEngine) {
         });
 
         activeGames.set(gameEngine.id, gameEngine);
-        io.to(gameEngine.id).emit("refreshStatus", {
-            status: CREATED,
-            data: {id: gameEngine.id, players: Object.fromEntries(gameEngine.game.players)}
-        });
     } else if (gameEngine.game.type !== GameType.FRIENDLY && !pendingGames.has(gameEngine.id))
         pendingGames.set(gameEngine.id, gameEngine);
 
@@ -266,7 +267,7 @@ function joinFriendlyGame(player, expectedPlayerId, socket) {
 io.on('connection', (gatewaySocket) => {
     console.log('✅ Gateway socket connected to the Game Service');
 
-    gatewaySocket.on("joinGame", (gameParams) => {
+    gatewaySocket.on("joinGame", (gameParams, callback) => {
         try {
             const {players, gameType, expectedPlayerId = null} = gameParams;
             validateJoin(players, gameType, gatewaySocket);
@@ -281,7 +282,6 @@ io.on('connection', (gatewaySocket) => {
 
             socketToUser.set(gatewaySocket.id, playerIds);
             userToSocket.set(playerIds[0], gatewaySocket);
-
 
             if (gameType === GameType.FRIENDLY) {
                 joinFriendlyGame(remotePlayers[0], expectedPlayerId, gatewaySocket);
@@ -298,6 +298,10 @@ io.on('connection', (gatewaySocket) => {
             else game = createNewGame(remotePlayers, gameType);
 
             gatewaySocket.join(game.id);
+
+            if (callback)
+                callback(game.id);
+
             startGameIfReady(game);
         } catch ({type, message}) {
             sendError(
@@ -330,6 +334,20 @@ io.on('connection', (gatewaySocket) => {
         }
 
         player.resolveMove(move);
+    });
+
+    gatewaySocket.on("leaveGame", (gameId) => {
+        if (pendingGames.has(gameId)) {
+            pendingGames.delete(gameId);
+            gatewaySocket.leave(gameId);
+            return;
+        }
+
+        if (!activeGames.has(gameId))
+            return;
+
+        activeGames.delete(gameId);
+        gatewaySocket.leave(gameId);
     });
 
     gatewaySocket.on("disconnecting", () => {
