@@ -346,7 +346,9 @@ io.on('connection', (gatewaySocket) => {
         if (!activeGames.has(gameId))
             return;
 
-        activeGames.delete(gameId);
+        const gameEngine = activeGames.get(gameId);
+        if (gameEngine.game.type !== GameType.RANKED)
+            activeGames.delete(gameId);
         gatewaySocket.leave(gameId);
     });
 
