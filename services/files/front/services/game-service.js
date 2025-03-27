@@ -44,6 +44,7 @@ class GameService extends EventEmitter {
         this._context = null;
         this._socket = socketService.gameSocket;
         this._shouldInvertPositions = false;
+        this._gameCreated = false;
 
         this.socket.on("connect", () => {
             console.log("user connected " + this._socket.id);
@@ -127,7 +128,7 @@ class GameService extends EventEmitter {
      * @returns {boolean} True if the game is created, false otherwise.
      */
     isGameCreated() {
-        return this.game?.id != null;
+        return this._gameCreated;
     }
 
     /**
@@ -159,9 +160,11 @@ class GameService extends EventEmitter {
                     console.warn(`Unknown status received: ${status}`);
             }
         });
+
         this.socket.on("updateELO", (receivedData) => {
-            UserService.getInstance().updateELO(receivedData);
+            userService.updateELO(receivedData);
         });
+
         this.errorListener();
     }
 
@@ -180,6 +183,7 @@ class GameService extends EventEmitter {
             ? Object.fromEntries(Object.entries(players).reverse())
             : players;
 
+        this._gameCreated = true;
         this.emit(GameStatus.CREATED);
     }
 
@@ -233,7 +237,8 @@ class GameService extends EventEmitter {
      * Sets up an error listener for socket errors.
      */
     errorListener() {
-        this.socket.on("error", () => {
+        this.socket.on("error", (error) => {
+            console.error(error.message);
             alert("An error has occurred please try again");
             window.location.href = "/";
         });
@@ -243,10 +248,7 @@ class GameService extends EventEmitter {
      * Handles the end of the game.
      */
     handleGameEnd() {
-        this._game = null;
-        this._context = null;
-        this._shouldInvertPositions = false;
-
+        this._clear();
         this.emit(GameStatus.GAME_END);
     }
 
@@ -274,7 +276,7 @@ class GameService extends EventEmitter {
         this.socket.emit("joinGame", {
             gameType,
             players: players.map(player => ({id: player.id, name: player.name}))
-        });
+        }, (id) => this.game.id = id);
 
         this.emit(GameStatus.STARTED);
     }
@@ -315,6 +317,28 @@ class GameService extends EventEmitter {
             move = this._invertMove(move);
 
         this.socket.emit("nextMove", {gameId: this.game.id, playerId, move});
+    }
+
+    /**
+     * Leaves the current game by notifying the server and clearing local game state.
+     */
+    leaveGame() {
+        if (!this.game?.id)
+            return;
+
+        this.socket.emit("leaveGame", this.game.id);
+        this._clear();
+    }
+
+    /**
+     * Clears all internal game state and resets the service to its initial condition.
+     * @private
+     */
+    _clear() {
+        this._gameCreated = false;
+        this._game = null;
+        this._context = null;
+        this._shouldInvertPositions = false;
     }
 }
 
