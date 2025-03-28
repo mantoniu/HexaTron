@@ -31,7 +31,10 @@ export class HomeButton extends Component {
         await super.connectedCallback();
 
         this.update();
-        this.addAutoCleanListener(this.shadowRoot.querySelector("image-button"), "click", () => window.location.href = "/");
+        this.addAutoCleanListener(this.shadowRoot.querySelector("image-button"), "click", () => {
+            if (window.location.pathname !== "/")
+                window.location.href = "/";
+        });
     }
 
     update() {
