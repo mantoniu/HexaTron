@@ -297,6 +297,7 @@ const routes = [
          *       - User service
          *     responses:
          *       204:
+         *          description: Only the http code of the response
          */
         method: "GET",
         path: ["health"],
@@ -342,13 +343,7 @@ const routes = [
          *     tags:
          *       - User service
          *     parameters:
-         *       - in: query
-         *         name: id
-         *         required: false
-         *         description: ID of the user
-         *         schema:
-         *           type: string
-         *           example: "ID 151vqdv445v1v21d"
+         *       - $ref: '#/components/parameters/AuthorizationHeader'
          *     responses:
          *       200:
          *         description: The response consists of a dictionary with one element for each league, and each value is an ordered array of players with their name and ELO.
@@ -362,6 +357,130 @@ const routes = [
         method: "GET",
         path: ["leaderboard"],
         handler: controller.leaderboard
+    },
+    {
+        /**
+         * @swagger
+         * /friends/{friendId}:
+         *   post:
+         *     summary: Add a new friend for a user
+         *     description: This endpoint allows a user to add a friend by sending a request to add another user as their friend.
+         *     tags:
+         *       - User service
+         *     parameters:
+         *       - $ref: '#/components/parameters/AuthorizationHeader'
+         *       - in: path
+         *         name: friendId
+         *         description: The ID of the user to whom the friend request is being sent.
+         *         schema:
+         *           type: string
+         *           example: "123"
+         *     responses:
+         *       200:
+         *         description: Successfully added the new friend.
+         *         content:
+         *           application/json:
+         *             schema:
+         *              $ref: '#/components/schemas/addFriendAnswer'
+         *       500:
+         *         description: Internal server error while adding the friend.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
+        method: "POST",
+        path: ["friends", ":friendId"],
+        handler: controller.addFriend
+    },
+    {
+        /**
+         * @swagger
+         * /friends/{friendId}:
+         *   patch:
+         *     summary: Accept a friend request and update friendship status
+         *     description: This endpoint allows a user to accept a friend request, changing the status to "friends" for both users.
+         *     tags:
+         *       - User service
+         *     parameters:
+         *       - $ref: '#/components/parameters/AuthorizationHeader'
+         *       - in: path
+         *         name: friendId
+         *         description: The ID of the user whose friend request we are accepting.
+         *         schema:
+         *           type: string
+         *           example: "123"
+         *     responses:
+         *       200:
+         *         description: Successfully updated the friendship status.
+         *         content:
+         *           application/json:
+         *             schema:
+         *              $ref: '#/components/schemas/acceptFriendAnswer'
+         *       500:
+         *         description: Internal server error while accepting the friend request.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
+        method: "PATCH",
+        path: ["friends", ":friendId"],
+        handler: controller.acceptFriend
+    },
+    {
+        /**
+         * @swagger
+         * /friends/{friendId}:
+         *   delete:
+         *     summary: Remove a friend and delete the friendship
+         *     description: This endpoint allows a user to remove a friend by deleting the friendship between the two users.
+         *     tags:
+         *       - User service
+         *     parameters:
+         *       - $ref: '#/components/parameters/AuthorizationHeader'
+         *       - in: path
+         *         name: friendId
+         *         description: The ID of the user whom we are removing from our friends.
+         *         schema:
+         *           type: string
+         *           example: "123"
+         *     responses:
+         *       200:
+         *         description: Successfully removed the friend and deleted the friendship.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 message:
+         *                   type: string
+         *                   example: Friend successfully deleted
+         *                 friendId:
+         *                   type: string
+         *                   example: "123"
+         *       500:
+         *         description: Internal server error while removing the friend.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
+        method: "DELETE",
+        path: ["friends", ":friendId"],
+        handler: controller.removeFriend
     }
 ];
 

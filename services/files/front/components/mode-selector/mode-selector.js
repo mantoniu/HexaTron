@@ -32,8 +32,8 @@ export class ModeSelector extends ListenerComponent {
             this.addAutoCleanListener(button, 'click', handler);
         });
 
-        this.addEventListener(userService, USER_EVENTS.CONNECTION, () => this.unLockRankedButton());
-        this.addEventListener(userService, USER_EVENTS.LOGOUT, () => this.lockRankedButton());
+        this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this.unLockRankedButton());
+        this.addAutomaticEventListener(userService, USER_EVENTS.LOGOUT, () => this.lockRankedButton());
     }
 
     lockRankedButton() {

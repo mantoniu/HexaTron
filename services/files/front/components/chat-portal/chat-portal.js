@@ -29,19 +29,19 @@ export class ChatPortal extends ListenerComponent {
             await this.loadContent();
         });
 
-        this.shadowRoot.addEventListener("open-conversation", async (event) => {
+        this.addAutoCleanListener(this, "open-conversation", async (event) => {
             const conversation = await chatService.getConversation(event.detail.conversationId);
             this._openChatBox(conversation);
         });
 
-        this.shadowRoot.addEventListener("conv-return", async (event) => {
+        this.addAutoCleanListener(this, "conv-return", async (event) => {
             await this._openFriendList();
             event.stopPropagation();
         });
     }
 
     _setupChatListeners() {
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_ADDED, async (conversationId, message) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_ADDED, async (conversationId, message) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId) {
                 chatBox.messageAdded(conversationId, message);
@@ -53,16 +53,39 @@ export class ChatPortal extends ListenerComponent {
             this._updateFriendMessage(conversationId, message);
         });
 
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_SENT, (tempId, defMessage, conversationId) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_SENT, (tempId, defMessage, conversationId) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId)
                 chatBox.messageSent(tempId, defMessage);
         });
 
-        this.addEventListener(chatService, CHAT_EVENTS.MESSAGE_DELETED, (conversationId, messageId) => {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.MESSAGE_DELETED, (conversationId, messageId) => {
             const chatBox = this.shadowRoot.querySelector("chat-box");
             if (chatBox && chatBox.getAttribute("id") === conversationId)
                 chatBox.messageDeleted(conversationId, messageId);
+        });
+
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async () => {
+            const chatBox = this.shadowRoot.querySelector("chat-box");
+            if (!chatBox) {
+                await this.loadContent();
+            }
+        });
+
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATIONS_UPDATED, async () => {
+            const shadowRoot = this.shadowRoot;
+            const chatBox = shadowRoot.querySelector("chat-box");
+            if (chatBox) {
+                const conversation = await chatService.getConversation(chatBox.id);
+                if (conversation) {
+                    chatBox.refresh(conversation);
+                } else {
+                    shadowRoot.getElementById("content").removeChild(chatBox);
+                    await this.loadContent();
+                }
+            } else {
+                await this.loadContent();
+            }
         });
     }
 
@@ -71,24 +94,29 @@ export class ChatPortal extends ListenerComponent {
         this._setupChatListeners();
     }
 
+    async _changeToggleSelected(value) {
+        this._toggleChoice = value;
+        this.shadowRoot.getElementById("chat-type").setAttribute("selected", value);
+    }
+
     _openChatBox(conversation) {
         this._content.innerHTML = "";
         const chatBox = document.createElement("chat-box");
         this._content.appendChild(chatBox);
 
-        const friendUsername = conversation.participants?.[0];
+        const friendUsername = conversation.participants?.[0]?.name;
         const messages = (Array.from(conversation.messages.values()) ?? []);
         chatBox.setAttribute("id", conversation._id);
 
         chatBox.whenConnected.then(() =>
             chatBox.initialize(messages, friendUsername, userService.user._id));
 
-        chatBox.addEventListener("new-message", (event) => {
+        this.addAutoCleanListener(chatBox, "new-message", (event) => {
             const {conversationId, message} = event.detail;
             chatService.sendMessage(conversationId, message);
         });
 
-        chatBox.addEventListener("delete-message", (event) => {
+        this.addAutoCleanListener(chatBox, "delete-message", (event) => {
             const {conversationId, messageId} = event.detail;
             chatService.deleteMessage(conversationId, messageId);
         });
@@ -107,7 +135,8 @@ export class ChatPortal extends ListenerComponent {
         if (this._toggleChoice === "global") {
             const globalConversation = await chatService.getGlobalConversation();
             this._openChatBox(globalConversation);
-        } else await this._openFriendList();
+        } else
+            await this._openFriendList();
     }
 
     _updateFriendMessage(conversationId, message) {

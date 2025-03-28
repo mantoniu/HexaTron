@@ -109,6 +109,20 @@ const User = {
         },
         elo: {
             bsonType: "number"
+        },
+        friends: {
+            bsonType: "array",
+            items: {
+                bsonType: "object",
+                properties: {
+                    friendId: {
+                        bsonType: "objectId"
+                    },
+                    status: {
+                        bsonType: "string"
+                    }
+                }
+            }
         }
     }
 };
@@ -173,7 +187,7 @@ function convertBsonToSwagger(schema) {
 }
 
 /* JSON */
-let userJson = convertBsonToSwagger(User);
+let userJson = convertBsonToSwagger(User.properties);
 userJson["_id"] = {"type": "string"};
 
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);

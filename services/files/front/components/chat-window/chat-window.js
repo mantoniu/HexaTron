@@ -35,7 +35,7 @@ export class ChatWindow extends Component {
         this.shadowRoot.prepend(userHeader);
     }
 
-    addMessage({_id, senderId, content, timestamp, isPending = false}) {
+    addMessage({_id, senderId, senderName, content, timestamp, isPending = false}) {
         this._dismissNoMessagesText();
 
         if (!this._messagesDiv)
@@ -56,7 +56,7 @@ export class ChatWindow extends Component {
 
         message.setAttribute("id", _id);
         message.setAttribute("type", senderId === this._currentUser ? "sent" : "received");
-        message.setAttribute("sender", senderId);
+        message.setAttribute("sender", senderName);
         message.setAttribute("timestamp", timestamp);
         message.setAttribute("time", formattedTime);
         message.setAttribute("content", content);
@@ -132,5 +132,12 @@ export class ChatWindow extends Component {
         const noMessagesText = this._messagesDiv.querySelector(".no-messages");
         if (noMessagesText)
             noMessagesText.remove();
+    }
+
+    refresh(conversation) {
+        this.shadowRoot.querySelector("username-bar")?.setAttribute("username", conversation.participants?.[0].name);
+        conversation.messages.forEach(message => {
+            this.shadowRoot.getElementById(message._id)?.setAttribute("sender", message.senderName);
+        });
     }
 }

@@ -3,7 +3,10 @@ const USER_FIELDS = Object.freeze({
     name: 'name',
     password: 'password',
     answers: 'answers',
-    parameters: 'parameters'
+    parameters: "parameters",
+    elo: "elo",
+    league: "league",
+    friends: "friends"
 });
 
 const DATABASE_ERRORS = Object.freeze({
@@ -18,7 +21,20 @@ const DATABASE_ERRORS = Object.freeze({
     VALIDATION_FAILED: "VALIDATION_FAILED"
 });
 
+/**
+ * The friendship statuses are as follows:
+ *  - "requested": User A has sent a friend request to User B, and it is waiting for acceptance.
+ *  - "pending": User B has received the request and is expected to accept or decline it.
+ *  - "friend": Both users are now friends after accepting the request.
+ */
+const FRIENDSHIP_STATUS = Object.freeze({
+    REQUESTED: "requested",
+    PENDING: "pending",
+    FRIENDS: "friends"
+});
+
 module.exports = {
     USER_FIELDS,
-    DATABASE_ERRORS
+    DATABASE_ERRORS,
+    FRIENDSHIP_STATUS
 };

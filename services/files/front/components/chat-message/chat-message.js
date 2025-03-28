@@ -1,6 +1,6 @@
-import {Component} from "../component/component.js";
+import {ListenerComponent} from "../component/listener-component.js";
 
-export class ChatMessage extends Component {
+export class ChatMessage extends ListenerComponent {
     constructor() {
         super();
 
@@ -55,9 +55,9 @@ export class ChatMessage extends Component {
         if (!this._usernameLabel || !this._messageContent || !this._timeStampLabel)
             return;
 
-        this._usernameLabel.innerHTML = this._sender;
-        this._messageContent.innerHTML = this._content;
-        this._timeStampLabel.innerHTML = this._time;
+        this._usernameLabel.textContent = this._sender;
+        this._messageContent.textContent = this._content;
+        this._timeStampLabel.textContent = this._time;
 
         this.className = '';
         this.classList.add(this._type);

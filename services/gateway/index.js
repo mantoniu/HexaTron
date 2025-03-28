@@ -18,7 +18,8 @@ const servicesConfig = {
             rewriteUrl: true,
             targetUrl: "/api.html"
         },
-        ws: null
+        ws: null,
+        auth: null
     },
 
     user: {
@@ -29,7 +30,10 @@ const servicesConfig = {
             publicRoutes: ["login", "register", "resetPassword", "leaderboard"],
             requiresAuth: true
         },
-        ws: null
+        ws: {
+            namespace: "/friends"
+        },
+        auth: ["userId"]
     },
 
     chat: {
@@ -42,8 +46,10 @@ const servicesConfig = {
         },
         ws: {
             namespace: '/chat',
-        }
+        },
+        auth: ["userId"]
     },
+
 
     game: {
         target: process.env.GAME_SERVICE_URL,
@@ -51,7 +57,8 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: '/game',
-        }
+        },
+        auth: null
     }
 };
 
@@ -61,7 +68,8 @@ const filesService = {
         path: '/',
         requiresAuth: false
     },
-    ws: null
+    ws: null,
+    auth: []
 };
 
 // We will need a proxy to send requests to the other services.
@@ -204,12 +212,22 @@ Object.values(servicesConfig).forEach(service => {
 
     const nameSpace = ioServer.of(service.ws.namespace);
     nameSpace.on("connection", (clientSocket) => {
-        const socket = Client(service.target);
+
+        let auth = {};
+        if (service.auth) {
+            auth = {
+                auth: Object.fromEntries(service.auth.map(element => [element, clientSocket.handshake.auth[element]]))
+            };
+        }
+
+        const socket = Client(service.target, auth);
 
         clientSocket.onAny((eventName, ...args) => socket.emit(eventName, ...args));
         clientSocket.on("disconnect", () => socket.disconnect());
 
-        socket.onAny((eventName, ...args) => clientSocket.emit(eventName, ...args));
+        socket.onAny((eventName, ...args) => {
+            clientSocket.emit(eventName, ...args);
+        });
     });
 });
 

@@ -4,6 +4,7 @@ import {SubmitButton} from "../submit-button/submit-button.js";
 import {ImageButton} from "../image-button/image-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {UserPasswordPart} from "../user-password-part/user-password-part.js";
+import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
 
 export class UserProfile extends BaseAuth {
     static SELECTORS = {
@@ -23,6 +24,7 @@ export class UserProfile extends BaseAuth {
         SubmitButton.register();
         ImageButton.register();
         UserPasswordPart.register();
+        UserFriendPart.register();
 
         this.editingUsername = false;
         this._elements = {};
@@ -47,10 +49,7 @@ export class UserProfile extends BaseAuth {
         if (!JSON.parse(this.getAttribute("editable"))) {
             this.shadowRoot.getElementById("edit-username").style.display = "none";
         }
-        this.user = JSON.parse(this.getAttribute("user"));
-        if (this.getAttribute("part")) {
-            this.shadowRoot.querySelector(this.getAttribute("part")).style.display = "flex";
-        }
+
         this._elements = this.initializeElements(UserProfile.SELECTORS);
         this.setupEventListeners();
         this.updateUserData();
@@ -66,6 +65,14 @@ export class UserProfile extends BaseAuth {
         if (!this.isConnected && !this.user)
             return;
 
+        const part = this.shadowRoot.querySelector(this.getAttribute("part"));
+        if (part && userService.isConnected()) {
+            if (this.getAttribute("part") === "user-friend-part") {
+                part.setAttribute("friend-id", this.user._id);
+            }
+            part.style.display = "flex";
+        }
+
         if (this._elements.PROFILE_PICTURE && this.user.profilePicturePath) {
             this._elements.PROFILE_PICTURE.src = this.user.profilePicturePath;
             this._elements.PROFILE_PICTURE.onerror = () => console.warn("Error loading the profile picture");
@@ -75,10 +82,10 @@ export class UserProfile extends BaseAuth {
             this._elements.USERNAME.innerText = this.user.name;
 
         if (this._elements.ELO && this.user.elo) {
-            this._elements.ELO.textContent += Math.round(this.user.elo);
+            this._elements.ELO.textContent = `ELO: ${Math.round(this.user.elo)}`;
         }
         if (this._elements.LEAGUE && this.user.league) {
-            this._elements.LEAGUE.textContent += this.user.league;
+            this._elements.LEAGUE.textContent = `League: ${this.user.league}`;
         }
     }
 

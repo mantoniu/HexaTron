@@ -46,10 +46,10 @@ export class GameComponent extends ListenerComponent {
         if (gameService.isGameCreated())
             this.hideLoader();
 
-        this.addEventListener(gameService, GameStatus.CREATED,
+        this.addAutomaticEventListener(gameService, GameStatus.CREATED,
             () => this.hideLoader());
 
-        this.addEventListener(gameService, GameStatus.GAME_END,
+        this.addAutomaticEventListener(gameService, GameStatus.GAME_END,
             () => this.showResultScreen());
     }
 
