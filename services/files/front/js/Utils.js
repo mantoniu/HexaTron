@@ -51,11 +51,20 @@ export function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
+/**
+ * Creates and displays an alert message inside the specified container.
+ *
+ * @param {HTMLElement} container - The container where the alert message will be displayed.
+ * @param {string} type - The type of the alert.
+ * @param {string} text - The text content of the alert message.
+ * @param {number} [timer=4000] - The duration (in milliseconds) before the alert disappears.
+ * @returns {HTMLElement|null} The created alert message element, or null if no container is provided.
+ */
 export function createAlertMessage(container, type, text, timer = 4000) {
     AlertMessage.register();
 
     if (!container)
-        return;
+        return null;
 
     let existingAlert = container.querySelector("alert-message");
     if (existingAlert)
