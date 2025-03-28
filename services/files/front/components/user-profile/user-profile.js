@@ -5,6 +5,7 @@ import {Component} from "../component/component.js";
 import {ModalDialog} from "../modal-dialog/modal-dialog.js";
 import {AlertMessage} from "../alert-message/alert-message.js";
 
+//TODO merge with main
 export class UserProfile extends Component {
     constructor() {
         super();

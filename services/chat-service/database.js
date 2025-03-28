@@ -84,12 +84,47 @@ async function getConversationsWithMessages({
                         {$sort: {timestamp: sortMessageOrder}},
                         {$limit: messageLimit},
                         {
+                            $lookup: {
+                                from: "users",
+                                localField: "senderId",
+                                foreignField: "_id",
+                                as: "senderInfo"
+                            }
+                        },
+                        {
+                            $addFields: {
+                                senderInfo: {$arrayElemAt: ["$senderInfo", 0]}
+                            }
+                        },
+                        {
                             $project: {
-                                _id: 1, content: 1, senderId: 1, timestamp: 1, isRead: 1
+                                _id: 1, content: 1, senderId: 1, senderName: "$senderInfo.name", timestamp: 1, isRead: 1
                             }
                         }
                     ],
                     as: "messages"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "participants",
+                    foreignField: "_id",
+                    as: "participantsInfo"
+                }
+            },
+            {
+                $addFields: {
+                    participants: {
+                        $map: {
+                            input: "$participantsInfo",
+                            as: "participant",
+                            in: {
+                                id: {$toString: "$$participant._id"},
+                                name: "$$participant.name"
+                            }
+                        }
+                    }
                 }
             },
             {
@@ -119,17 +154,6 @@ async function getConversationsWithMessages({
                     }
                 }
             },
-            {
-                $addFields: {
-                    participants: {
-                        $map: {
-                            input: "$participants",
-                            as: "participant",
-                            in: {$toString: "$$participant"}
-                        }
-                    }
-                }
-            },
             ...(excludeUserId
                     ? [{
                         $set: {
@@ -137,7 +161,7 @@ async function getConversationsWithMessages({
                                 $filter: {
                                     input: "$participants",
                                     as: "participant",
-                                    cond: {$ne: ["$$participant", new ObjectId(excludeUserId)]}
+                                    cond: {$ne: ["$$participant.id", excludeUserId]}
                                 }
                             }
                         }
@@ -179,7 +203,6 @@ async function getUserConversationsWithLastMessage(userId) {
 
     if (globalConversation.length)
         conversations.push(globalConversation[0]);
-
     return conversations;
 }
 
@@ -195,9 +218,7 @@ async function getUserConversationsWithLastMessage(userId) {
  * @throws {Error} `USER_NOT_PARTICIPANT` - If the user is not a participant of the conversation
  * @returns {Promise<Object|null>} - The conversation object with its recent messages, or null if not found.
  */
-async function getConversationWithMessagesBeforeDate(conversationId, userId, date, limit = DEFAULT_MESSAGE_LIMIT) {
-    const referenceDate = date ? new Date(date) : new Date();
-
+async function getConversationWithMessagesBeforeDate(conversationId, userId, date = new Date(), limit = DEFAULT_MESSAGE_LIMIT) {
     const conversations = await getConversationsWithMessages({
         conversationFilter: {
             _id: new ObjectId(conversationId),
@@ -206,7 +227,7 @@ async function getConversationWithMessagesBeforeDate(conversationId, userId, dat
                 {isGlobal: true}
             ]
         },
-        messageFilter: {timestamp: {$lt: new Date(referenceDate)}},
+        messageFilter: {timestamp: {$lt: new Date(date)}},
         messageLimit: limit,
         excludeUserId: userId
     });
@@ -305,7 +326,7 @@ async function createConversation(participantIds) {
     const result = await mongoOperation(() =>
         db.collection(conversationCollection).insertOne(conversation));
 
-    return {_id: result.insertedId, ...conversation};
+    return result.insertedId.toString();
 }
 
 /**
@@ -355,6 +376,53 @@ async function createGlobalConversation() {
         console.log("Global conversation already exists.");
 }
 
+/**
+ * Deletes all messages and conversations related to the given user.
+ *
+ * @async
+ * @function
+ * @param {string} userId - The ID of the user whose messages and conversations should be deleted.
+ * @throws {Error} If there is a failure in the MongoDB operations.
+ */
+async function deleteUser(userId) {
+    await mongoOperation(() => db.collection(messageCollection).deleteMany({senderId: new ObjectId(userId)}));
+    await mongoOperation(() => db.collection(conversationCollection).deleteMany({
+        participants: new ObjectId(userId),
+        $expr: {$eq: [{$size: "$participants"}, 2]}
+    }));
+}
+
+/**
+ * Retrieves the ID of an existing conversation between two users.
+ *
+ * This function searches the conversation collection for a private (non-global) conversation
+ * that contains exactly the two specified users. It returns the conversation ID if found.
+ *
+ * @async
+ * @function getConversationIdIfExists
+ * @param {string} userId1 - The ID of the first user.
+ * @param {string} userId2 - The ID of the second user.
+ * @returns {Promise<Object[]>} A promise resolving to an array containing the conversation ID if found,
+ *                              or an empty array if no conversation exists.
+ */
+async function getConversationIdIfExists(userId1, userId2) {
+    return await mongoOperation(() =>
+        db.collection(conversationCollection).aggregate([
+            {
+                $match: {
+                    participants: {$all: [new ObjectId(userId1), new ObjectId(userId2)]},
+                    isGlobal: {$ne: true}
+                }
+            },
+            {
+                $project: {
+                    _id: 1
+                }
+            }
+        ]).toArray()
+    );
+}
+
 module.exports = {
     createGlobalConversation,
     deleteMessageWithOwner,
@@ -362,5 +430,7 @@ module.exports = {
     getUserConversationsWithLastMessage,
     createConversation,
     saveMessage,
-    markMessagesAsRead
+    markMessagesAsRead,
+    getConversationIdIfExists,
+    deleteUser
 };

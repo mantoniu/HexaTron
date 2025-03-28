@@ -35,31 +35,10 @@ export class LeaderboardPortal extends Component {
 
         this.shadowRoot.getElementById("league-selector").value = "Global";
         this.selectLeague();
-        this.addAutoCleanListener(this, "watchProfile", (event) => this.handleEvent(event));
     }
 
     selectLeague() {
         const league = this.shadowRoot.getElementById("league-selector").value;
         this.shadowRoot.getElementById("leaderboard").setLeague(league, this.leaderboard[league], this.rank);
-    }
-
-    handleEvent(event) {
-        event.stopPropagation();
-        if (event.detail.player.name === userService.user.name) {
-            const newEvent = new CustomEvent("showUserProfile", {
-                bubbles: true,
-                composed: true
-            });
-            this.dispatchEvent(newEvent);
-        } else {
-            const userProfile = document.createElement("user-profile");
-
-            userProfile.setAttribute("user", JSON.stringify(event.detail.player));
-            userProfile.setAttribute("editable", false);
-            userProfile.style.display = "block";
-
-            this.shadowRoot.getElementById("leaderboard-container").style.display = "none";
-            this.shadowRoot.appendChild(userProfile);
-        }
     }
 }

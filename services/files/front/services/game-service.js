@@ -160,7 +160,7 @@ class GameService extends EventEmitter {
             }
         });
         this.socket.on("updateELO", (receivedData) => {
-            UserService.getInstance().updateELO(receivedData);
+            userService.updateELO(receivedData);
         });
         this.errorListener();
     }

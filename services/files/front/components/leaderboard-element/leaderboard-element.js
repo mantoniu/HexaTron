@@ -17,7 +17,7 @@ export class LeaderboardElement extends Component {
 
         this.initialise();
         this.addEventListener("click", () => {
-            const event = new CustomEvent("watchProfile", {
+            const event = new CustomEvent("showUserProfile", {
                 detail: {player: this.player},
                 bubbles: true,
                 composed: true

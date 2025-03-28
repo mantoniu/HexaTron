@@ -44,12 +44,12 @@ export class FriendMessage extends Component {
         if (!this._nameElem || !this._lastMessageElem || !this._timeElem)
             return;
 
-        this._lastMessageElem.innerHTML = this._lastMessage || "The conversation is empty.";
+        this._lastMessageElem.textContent = this._lastMessage || "The conversation is empty.";
 
         if (this._name)
-            this._nameElem.innerHTML = this._name;
+            this._nameElem.textContent = this._name;
         if (this._time)
-            this._timeElem.innerHTML = this._time;
+            this._timeElem.textContent = this._time;
 
         if (this._unread)
             this.classList.add("unread");
