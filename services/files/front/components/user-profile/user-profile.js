@@ -23,22 +23,33 @@ export class UserProfile extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.user = JSON.parse(this.getAttribute("user"));
-
-        if (this.getAttribute("part")) {
-            const elem = this.shadowRoot.querySelector(this.getAttribute("part"));
-
-            if (!elem)
-                return;
-
-            elem.style.display = "flex";
-            elem.user = this.user;
-        }
-
-        this._accountInformation = this.shadowRoot.querySelector("account-information");
+        this._content = this.shadowRoot.getElementById("content");
         this._profileHeader = this.shadowRoot.querySelector("profile-header");
+        let isOtherUser = false;
+
+        if (this.hasAttribute("user")) {
+            this.user = JSON.parse(this.getAttribute("user"));
+            isOtherUser = true;
+        } else
+            this.user = userService.user;
+
         this._updateProfileHeader();
-        this._setupListeners();
+        this._loadContent(isOtherUser);
+    }
+
+    _loadContent(isOtherUser) {
+        this._content.innerHTML = "";
+
+        if (isOtherUser) {
+            const friendPart = document.createElement("user-friend-part");
+            friendPart.setAttribute("friend-id", this.user._id);
+            this._content.appendChild(friendPart);
+        } else {
+            const accountInfo = document.createElement("account-information");
+            accountInfo.user = this.user;
+            this._content.appendChild(accountInfo);
+            this._setupListeners(accountInfo);
+        }
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -48,7 +59,7 @@ export class UserProfile extends Component {
         }
     }
 
-    _setupListeners() {
+    _setupListeners(accountInfo) {
         this.shadowRoot.addEventListener("updateInformation", async (event) => {
             event.stopPropagation();
             const res = await userService.updateUser(event.detail);
@@ -66,14 +77,14 @@ export class UserProfile extends Component {
             this._handlePasswordUpdate(res);
         });
 
-        this._setupAccountInformationListeners();
+        this._setupAccountInformationListeners(accountInfo);
     }
 
-    _setupAccountInformationListeners() {
-        this._accountInformation.addEventListener("delete-user",
+    _setupAccountInformationListeners(accountInfo) {
+        accountInfo.addEventListener("delete-user",
             () => this._createModalPopup());
 
-        this._accountInformation.addEventListener("disconnect-user",
+        accountInfo.addEventListener("disconnect-user",
             () => this._handleLogout());
     }
 
