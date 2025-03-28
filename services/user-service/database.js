@@ -165,8 +165,9 @@ async function getUserWithFriend(filter, projection) {
             $project: projection
         }
     ]).toArray());
-
-    user.friends = Object.fromEntries(user.friends.map(({friendId, ...other}) => [friendId.toHexString(), other]));
+    if (user) {
+        user.friends = Object.fromEntries(user.friends.map(({friendId, ...other}) => [friendId.toHexString(), other]));
+    }
     return user;
 }
 
