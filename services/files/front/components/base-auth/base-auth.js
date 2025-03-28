@@ -52,12 +52,6 @@ export class BaseAuth extends Component {
         return getInputsData(this.getFormInputs());
     }
 
-    initializeElements(selectors) {
-        return Object.fromEntries(
-            Object.entries(selectors).map(([key, id]) => [key, this.shadowRoot.getElementById(id)])
-        );
-    }
-
     checkInputs(divId) {
         return checkInputsValidity(this.getInputs(`#${divId} form-input`));
     }

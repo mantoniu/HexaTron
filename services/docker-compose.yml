@@ -110,6 +110,8 @@ services:
       - URI=${URI_DATABASE_CHAT_SERVICE}
       - GATEWAY_URL=${GATEWAY_URL}
       - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
+      - CHAT_API=${CHAT_API}
+
 
       - USER_COLLECTION=${USER_COLLECTION}
       - CONVERSATION_COLLECTION=${CONVERSATION_COLLECTION}
@@ -178,13 +180,15 @@ services:
     expose:
       - "8004"
     environment:
-      - SERVICES_URL=${USER_SERVICE_URL}/api/user
+      - SERVICES_URL=${USER_SERVICE_URL}/api/user,${CHAT_SERVICE_URL}/api/chat
       - DOC_API_SERVICE_URL=${DOC_API_SERVICE_URL}
       - FILES_URL=${FILES_URL}
     depends_on:
       files:
         condition: service_healthy
       user-service:
+        condition: service_healthy
+      chat-service:
         condition: service_healthy
 
 networks:

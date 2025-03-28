@@ -157,7 +157,18 @@ class ChatStore {
     getConversations() {
         return this._conversationOrder
             .filter(id => id !== this._globalConversationId)
-            .map(id => this._conversations.get(id));
+            .map(id => this._conversations.get(id))
+            .filter(conversation => conversation !== undefined);
+    }
+
+    /**
+     * Retrieves all stored conversations.
+     *
+     * @function
+     * @returns {Map<string, Object>} A map where the keys are conversation IDs and the values are conversation objects.
+     */
+    getAllConversations() {
+        return this._conversations;
     }
 
     /**
@@ -226,6 +237,40 @@ class ChatStore {
         this._globalConversationId = null;
         this._fetchedConversations.clear();
         this._conversationsFetched = false;
+    }
+
+    /**
+     * Updates a friend's name in all relevant conversations.
+     *
+     * @param {Object} friend - The friend object containing updated information.
+     */
+    updateFriend(friend) {
+        this._conversations.forEach((conversation, _) => {
+            let participate = false;
+            conversation.participants.forEach(participant => {
+                if (participant.id === friend.id) {
+                    participant.name = friend.friendData.name;
+                    participate = true;
+                }
+            });
+            if (conversation.isGlobal || participate)
+                conversation.messages.forEach((message, _) => {
+                    if (message.senderId === friend.id)
+                        message.senderName = friend.friendData.name;
+                });
+        });
+    }
+
+    /**
+     * Deletes a conversation.
+     *
+     *
+     * @function
+     * @param {string} conversationId - The ID of the conversation to be deleted.
+     * @returns {void}
+     */
+    deleteConversation(conversationId) {
+        this._conversations.delete(conversationId);
     }
 }
 

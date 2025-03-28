@@ -15,6 +15,17 @@ const userExample = {
 const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2N2FhNDc4M2MwZGMwYTM3YTUxM2MwYjciLCJpYXQiOjE3MzkyMTMzMzYsImV4cCI6MTczOTIxNDIzNn0.2iIKH4d9dSnS7p9-8148MEHIBvgxTdTpl8JhJGHZYm0";
 const refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2N2FhNDc4M2MwZGMwYTM3YTUxM2MwYjciLCJpYXQiOjE3MzkyMTI2NzUsImV4cCI6MTczOTIxMzU3NX0.5ZPptwWS6TZ8CGqSpKB0pZ4vzMXYCPKrTWzKq-hJfP8";
 
+/**
+ * Extracts specific properties from an object.
+ *
+ * This function takes an object and a list of property names, and returns a new
+ * object containing only the properties specified in the list. If a property
+ * does not exist in the object, it will be ignored.
+ *
+ * @param {Object} obj - The object to extract properties from.
+ * @param {Array<string>} properties - An array of property names to extract from the object.
+ * @returns {Object} A new object containing only the extracted properties.
+ */
 const extractProperties = (obj, properties) => {
     return properties.reduce((res, prop) => {
         if (obj.hasOwnProperty(prop)) {
@@ -41,6 +52,71 @@ leaderBoardSchema["Global"] = {
     }
 };
 
+/**
+ * Generates a schema for friend-related responses in the API documentation.
+ *
+ * This function generates a schema to describe the response when adding or accepting a friend.
+ * It includes details about the message, friends' status, and their associated IDs.
+ *
+ * @param {string} message - The message describing the result (e.g., success message).
+ * @param {string} statusOne - The status of the first user (e.g., "pending", "accepted").
+ * @param {string} statusTwo - The status of the second user (e.g., "pending", "accepted").
+ * @returns {Object} The Swagger schema for the response body, describing the structure of the response.
+ */
+const generateFriendDoc = (message, statusOne, statusTwo) => {
+    return {
+        type: "object",
+        properties: {
+            message: {
+                type: "string",
+                example: message
+            },
+            friends: {
+                type: "object",
+                properties: {
+                    id: {
+                        type: "string",
+                        example: "456"
+                    },
+                    status: {
+                        type: "string",
+                        example: statusOne
+                    }
+                }
+            },
+            friendData: {
+                type: "object",
+                properties: {
+                    friendId: {
+                        type: "string",
+                        example: "123"
+                    },
+                    status: {
+                        type: "string",
+                        example: statusTwo
+                    }
+                }
+            }
+        }
+    };
+};
+
+/**
+ * Creates an example response object to be used in API documentation.
+ *
+ * This function constructs a response object with the given message, user data, and tokens,
+ * and returns it in the format expected by the Swagger documentation.
+ * You can customize which fields are included in the response and whether the response should
+ * be wrapped inside a `value` property.
+ *
+ * @param {string} message - The message to be included in the response.
+ * @param {Array<string>} [fields=["message", "user", "accessToken", "refreshToken"]] -
+ *   The list of fields to be included in the response. If omitted, the default fields are used.
+ * @param {boolean} [isValue=true] - Whether to wrap the response in a `value` property.
+ * @param {Array<string>} [userFields=["_id", "name", "parameters", "elo", "league"]] -
+ *   The fields to be included for the `user` data. If omitted, the default user fields are used.
+ * @returns {Object} The response example object that can be used in API documentation.
+ */
 function createResponseExample(message, fields = ["message", "user", "accessToken", "refreshToken"], isValue = true, userFields = ["_id", "name", "parameters", "elo", "league"]) {
     let value = extractProperties({
         message: message,
@@ -218,7 +294,9 @@ exports.options = {
 
                         }
                     }
-                }
+                },
+                addFriendAnswer: generateFriendDoc("New friend successfully added", "requested", "pending"),
+                acceptFriendAnswer: generateFriendDoc("New friend successfully accepted", "friends", "friends")
             }
         }
     },

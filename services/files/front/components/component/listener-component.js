@@ -20,7 +20,7 @@ export class ListenerComponent extends Component {
      * @returns {Symbol} A unique identifier for the listener.
      * @throws {Error} If the service does not extend EventEmitter or if the callback is not a function.
      */
-    addEventListener(service, eventName, callback) {
+    addAutomaticEventListener(service, eventName, callback) {
         if (!(service instanceof EventEmitter))
             throw new Error("Service must extend EventEmitter");
         if (typeof callback !== "function")

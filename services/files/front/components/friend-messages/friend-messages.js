@@ -18,7 +18,7 @@ export class FriendMessages extends Component {
             this._showNoConversationsText();
 
         conversations.forEach(conversation => {
-                const friendName = conversation.participants[0];
+            const friendName = conversation.participants[0].name;
                 this.createFriendMessage(conversation._id, friendName, Array.from(conversation.messages.values()).at(-1));
             }
         );
