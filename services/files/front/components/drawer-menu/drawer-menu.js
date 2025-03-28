@@ -28,7 +28,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this.current = "";
         this.previous = "";
-        this._oppened = false;
+        this._opened = false;
         LoginPortal.register();
         UserProfile.register();
         RegisterPortal.register();
@@ -45,37 +45,71 @@ export class DrawerMenu extends ListenerComponent {
         this._closeBtn = this.shadowRoot.getElementById("close-btn");
         this._drawer = this.shadowRoot.getElementById("drawer");
 
+        this._setupListeners();
+    }
+
+    _setupUserServiceListeners() {
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.UPDATE_FRIEND,
+            (data) => this._modificationStatus(data));
+
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.REMOVE_FRIEND,
+            (data) => this._modificationStatus(data, false));
+
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.DELETE_USER,
+            (data) => this._modificationStatus(data, true));
+    }
+
+    _setupChatServiceListeners() {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
+            if (open) {
+                this._setInitialState(DRAWER_CONTENT.CHAT);
+                const chatPortal = this.shadowRoot.querySelector("chat-portal");
+                chatPortal.whenConnected.then(async () => {
+                    await chatPortal.changeToggleSelected("friends");
+                    await chatPortal.openFriendList();
+                    chatPortal._openChatBox(await chatService.getConversation(conversationId));
+                });
+            }
+        });
+    }
+
+    _setupListeners() {
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             this.previous = event.detail.type;
-            this.setInitialState(this.previous);
+            this._setInitialState(this.previous);
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
-            this.loadContent(event.detail);
+            this._loadContent(event.detail);
         });
 
-        this.addAutoCleanListener(
-            this.shadowRoot.getElementById("close-btn"),
-            "click",
-            () => this.nav(this.current)
-        );
+        this._closeBtn.onclick = () => this._nav(this.current);
 
         const returnDiv = this.shadowRoot.getElementById("return");
         this.addAutoCleanListener(returnDiv, "click", () => {
             this._alertMessage?.remove();
-            this.nav(this.previous);
+            this._nav(this.current);
         });
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
+            console.log(event.detail.player);
             event.stopPropagation();
             this.previous = this.current;
-            if (event.detail.player._id === userService.user._id) {
+            const isCurrentUser = event.detail.player._id === userService.user._id;
+
+            if (isCurrentUser) {
                 this.current = DRAWER_CONTENT.PROFILE;
-                this.loadContent(DRAWER_CONTENT.PROFILE);
+                this._loadContent(DRAWER_CONTENT.PROFILE);
             } else {
                 this.current = DRAWER_CONTENT.VOID;
-                this._content.innerHTML = `<user-profile user='${JSON.stringify(event.detail.player)}' editable='false' part='user-friend-part'></user-profile>`;
-                this.replaceCloseWithBack();
+                this.current = DRAWER_CONTENT.PROFILE;
+                this._content.innerHTML = `<user-profile 
+                                   user='${JSON.stringify(event.detail.player)}'>
+                               </user-profile>`;
+                this._replaceCloseWithBack();
             }
         });
 
@@ -85,26 +119,16 @@ export class DrawerMenu extends ListenerComponent {
 
         this._content.addEventListener("createAlert", (event) => {
             const {type, text} = event.detail;
-            this._alertMessage = createAlertMessage(this.shadowRoot.getElementById("alert-container"), type, text);
+            const alertContainer = this.shadowRoot.getElementById("alert-container");
+            this._alertMessage = createAlertMessage(alertContainer, type, text);
         });
 
-        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
-            if (open) {
-                this.setInitialState(DRAWER_CONTENT.CHAT);
-                this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
-                    await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
-                    await this.shadowRoot.querySelector("chat-portal")._openFriendList();
-                    this.shadowRoot.querySelector("chat-portal")._openChatBox(await chatService.getConversation(conversationId));
-                });
-            }
-        });
 
-        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (data) => this.modificationStatus(data));
-        this.addAutomaticEventListener(userService, USER_EVENTS.REMOVE_FRIEND, (data) => this.modificationStatus(data, false));
-        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_USER, (data) => this.modificationStatus(data, true));
+        this._setupChatServiceListeners();
+        this._setupUserServiceListeners();
     }
 
-    loadContent(type) {
+    _loadContent(type) {
         let component;
         this._content.classList.remove('animate');
         this._alertMessage?.remove();
@@ -112,7 +136,7 @@ export class DrawerMenu extends ListenerComponent {
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
                 component = (userService.isConnected())
-                    ? `<user-profile user='${JSON.stringify(userService.user)}' part='account-information'></user-profile>`
+                    ? `<user-profile></user-profile>`
                     : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
@@ -146,40 +170,38 @@ export class DrawerMenu extends ListenerComponent {
         return true;
     }
 
-    nav(type) {
-        if (this._oppened && this.previous === type) {
+    _nav(type) {
+        if (this._opened && this.current === type) {
             this._closeBtn.style.visibility = "hidden";
             this.classList.remove("open");
             this._content.innerHTML = "";
-            this._oppened = !this._oppened;
+            this._opened = !this._opened;
         } else {
             this._closeBtn.style.visibility = "visible";
             this.classList.add("open");
-            this._oppened = true;
+            this._opened = true;
         }
         this.current = type;
     }
 
-    setInitialState(type) {
-        this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
-        this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
-        if (this.loadContent(type)) {
-            this.nav(type);
-        }
+    _setInitialState(type) {
+        this._closeBtn.innerHTML = `&times;`;
+        this._closeBtn.onclick = () => this._nav(this.current);
+        if (this._loadContent(type))
+            this._nav(type);
     }
 
-    replaceCloseWithBack() {
-        this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
-        this.shadowRoot.getElementById("close-btn").onclick = () => {
-            this.setInitialState(this.previous);
-        };
+    _replaceCloseWithBack() {
+        this._closeBtn.innerHTML = `&larr;`;
+        this._closeBtn.onclick = () =>
+            this._setInitialState(this.previous);
     }
 
-    modificationStatus(data, deleted) {
+    _modificationStatus(data, deleted) {
         const element = this._content.querySelector("user-profile");
         if (element && element.user._id === data.id) {
             if (deleted) {
-                this.setInitialState(this.previous);
+                this._setInitialState(this.previous);
             } else {
                 let user = data.friendData;
                 user._id = data.id;
