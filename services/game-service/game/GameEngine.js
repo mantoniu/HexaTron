@@ -6,7 +6,23 @@ const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
 const MiniMaxAI = require("./ai/MiniMaxAI");
 const crypto = require("crypto");
 
+/**
+ * @class GameEngine
+ * @classdesc Handles the game logic, including player movements, round management, and event handling.
+ */
 class GameEngine {
+    /**
+     * Creates an instance of GameEngine.
+     * @param {Array<Player>} players - List of players.
+     * @param {number} gameType - The type of game.
+     * @param {number} rowNumber - Number of rows in the board.
+     * @param {number} columnNumber - Number of columns in the board.
+     * @param {number} roundsCount - Total number of rounds.
+     * @param {number} playersCount - Total number of players.
+     * @param {Function} eventHandler - Function to handle game events.
+     * @param {number} [choiceTimeout=250] - Timeout for player choices.
+     * @param {number} [setupTimeout=1000] - Timeout for player setup.
+     */
     constructor(players, gameType, rowNumber, columnNumber, roundsCount, playersCount, eventHandler, choiceTimeout = 250, setupTimeout = 1000) {
         this._eventHandler = eventHandler;
         this._id = crypto.randomUUID();
@@ -22,22 +38,48 @@ class GameEngine {
         this.initGame(players, gameType, playersCount, rowNumber, columnNumber, roundsCount);
     }
 
+    /**
+     * Gets the game engine ID.
+     *
+     * @returns {string} Game ID.
+     */
     get id() {
         return this._id;
     }
 
+    /**
+     * Gets the total number of players.
+     *
+     * @returns {number} Number of players.
+     */
     get playersCount() {
         return this._playersCount;
     }
 
+    /**
+     * Gets the game instance.
+     *
+     * @returns {Game} The game instance.
+     */
     get game() {
         return this._game;
     }
 
+    /**
+     * Initializes the game.
+     *
+     * @param {Array<Player>} players - The players.
+     * @param {number} gameType - The game type.
+     * @param {number} playersCount - The number of players.
+     * @param {number} rowNumber - Number of rows.
+     * @param {number} columnNumber - Number of columns.
+     * @param {number} roundsCount - Number of rounds.
+     */
     initGame(players, gameType, playersCount, rowNumber, columnNumber, roundsCount) {
         if (players.length > playersCount)
             throw new Error(`Too many users for this game. Maximum allowed: ${playersCount}, received: ${players.length}`);
 
+        /** @type {Map<string, Player>} */
         let mappedPlayers = new Map(players.map(player => [player.id, player]));
 
         if (gameType === GameType.AI) {
@@ -50,11 +92,20 @@ class GameEngine {
         this._game = new Game(gameType, rowNumber, columnNumber, mappedPlayers, roundsCount);
     }
 
+    /**
+     * Remaps player movement keys.
+     *
+     * @param {string} playerId - The player ID.
+     * @param {number} diff - The direction difference.
+     */
     remapMovements(playerId, diff) {
         for (const [inputKey, directionValue] of Object.entries(this._playersMovements[playerId]))
             this._playersMovements[playerId][inputKey] = (directionValue + diff + 6) % 6;
     }
 
+    /**
+     * Initializes the player directions.
+     */
     initializePlayersDirections() {
         this._playersMovements = {};
 
@@ -72,6 +123,14 @@ class GameEngine {
         }
     }
 
+    /**
+     * Wraps a function call with a timeout.
+     *
+     * @param {Promise} methodCall - The method to execute.
+     * @param {number} timeout - The timeout duration.
+     * @param {*} defaultValue - The default value on timeout.
+     * @returns {Promise<*>} The result of the function call or the default value.
+     */
     async wrapWithTimeout(methodCall, timeout, defaultValue) {
         const resultPromise = Promise.race([
             methodCall,
@@ -89,6 +148,11 @@ class GameEngine {
         return result;
     }
 
+    /**
+     * Initializes the game and players.
+     *
+     * @returns {Promise<void>}
+     */
     async initialize() {
         this._game.setPlayersStartPositions();
 
@@ -119,6 +183,12 @@ class GameEngine {
         await Promise.all(setupPromises);
     }
 
+    /**
+     * Gets the state of a player.
+     *
+     * @param {Object} player - The player object.
+     * @returns {PlayerState} The player's state.
+     */
     getPlayerState(player) {
         let playerPosition = this._game.getPlayerPosition(player.id);
         let opponentPosition = Object.keys(this._remainingPlayers)
@@ -128,6 +198,12 @@ class GameEngine {
         return new PlayerState(playerPosition, opponentPosition);
     }
 
+    /**
+     * Updates the movement mapping for a player.
+     *
+     * @param {string} playerId - The player ID.
+     * @param {string} direction - The movement direction.
+     */
     updateDirectionMapping(playerId, direction) {
         const newDirection = this._playersMovements[playerId][direction];
         const diff = newDirection - this._playersMovements[playerId][MovementTypes.KEEP_GOING];
@@ -135,6 +211,11 @@ class GameEngine {
         this.remapMovements(playerId, diff);
     }
 
+    /**
+     * Computes new positions for the players.
+     *
+     * @returns {Promise<Object>} The new positions.
+     */
     async computeNewPositions() {
         const movePromises = Object.values(this._remainingPlayers).map(player =>
             this.wrapWithTimeout(
@@ -165,6 +246,12 @@ class GameEngine {
         return newPositions;
     }
 
+    /**
+     * Identifies ties among players.
+     *
+     * @param {Object} positions - The positions of players.
+     * @returns {Array<Array<string>>} Groups of tied players.
+     */
     identifyTies(positions) {
         if (!Object.keys(positions).length) {
             const remainingPlayers = [Object.keys(this._remainingPlayers)];
@@ -200,11 +287,22 @@ class GameEngine {
         return [...ties.values()].map(set => [...set]);
     }
 
+    /**
+     * Handles player disconnection.
+     *
+     * @param {string} playerId - The player ID.
+     * @returns {boolean} Whether the game is empty.
+     */
     disconnectPlayer(playerId) {
         this._disconnectedPlayers.add(playerId);
         return this.isGameEmpty();
     }
 
+    /**
+     * Checks if the game has no active players.
+     *
+     * @returns {boolean} Whether the game is empty.
+     */
     isGameEmpty() {
         const nonAIPlayers = Array.from(this.game.players.values())
             .filter(player => player.playerType !== PlayerType.AI);
@@ -212,10 +310,21 @@ class GameEngine {
         return this._disconnectedPlayers.size === nonAIPlayers.length;
     }
 
+    /**
+     * Waits for a specified delay.
+     *
+     * @param {number} [delay=5000] - The delay in milliseconds.
+     * @returns {Promise<void>}
+     */
     async wait(delay = 5000) {
         await new Promise(resolve => setTimeout(resolve, delay));
     }
 
+    /**
+     * Starts the game loop.
+     *
+     * @returns {Promise<void>}
+     */
     async start() {
         let results = [];
         await this.wait(1000);
@@ -233,10 +342,20 @@ class GameEngine {
         this.emitGameUpdate({status: GAME_END, results: results});
     }
 
+    /**
+     * Adds a player to the game.
+     *
+     * @param {Player} player - The player object.
+     */
     addPlayer(player) {
         this.game.players.set(player.id, player);
     }
 
+    /**
+     * Runs a single round of the game.
+     *
+     * @returns {Promise<Object>} The result of the round.
+     */
     async runRound() {
         await this.initialize();
 
@@ -265,6 +384,11 @@ class GameEngine {
         }
     }
 
+    /**
+     * Emits a game update event.
+     *
+     * @param {Object} data - The event data.
+     */
     emitGameUpdate(data) {
         this._eventHandler(this.id, "refreshStatus", data);
     }
