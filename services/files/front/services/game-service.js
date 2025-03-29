@@ -256,7 +256,7 @@ class GameService extends EventEmitter {
                 alert("You are currently in a game. Please wait until it ends.");
             else
                 alert("An error occurred, please try again later.");
-            //window.location.href = "/";
+            window.location.href = "/";
         });
     }
 

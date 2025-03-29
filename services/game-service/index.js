@@ -296,7 +296,6 @@ function handlePlayerLeave(gameId, userId, socket) {
     if (pendingGames.has(gameId)) {
         const gameEngine = pendingGames.get(gameId);
         if (gameEngine.game.players.size === 1) {
-            console.log("DELETING PENDING GAME", gameId);
             pendingGames.delete(gameId);
         }
 
@@ -310,7 +309,6 @@ function handlePlayerLeave(gameId, userId, socket) {
     const gameEngine = activeGames.get(gameId);
     socket.leave(gameId);
     if (gameEngine.game.type !== GameType.RANKED) {
-        console.log("DELETED LOCAL GAME", gameId);
         activeGames.delete(gameId);
         return;
     }
