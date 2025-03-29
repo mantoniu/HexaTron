@@ -337,6 +337,14 @@ class GameEngine {
             results.push(result);
             this._game.resetBoard();
         }
+
+        const missingRounds = this._game.roundsCount - results.length;
+        if (missingRounds > 0) {
+            const playerIds = Array.from(this.game.players.keys());
+            for (let i = 0; i < missingRounds; i++)
+                results.push({status: "tie", ties: [playerIds]});
+        }
+
         this.emitGameUpdate({status: GAME_END, results: results});
     }
 
