@@ -2,19 +2,20 @@ import {Component} from "../component/component.js";
 import {gameService} from "../../services/game-service.js";
 
 export class GameBoard extends Component {
+
+    constructor() {
+        super();
+        this._canvas = null;
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
-        const canvas = this.shadowRoot.getElementById("board");
-        gameService.context = canvas.getContext("2d");
+        this._canvas = this.shadowRoot.getElementById("board");
+        gameService.context = this._canvas.getContext("2d");
 
-        this.resizeCanvasFunction = () => {
-            resizeCanvas.call(this, 0.85, 0.80, "board",
-                () => gameService.draw()
-            );
-        };
+        this._canvas.width = window.screen.width;
+        this._canvas.height = window.screen.height;
 
-        this.resizeCanvasFunction();
-
-        this.addAutoCleanListener(window, "resize", this.resizeCanvasFunction);
+        gameService.draw();
     }
 }
