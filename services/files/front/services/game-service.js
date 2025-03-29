@@ -1,10 +1,8 @@
 import {Game, GameType} from "../js/game/Game.js";
 import {LocalPlayer} from "../js/game/LocalPlayer.js";
-import {userService} from "./user-service.js";
+import {USER_EVENTS, userService} from "./user-service.js";
 import {MovementTypes} from "../js/game/GameUtils.js";
 import {EventEmitter} from "../js/EventEmitter.js";
-import {socketService} from "./socket-service.js";
-
 
 /**
  * Enum representing the possible errors
@@ -50,19 +48,25 @@ class GameService extends EventEmitter {
 
         this._game = null;
         this._context = null;
-        this._socket = socketService.gameSocket;
+
+        this._connectGameSocket();
+        userService.on(USER_EVENTS.CONNECTION, () => this._connectGameSocket());
+
         this._shouldInvertPositions = false;
         this._gameCreated = false;
-
-        this.socket.on("connect", () => {
-            console.log("user connected " + this._socket.id);
-        });
 
         this.setupListeners();
 
         window.addEventListener("routeChange", () => this.handleRouteChange());
 
         GameService._instance = this;
+    }
+
+    _connectGameSocket() {
+        this._socket = io(`${window.location.origin}/game`, {
+            auth: {token: localStorage.getItem("accessToken")},
+            autoConnect: true
+        });
     }
 
     /**
@@ -170,6 +174,7 @@ class GameService extends EventEmitter {
         });
 
         this.socket.on("updateELO", (receivedData) => {
+            console.log("updateELO", receivedData);
             userService.updateELO(receivedData);
         });
 
@@ -246,11 +251,12 @@ class GameService extends EventEmitter {
      */
     errorListener() {
         this.socket.on("error", (error) => {
+            console.error(error);
             if (error?.type === GameErrors.ALREADY_IN_GAME)
                 alert("You are currently in a game. Please wait until it ends.");
             else
                 alert("An error occurred, please try again later.");
-            window.location.href = "/";
+            //window.location.href = "/";
         });
     }
 

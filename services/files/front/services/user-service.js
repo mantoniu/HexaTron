@@ -1,7 +1,6 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
-import {SOCKET_SERVICE_EVENT, socketService} from "./socket-service.js";
 
 /**
  * Defines user-related events.
@@ -93,24 +92,22 @@ class UserService extends EventEmitter {
     constructor() {
         super();
 
-        if (UserService._instance) return UserService._instance;
+        if (UserService._instance)
+            return UserService._instance;
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
 
-        if (this._connected) {
-            socketService.connectFriendsSocket(this._user._id);
-            socketService.connectChatSocket(this._user._id);
-        }
+        this._socket = io(`${window.location.origin}/friends`, {
+            auth: {token: localStorage.getItem("accessToken")},
+            autoConnect: false
+        });
 
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
         }
 
-        socketService.on(SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, (socket) => {
-            this._socket = socket;
-            this._setupFriendSocketListeners();
-        });
+        this._setupFriendSocketListeners();
 
         UserService._instance = this;
     }
@@ -205,10 +202,8 @@ class UserService extends EventEmitter {
     async _authenticate(endpoint, data, action) {
         const response = await apiClient.request("POST", endpoint, data);
         if (response.success) {
-            this.emit(USER_EVENTS.CONNECTION);
             this._setUserData(response.data);
-            socketService.connectFriendsSocket(this._user._id);
-            socketService.connectChatSocket(this._user._id);
+            this.emit(USER_EVENTS.CONNECTION);
             return {success: true, user: this._user};
         }
         return {success: false, error: this._getErrorMessage(response.status, action)};
