@@ -10,9 +10,10 @@ export class Tile {
     static bikeImage = null;
     static imageLoaded = true;
 
-    constructor(status) {
+    constructor(status, backgroundResetColor) {
         this.status = status;
         this.takenID = null;
+        this._backgroundResetColor = backgroundResetColor;
 
         Tile.loadImage();
     }
@@ -71,40 +72,82 @@ export class Tile {
         this._takenID = id;
     }
 
-    hexagonPath(posX, posY, size, context, edges, fill) {
-        context.beginPath();
-        context.moveTo(posX, posY);
+    lineTo(context, posX, posY, angle, size) {
+        posX = posX + Math.sin(angle) * size;
+        posY = posY - Math.cos(angle) * size;
+        angle = angle + 60 * Math.PI / 180;
+        context.lineTo(posX, posY);
+        return [posX, posY, angle];
+    }
+
+    hexagonPath(posX, posY, size, context, edges, fillColor, fill = false) {
         let angle = 120 * Math.PI / 180;
         for (let k = 0; k < 6; k++) {
-            posX = posX + Math.sin(angle) * size;
-            posY = posY - Math.cos(angle) * size;
-            angle = angle + 60 * Math.PI / 180;
-            if (edges[k] === 0) {
-                context.stroke();
+            if (edges?.[k]) {
+                context.beginPath();
                 context.moveTo(posX, posY);
-            } else {
-                context.lineTo(posX, posY);
+                [posX, posY, angle] = this.lineTo(context, posX, posY, angle, size);
+                context.strokeStyle = edges[k];
+                context.stroke();
             }
         }
+
         if (fill) {
+            context.beginPath();
+
+            for (let k = 0; k < 6; k++) {
+                [posX, posY, angle] = this.lineTo(context, posX, posY, angle, size);
+            }
+
             context.closePath();
+            context.fillStyle = fillColor;
             context.fill();
+        }
+
+    }
+
+    fill(position, size, context, strokeColors, fillColor, direction = null, drawBike = null, gradientBool = false, finalState = false) {
+
+        if (gradientBool) {
+            let progress = 0;
+            const maxFrames = 120;
+            const animateGradient = () => {
+                context.save();
+
+                context.lineWidth = 4;
+                context.lineWidth -= 1;
+                this.hexagonPath(position[0], position[1], size, context, Array(6).fill(this._backgroundResetColor), this._backgroundResetColor, true);
+                context.lineWidth += 1;
+
+                const gradient = context.createRadialGradient(
+                    position[0], position[1] + size, 0,
+                    position[0], position[1] + size, size
+                );
+
+                gradient.addColorStop(0, `${fillColor}${this.convertToHexa(Math.min(0.12 + progress, 1))}`);     // Transparent cyan au centre
+                gradient.addColorStop(0.3, `${fillColor}${this.convertToHexa(Math.min(0.3 + progress, 1))}`); // Cyan semi-transparent
+                gradient.addColorStop(1, `${fillColor}${this.convertToHexa(Math.min(0.5 + progress, 1))}`);
+
+                const copy = strokeColors.map(color => `${color}${this.convertToHexa(Math.min(0.5 + progress, 1))}`);
+
+                this.hexagonPath(position[0], position[1], size, context, copy, gradient, true);
+
+                if (finalState) {
+                    progress += 1 / maxFrames;
+                    if (progress <= 1)
+                        requestAnimationFrame(animateGradient);
+                }
+                context.restore();
+            }
+            animateGradient();
         } else
-            context.stroke();
-    }
-
-    draw(posX, posY, size, context, first) {
-        if (first)
-            this.hexagonPath(posX, posY, size, context, [1, 1, 1, 1, 1, 1], false);
-        else
-            this.hexagonPath(posX, posY, size, context, [1, 1, 1, 1, 0, 1], false);
-    }
-
-    fill(position, size, context, color, direction, drawBike) {
-        context.fillStyle = color;
-        this.hexagonPath(position[0], position[1], size, context, [1, 1, 1, 1, 1, 1], true);
+            this.hexagonPath(position[0], position[1], size, context, strokeColors, fillColor, true);
 
         if (drawBike)
             this.drawBike(position[0], position[1], size, context, direction);
+    }
+
+    convertToHexa(value) {
+        return Math.round(value * 255).toString(16).padStart(2, "0").toUpperCase();
     }
 }

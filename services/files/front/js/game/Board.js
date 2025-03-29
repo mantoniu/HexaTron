@@ -1,5 +1,10 @@
 import {Status, Tile} from "./Tile.js";
 
+const BACKGROUND_COLOR = "#f5f7fa";
+const STROKE_COLOR_INSIDE = "#a2aab2";
+const STROKE_COLOR_OUTSIDE = "#4e5256";
+
+
 export class Board {
     constructor(row, column) {
         this._tiles = [];
@@ -35,17 +40,20 @@ export class Board {
             let line = [];
             for (let j = 0; j <= this._column + 1; j++) {
                 if (i === 0 || i === this._row + 1 || j === 0 || j >= (i % 2 === 1 ? this._column + 1 : this._column))
-                    line.push(new Tile(Status.WALL));
+                    line.push(new Tile(Status.WALL, BACKGROUND_COLOR));
                 else
-                    line.push(new Tile(Status.VACANT));
+                    line.push(new Tile(Status.VACANT, BACKGROUND_COLOR));
             }
             this._tiles.push(line);
         }
     }
 
     calculateUtils(context) {
-        let width = context.canvas.clientWidth;
-        let height = context.canvas.clientHeight;
+        context.lineCap = "round";
+        context.lineWidth = 8;
+
+        let width = context.canvas.width - 2 * context.lineWidth;
+        let height = context.canvas.height - 2 * context.lineWidth;
         let angle = 60 * Math.PI / 180;
         let sizeAccordingWidth = width / ((this.tiles[0].length - 2) * 2 * Math.sin(angle));
         let sizeAccordingHeight = height / (3 * Math.floor((this.tiles.length - 2) / 2) + ((this.tiles.length) % 2 === 1 ? 2 : 0));
@@ -57,32 +65,29 @@ export class Board {
         return {dx, dy, gapX, gapY, size};
     }
 
-    drawLine(i, j, dx, dy, gapX, gapY, size, context) {
-        context.beginPath();
-        context.moveTo(gapX + dx * (j - 0.5), gapY + dy * (i - 1) + 2 * size);
-        context.lineTo(gapX + dx * (j - 0.5), gapY + dy * (i + 1));
-        context.stroke();
+    getStrokeColor(i, j, color) {
+        return [
+            (i === 1) || (i % 2 === 1 && j === this._tiles[i].length - 2) ? STROKE_COLOR_OUTSIDE : color,
+            j === this._tiles[i].length - (i % 2 === 1 ? 1 : 2) - 1 ? STROKE_COLOR_OUTSIDE : color,
+            (i === this._tiles.length - 2) || (i % 2 === 1 && j === this._tiles[i].length - 2) ? STROKE_COLOR_OUTSIDE : color,
+            (i === this._tiles.length - 2) || (i % 2 === 1 && j === 1) ? STROKE_COLOR_OUTSIDE : color,
+            j === 1 ? STROKE_COLOR_OUTSIDE : color,
+            (i === 1) || (i % 2 === 1 && j === 1) ? STROKE_COLOR_OUTSIDE : color];
     }
 
     draw(context) {
-        context.strokeStyle = "black";
-        context.lineWidth = 1;
         this._utils = this.calculateUtils(context);
 
         for (let i = 1; i < this.tiles.length - 1; i++) {
-            if (i % 2 === 1) {
-                for (let j = 1; j < this.tiles[i].length - 1; j++) {
-                    this.tiles[i][j].draw(this._utils.gapX + this._utils.dx * (j - 0.5), this._utils.gapY + this._utils.dy * (i - 1), this._utils.size, context, j === 1);
-                    if (i !== 0 && i !== this.tiles.length - 2)
-                        this.drawLine(i, j, this._utils.dx, this._utils.dy, this._utils.gapX, this._utils.gapY, this._utils.size, context);
-                }
+            for (let j = 1; j < this.tiles[i].length - (i % 2 === 1 ? 1 : 2); j++) {
+                this.tiles[i][j].fill([this._utils.gapX + this._utils.dx * (j - (i % 2) / 2) + context.lineWidth, this._utils.gapY + this._utils.dy * (i - 1) + context.lineWidth], this._utils.size, context, this.getStrokeColor(i, j, STROKE_COLOR_INSIDE), BACKGROUND_COLOR);
             }
         }
     }
 
-    fillTile(pos, color, direction, context, drawBike) {
-        let dPos = [this._utils.gapX + this._utils.dx * (pos.column - (pos.row % 2 === 1 ? 0.5 : 0)), this._utils.gapY + this._utils.dy * (pos.row - 1)];
-        this.getTile(pos).fill(dPos, this._utils.size, context, color, direction, drawBike);
+    fillTile(pos, color, direction, context, drawBike, finalState = false) {
+        let dPos = [this._utils.gapX + this._utils.dx * (pos.column - (pos.row % 2 === 1 ? 0.5 : 0)) + context.lineWidth, this._utils.gapY + this._utils.dy * (pos.row - 1) + context.lineWidth];
+        this.getTile(pos).fill(dPos, this._utils.size, context, this.getStrokeColor(pos.row, pos.column, color), color, direction, drawBike, true, finalState);
     }
 
     update(prevPosition, nextPosition, color, context, direction) {
@@ -92,7 +97,7 @@ export class Board {
         this.fillTile(nextPosition, color, direction, context, true);
 
         if (prevPosition)
-            this.fillTile(prevPosition, color, direction, context, false);
+            this.fillTile(prevPosition, color, direction, context, false, true);
 
         this.setTileStatus(nextPosition, Status.TAKEN);
     }
