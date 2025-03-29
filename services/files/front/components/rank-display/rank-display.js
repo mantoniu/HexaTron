@@ -1,5 +1,25 @@
 import {Component} from "../component/component.js";
 
+const LEAGUES = Object.freeze({
+    WOOD: "Wood",
+    STONE: "Stone",
+    IRON: "Iron",
+    SILVER: "Silver",
+    GOLD: "Gold",
+    PLATINUM: "Platinum",
+    DIAMOND: "Diamond"
+});
+
+const LEAGUE_ICONS = Object.freeze({
+    [LEAGUES.WOOD]: "../../assets/leagues/wood.png",
+    [LEAGUES.STONE]: "../../assets/leagues/stone.png",
+    [LEAGUES.IRON]: "../../assets/leagues/iron.png",
+    [LEAGUES.SILVER]: "../../assets/leagues/silver.png",
+    [LEAGUES.GOLD]: "../../assets/leagues/gold.png",
+    [LEAGUES.PLATINUM]: "../../assets/leagues/platinum.png",
+    [LEAGUES.DIAMOND]: "../../assets/leagues/diamond.png",
+});
+
 export class RankDisplay extends Component {
     static get observedAttributes() {
         return ['league', 'elo'];
@@ -25,23 +45,10 @@ export class RankDisplay extends Component {
         const league = this.getAttribute('league') || 'Unranked';
         const elo = this.getAttribute('elo') || '0';
 
-        let iconSrc;
+        const iconSrc = LEAGUE_ICONS[league];
+        if (iconSrc)
+            this._rankIcon.src = iconSrc;
 
-        switch (league.toLowerCase()) {
-            case 'iron':
-                iconSrc = '/path/to/iron-icon.png';
-                break;
-            case 'bronze':
-                iconSrc = '/path/to/bronze-icon.png';
-                break;
-            case 'silver':
-                iconSrc = '/path/to/silver-icon.png';
-                break;
-            default:
-                iconSrc = '/api/placeholder/24/24';
-        }
-
-        this._rankIcon.src = iconSrc;
         this._rankText.innerText = `${league} League - ELO ${elo}`;
     }
 }
