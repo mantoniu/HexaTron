@@ -8,7 +8,7 @@
 }
 
 #list-title {
-    background-color: #3498db;
+    background-color: var(--primary-blue);
     color: white;
     padding: 10px 15px;
     font-weight: bold;

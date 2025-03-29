@@ -20,7 +20,7 @@
 }
 
 .tab.active {
-    background-color: #0084ff;
+    background-color: var(--primary-blue);
     color: white;
     font-weight: bold;
 }
