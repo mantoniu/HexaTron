@@ -33,9 +33,9 @@ const io = new Server(server, {
 
 const activeGames = new Map(); // { gameEngineId => gameEngine }
 const socketToUser = new Map(); // socketId -> userId
-const userToSocket = new Map(); // userId -> socket
 const friendlyGames = new Map(); // playerId -> gameEngine
 const pendingGames = new Map(); // gameEngineId -> gameEngine
+const usersInRankedGames = new Set();
 
 /**
  * Update the player's ELO based on the game results
@@ -85,7 +85,6 @@ async function updateELO(gameId, results) {
         let numberOfPlayers = orderedPlayers.length;
 
         for (let i = 1; i <= numberOfPlayers; i++) {
-
             if (i === numberOfPlayers || previous[0][1] !== orderedPlayers[i][1]) {
                 const playerScore = (numberOfPlayers - (pos + (counter - 1) / 2)) / (numberOfPlayers - 1);
                 previous.forEach(element => newELO[element[0]] = playersELO[element[0]] + K * (playerScore - (10 ** (playersELO[element[0]] / 400)) / sum));
@@ -117,7 +116,7 @@ async function updateELO(gameId, results) {
                 };
             }
             let result = await response.json();
-            userToSocket.get(id).emit("updateELO", result.user);
+            io.to(id).emit("updateELO", result.user);
         }));
     } catch (error) {
         io.to(gameId).emit("error", {
@@ -141,11 +140,20 @@ function handleEvent(gameId, eventName, eventData) {
     io.to(gameId).emit(eventName, eventData);
 
     if (eventName === "refreshStatus" && eventData.status === GAME_END) {
+        const gameEngine = activeGames.get(gameId);
+
+        if (!gameEngine)
+            return;
+
+
         if (activeGames.get(gameId).game.type === GameType.RANKED) {
+            gameEngine.game.players.forEach((_, playerId) => {
+                usersInRankedGames.delete(playerId);
+            });
+
             updateELO(gameId, eventData.results).then(() => activeGames.delete(gameId));
-        } else {
+        } else
             activeGames.delete(gameId);
-        }
     }
 }
 
@@ -168,10 +176,9 @@ function sendError(socket, errorType, message) {
  *
  * @param {Array} players - An array of player objects attempting to join the game.
  * @param {string} gameType - The type of game to join (e.g., "FRIENDLY", "COMPETITIVE").
- * @param {Socket} socket - The socket instance of the player attempting to join.
  * @throws {Object} Throws an error if the input data is invalid or if the player is already in a game.
  */
-function validateJoin(players, gameType, socket) {
+function validateJoin(players, gameType) {
     if (!Array.isArray(players) || players.length === 0 || gameType == null) {
         throw {
             type: ErrorTypes.INVALID_INPUT,
@@ -179,9 +186,10 @@ function validateJoin(players, gameType, socket) {
         };
     }
 
-    const socketRooms = Array.from(socket.rooms);
-    const isAlreadyInGame = socketRooms.some(room => room !== socket.id);
+    if (gameType !== GameType.RANKED)
+        return;
 
+    const isAlreadyInGame = players.some(player => usersInRankedGames.has(player.id));
     if (isAlreadyInGame) {
         throw {
             type: ErrorTypes.ALREADY_IN_GAME,
@@ -194,7 +202,7 @@ function validateJoin(players, gameType, socket) {
  * Creates a new game instance with the specified players and game type.
  *
  * @param {Array} players - An array of player objects participating in the game.
- * @param {string} gameType - The type of game to be created.
+ * @param {number} gameType - The type of game to be created.
  * @returns {GameEngine} A new instance of the GameEngine managing the game.
  */
 function createNewGame(players, gameType) {
@@ -235,6 +243,11 @@ function startGameIfReady(gameEngine) {
         });
 
         activeGames.set(gameEngine.id, gameEngine);
+
+        if (gameEngine.game.type === GameType.RANKED) {
+            for (const playerId of gameEngine.game.players.keys())
+                usersInRankedGames.add(playerId);
+        }
     } else if (gameEngine.game.type !== GameType.FRIENDLY && !pendingGames.has(gameEngine.id))
         pendingGames.set(gameEngine.id, gameEngine);
 
@@ -254,7 +267,7 @@ function joinFriendlyGame(player, expectedPlayerId, socket) {
     // If the player already has a pending friendly game, add them to it
     if (friendlyGames.has(player.id)) {
         game = friendlyGames.get(player.id);
-        game.addPlayer(player.id);
+        game.addPlayer(player);
         socket.join(game.id);
     }
     // Otherwise, if an expected player ID is provided, create a new game
@@ -268,13 +281,55 @@ function joinFriendlyGame(player, expectedPlayerId, socket) {
         friendlyGames.delete(expectedPlayerId);
 }
 
+/**
+ * Handles the event when a player leaves a game.
+ * It handles both pending and active games, removing the player from the game
+ * and cleaning up if necessary.
+ *
+ * @param {string} gameId - The ID of the game the player is leaving.
+ * @param {string} userId - The ID of the player who is leaving the game.
+ * @param {Socket} socket - The socket instance of the player.
+ *
+ * @returns {void}
+ */
+function handlePlayerLeave(gameId, userId, socket) {
+    if (pendingGames.has(gameId)) {
+        const gameEngine = pendingGames.get(gameId);
+        if (gameEngine.game.players.size === 1) {
+            console.log("DELETING PENDING GAME", gameId);
+            pendingGames.delete(gameId);
+        }
+
+        socket.leave(gameId);
+        return;
+    }
+
+    if (!activeGames.has(gameId))
+        return;
+
+    const gameEngine = activeGames.get(gameId);
+    socket.leave(gameId);
+    if (gameEngine.game.type !== GameType.RANKED) {
+        console.log("DELETED LOCAL GAME", gameId);
+        activeGames.delete(gameId);
+        return;
+    }
+
+    gameEngine.disconnectPlayer(userId);
+}
+
+
 io.on('connection', (gatewaySocket) => {
     console.log('✅ Gateway socket connected to the Game Service');
+
+    const userId = gatewaySocket.handshake.auth.userId;
+    if (userId)
+        gatewaySocket.join(userId);
 
     gatewaySocket.on("joinGame", (gameParams, callback) => {
         try {
             const {players, gameType, expectedPlayerId = null} = gameParams;
-            validateJoin(players, gameType, gatewaySocket);
+            validateJoin(players, gameType);
 
             const remotePlayers = [];
             const playerIds = [];
@@ -285,7 +340,6 @@ io.on('connection', (gatewaySocket) => {
             });
 
             socketToUser.set(gatewaySocket.id, playerIds);
-            userToSocket.set(playerIds[0], gatewaySocket);
 
             if (gameType === GameType.FRIENDLY) {
                 joinFriendlyGame(remotePlayers[0], expectedPlayerId, gatewaySocket);
@@ -341,56 +395,14 @@ io.on('connection', (gatewaySocket) => {
     });
 
     gatewaySocket.on("leaveGame", (gameId) => {
-        if (pendingGames.has(gameId)) {
-            pendingGames.delete(gameId);
-            gatewaySocket.leave(gameId);
-            return;
-        }
-
-        if (!activeGames.has(gameId))
-            return;
-
-        const gameEngine = activeGames.get(gameId);
-        if (gameEngine.game.type === GameType.RANKED)
-            return;
-
-        activeGames.delete(gameId);
-        gatewaySocket.leave(gameId);
+        handlePlayerLeave(gameId, userId, gatewaySocket);
     });
 
     gatewaySocket.on("disconnecting", () => {
-        gatewaySocket.rooms.forEach((room) => {
-            const playerIds = socketToUser.get(gatewaySocket.id);
-            const game = activeGames.get(room);
-
-            const pendingGame = pendingGames.get(room);
-            if (pendingGame?.game.players.size === 1) {
-                pendingGames.delete(room);
-                return;
-            }
-
-            if (!game || !playerIds)
-                return;
-
-            const leavingPlayers = Array.from(game.game.players.values())
-                .filter(gamePlayer => playerIds.includes(gamePlayer.id));
-
-            const gameEnd = leavingPlayers.reduce(
-                (gameEnd, player) => gameEnd || game.disconnectPlayer(player.id), false
-            );
-
-            if (gameEnd)
-                activeGames.delete(game.id);
-
-            socketToUser.delete(gatewaySocket.id);
-            userToSocket.delete(playerIds[0]);
-
-            gatewaySocket.broadcast.to(room).emit("userLeft", `${gatewaySocket.id} leaved the room`);
-        });
-    });
-
-    gatewaySocket.on('disconnect', () => {
-        console.log('❌ Gateway socket disconnected');
+        const gameId = Array.from(gatewaySocket.rooms).find(room => pendingGames.has(room))
+            ?? Array.from(gatewaySocket.rooms).find(room => activeGames.has(room));
+        if (gameId)
+            handlePlayerLeave(gameId, userId, gatewaySocket);
     });
 });
 
