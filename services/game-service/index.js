@@ -48,7 +48,10 @@ async function updateELO(gameId, results) {
     let K = 40;
 
     let resultByPlayer = Object.fromEntries([...activeGames.get(gameId).game.players.keys()].map(key => [key, 0]));
-    results.forEach(result => resultByPlayer[result.winner] += 1);
+    results.forEach(result => {
+        if (result.winner)
+            return resultByPlayer[result.winner] += 1;
+    });
 
     let newELO = {};
 
@@ -62,10 +65,10 @@ async function updateELO(gameId, results) {
         });
 
         if (!response.ok) {
-            throw new Error({
+            throw {
                 type: ErrorTypes.ELO_RETRIEVING_ERROR,
                 message: "Error occurred while retrieving the ELO of the players"
-            });
+            };
         }
 
         const data = await response.json();
@@ -81,12 +84,13 @@ async function updateELO(gameId, results) {
         let pos = 1;
         let numberOfPlayers = orderedPlayers.length;
 
-        for (let i = 1; i <= orderedPlayers.length; i++) {
-            if (i === orderedPlayers.length || previous[0][1] !== orderedPlayers[i][1]) {
+        for (let i = 1; i <= numberOfPlayers; i++) {
 
-                previous.forEach(element => newELO[element[0]] = playersELO[element[0]] + K * ((numberOfPlayers - pos) / (numberOfPlayers - 1) - (10 ** (playersELO[element[0]] / 400)) / sum));
+            if (i === numberOfPlayers || previous[0][1] !== orderedPlayers[i][1]) {
+                const playerScore = (numberOfPlayers - (pos + (counter - 1) / 2)) / (numberOfPlayers - 1);
+                previous.forEach(element => newELO[element[0]] = playersELO[element[0]] + K * (playerScore - (10 ** (playersELO[element[0]] / 400)) / sum));
 
-                if (i !== orderedPlayers.length) {
+                if (i !== numberOfPlayers) {
                     previous = [orderedPlayers[i]];
                     pos += counter;
                     counter = 1;
@@ -107,10 +111,10 @@ async function updateELO(gameId, results) {
                 body: JSON.stringify({elo: elo})
             });
             if (!response.ok) {
-                throw new Error({
+                throw {
                     type: ErrorTypes.ELO_UPDATING_ERROR,
                     message: "Error occurred while updating the ELO of the players"
-                });
+                };
             }
             let result = await response.json();
             userToSocket.get(id).emit("updateELO", result.user);
