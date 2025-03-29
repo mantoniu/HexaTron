@@ -3,6 +3,12 @@ const {searchFroFriends} = require("./database");
 
 module.exports = (io) => {
     io.on("connection", (gatewaySocket) => {
+        const userId = gatewaySocket.handshake.auth.userId;
+
+        if (!userId) {
+            console.warn(`Connection refused: No userId provided.`);
+            return gatewaySocket.disconnect(true);
+        }
 
         // Connect the socket to a room using the user ID passed in the auth part to make it accessible by userId.
         gatewaySocket.join(gatewaySocket.handshake.auth.userId);
@@ -66,7 +72,6 @@ module.exports = (io) => {
      * @event remove-friend - Emitted to the friend when the deletion is confirmed by the user.
      */
     eventBus.on("remove-friend", async (message) => {
-
         const socketFriend = await io.in(message.friendId).fetchSockets();
 
         if (socketFriend) {
@@ -86,7 +91,6 @@ module.exports = (io) => {
      * @event delete-user - Emitted to all the client connected to the service
      */
     eventBus.on("delete-user", async (userId) => {
-        console.log("delete");
         await fetch("http://chat-service:8005/api/chat/deleteUser", {
             method: "DELETE",
             headers: {"Content-Type": "application/json"},
