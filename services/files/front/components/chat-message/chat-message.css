@@ -27,7 +27,7 @@
 }
 
 :host(.pending)::after {
-    content: "⏳";
+    content: "⏳" !important;
     font-size: 12px;
     position: absolute;
     bottom: -15px;
