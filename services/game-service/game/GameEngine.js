@@ -171,8 +171,7 @@ class GameEngine {
             const setupPromise = this.wrapWithTimeout(
                 player.setup(this.getPlayerState(player)),
                 this._setupTimeout,
-                undefined,
-                `Setup timeout for player ${player.id}: `
+                undefined
             );
 
             setupPromises.push(setupPromise.then(() => {
@@ -221,8 +220,7 @@ class GameEngine {
             this.wrapWithTimeout(
                 player.nextMove(this.getPlayerState(player)),
                 this._choiceTimeout,
-                MovementTypes.KEEP_GOING,
-                `Move timeout for player ${player.id}: `
+                MovementTypes.KEEP_GOING
             )
         );
 
