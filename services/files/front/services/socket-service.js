@@ -94,24 +94,21 @@ class SocketService {
             return null;
         }
 
-        // Disconnect existing socket if it exists
-        if (this._sockets[type]) {
-            this._sockets[type].removeAllListeners();
-            this._sockets[type].disconnect();
-        }
-
         const token = localStorage.getItem("accessToken");
+        if (this._sockets[type]) {
+            this._sockets[type].auth = {token};
+            this._sockets[type].connect();
+            return this._sockets[type];
+        }
 
         // Configure socket options
         const options = {
             autoConnect: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnection: true
         };
 
         // Add auth data if available
-        if (token)
-            options.auth = {token};
+        options.auth = {token};
 
         // Create the socket
         this._sockets[type] = io(`${this.baseUrl}/${type}`, options);
@@ -147,7 +144,14 @@ class SocketService {
 
         socket.on('token_invalid', async () => {
             console.log(`[${capitalizedType}Socket] Token expired, attempting to refresh...`);
-            await apiClient.refreshAccessToken();
+            if (await apiClient.refreshAccessToken()) {
+                Object.keys(this._sockets).forEach(namespace => {
+                    this._connectSocket(namespace);
+                });
+            } else {
+                console.error(`[${capitalizedType}Socket] Token refresh failed, disconnecting...`);
+                socket.disconnect();
+            }
         });
 
         socket.on('unauthorized', (error) => {
