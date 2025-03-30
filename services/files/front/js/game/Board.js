@@ -35,16 +35,26 @@ export class Board {
     }
 
     initialize() {
-        this._tiles = [];
-        for (let i = 0; i <= this._row + 1; i++) {
-            let line = [];
-            for (let j = 0; j <= this._column + 1; j++) {
-                if (i === 0 || i === this._row + 1 || j === 0 || j >= (i % 2 === 1 ? this._column + 1 : this._column))
-                    line.push(new Tile(Status.WALL, BACKGROUND_COLOR));
-                else
-                    line.push(new Tile(Status.VACANT, BACKGROUND_COLOR));
+        if (this.tiles.length === 0) {
+            for (let i = 0; i <= this._row + 1; i++) {
+                let line = [];
+                for (let j = 0; j <= this._column + 1; j++) {
+                    if (i === 0 || i === this._row + 1 || j === 0 || j >= (i % 2 === 1 ? this._column + 1 : this._column))
+                        line.push(new Tile(Status.WALL, BACKGROUND_COLOR));
+                    else
+                        line.push(new Tile(Status.VACANT, BACKGROUND_COLOR));
+                }
+                this._tiles.push(line);
             }
-            this._tiles.push(line);
+        } else {
+            for (let i = 0; i <= this._row + 1; i++) {
+                for (let j = 0; j <= this._column + 1; j++) {
+                    if (i === 0 || i === this._row + 1 || j === 0 || j >= (i % 2 === 1 ? this._column + 1 : this._column))
+                        this.tiles[i][j].refreshTile(Status.WALL);
+                    else
+                        this.tiles[i][j].refreshTile(Status.VACANT);
+                }
+            }
         }
     }
 

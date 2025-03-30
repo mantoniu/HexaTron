@@ -14,6 +14,7 @@ export class Tile {
         this.status = status;
         this.takenID = null;
         this._backgroundResetColor = backgroundResetColor;
+        this.animationsId = [];
 
         Tile.loadImage();
     }
@@ -80,7 +81,7 @@ export class Tile {
         return [posX, posY, angle];
     }
 
-    hexagonPath(posX, posY, size, context, edges, fillColor, fill = false) {
+    hexagonPath(posX, posY, size, context, edges, fillColor) {
         let angle = 120 * Math.PI / 180;
         for (let k = 0; k < 6; k++) {
             if (edges?.[k]) {
@@ -92,22 +93,18 @@ export class Tile {
             }
         }
 
-        if (fill) {
-            context.beginPath();
+        context.beginPath();
 
-            for (let k = 0; k < 6; k++) {
-                [posX, posY, angle] = this.lineTo(context, posX, posY, angle, size);
-            }
-
-            context.closePath();
-            context.fillStyle = fillColor;
-            context.fill();
+        for (let k = 0; k < 6; k++) {
+            [posX, posY, angle] = this.lineTo(context, posX, posY, angle, size);
         }
 
+        context.closePath();
+        context.fillStyle = fillColor;
+        context.fill();
     }
 
     fill(position, size, context, strokeColors, fillColor, direction = null, drawBike = null, gradientBool = false, finalState = false) {
-
         if (gradientBool) {
             let progress = 0;
             const maxFrames = 120;
@@ -116,7 +113,7 @@ export class Tile {
 
                 context.lineWidth = 4;
                 context.lineWidth -= 1;
-                this.hexagonPath(position[0], position[1], size, context, Array(6).fill(this._backgroundResetColor), this._backgroundResetColor, true);
+                this.hexagonPath(position[0], position[1], size, context, Array(6).fill(this._backgroundResetColor), this._backgroundResetColor);
                 context.lineWidth += 1;
 
                 const gradient = context.createRadialGradient(
@@ -130,18 +127,18 @@ export class Tile {
 
                 const copy = strokeColors.map(color => `${color}${this.convertToHexa(Math.min(0.5 + progress, 1))}`);
 
-                this.hexagonPath(position[0], position[1], size, context, copy, gradient, true);
+                this.hexagonPath(position[0], position[1], size, context, copy, gradient);
+                context.restore();
 
                 if (finalState) {
                     progress += 1 / maxFrames;
                     if (progress <= 1)
-                        requestAnimationFrame(animateGradient);
+                        this.animationsId.push(requestAnimationFrame(animateGradient));
                 }
-                context.restore();
             }
             animateGradient();
         } else
-            this.hexagonPath(position[0], position[1], size, context, strokeColors, fillColor, true);
+            this.hexagonPath(position[0], position[1], size, context, strokeColors, fillColor);
 
         if (drawBike)
             this.drawBike(position[0], position[1], size, context, direction);
@@ -149,5 +146,10 @@ export class Tile {
 
     convertToHexa(value) {
         return Math.round(value * 255).toString(16).padStart(2, "0").toUpperCase();
+    }
+
+    refreshTile(status) {
+        this.animationsId.forEach(id => cancelAnimationFrame(id));
+        this._status = status;
     }
 }
