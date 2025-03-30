@@ -101,8 +101,10 @@ class UserService extends EventEmitter {
 
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
-        } else
+        } else {
             this._socket = socketService.connectFriendSocket();
+            this._setupFriendSocketListeners();
+        }
 
         UserService._instance = this;
     }
