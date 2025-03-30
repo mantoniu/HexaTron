@@ -180,7 +180,7 @@ class ChatService extends EventEmitter {
      * @event createConversation - Sent to the server with the user ID and friend ID.
      */
     createConversation(friendId) {
-        this.socket.emit("createConversation", userService.user._id, friendId);
+        this.socket.emit("createConversation", friendId);
     }
 
     /**
@@ -260,7 +260,7 @@ class ChatService extends EventEmitter {
      * @param {string[]} messageIds - The IDs of the messages to mark as read.
      */
     _markMessagesAsRead(conversationId, messageIds) {
-        this.socket.emit("messagesRead", messageIds, conversationId, userService.user._id);
+        this.socket.emit("messagesRead", messageIds);
 
         messageIds.forEach(id =>
             this._chatStore.updateMessage(conversationId, id, {isRead: true}));
@@ -307,7 +307,7 @@ class ChatService extends EventEmitter {
      * @param {string} messageId - The ID of the message to be deleted
      */
     deleteMessage(conversationId, messageId) {
-        this.socket.emit("deleteMessage", messageId, userService.user._id);
+        this.socket.emit("deleteMessage", messageId);
     }
 
     /**
