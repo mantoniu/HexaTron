@@ -32,7 +32,6 @@ const io = new Server(server, {
 });
 
 const activeGames = new Map(); // { gameEngineId => gameEngine }
-const socketToUser = new Map(); // socketId -> userId
 const friendlyGames = new Map(); // playerId -> gameEngine
 const pendingGames = new Map(); // gameEngineId -> gameEngine
 const usersInRankedGames = new Set();
@@ -330,14 +329,10 @@ io.on('connection', (gatewaySocket) => {
             validateJoin(players, gameType);
 
             const remotePlayers = [];
-            const playerIds = [];
 
             players.forEach(player => {
                 remotePlayers.push(new RemotePlayer(player.id, player.name));
-                playerIds.push(player.id);
             });
-
-            socketToUser.set(gatewaySocket.id, playerIds);
 
             if (gameType === GameType.FRIENDLY) {
                 joinFriendlyGame(remotePlayers[0], expectedPlayerId, gatewaySocket);
