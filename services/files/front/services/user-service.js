@@ -1,6 +1,7 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
+import {socketService} from "./socket-service.js";
 
 /**
  * Defines user-related events.
@@ -98,16 +99,9 @@ class UserService extends EventEmitter {
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
 
-        this._socket = io(`${window.location.origin}/friends`, {
-            auth: {token: localStorage.getItem("accessToken")},
-            autoConnect: false
-        });
-
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
         }
-
-        this._setupFriendSocketListeners();
 
         UserService._instance = this;
     }
@@ -118,8 +112,6 @@ class UserService extends EventEmitter {
      * @returns {Socket} The socket instance.
      */
     get socket() {
-        if (!this._socket.connected)
-            this._socket.connect();
         return this._socket;
     }
 
@@ -204,6 +196,8 @@ class UserService extends EventEmitter {
         if (response.success) {
             this._setUserData(response.data);
             this.emit(USER_EVENTS.CONNECTION);
+            this._socket = socketService.connectFriendSocket();
+            this._setupFriendSocketListeners();
             return {success: true, user: this._user};
         }
         return {success: false, error: this._getErrorMessage(response.status, action)};

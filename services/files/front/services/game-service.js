@@ -3,6 +3,7 @@ import {LocalPlayer} from "../js/game/LocalPlayer.js";
 import {USER_EVENTS, userService} from "./user-service.js";
 import {MovementTypes} from "../js/game/GameUtils.js";
 import {EventEmitter} from "../js/EventEmitter.js";
+import {socketService} from "./socket-service.js";
 
 /**
  * Enum representing the possible errors
@@ -49,24 +50,17 @@ class GameService extends EventEmitter {
         this._game = null;
         this._context = null;
 
-        this._connectGameSocket();
-        userService.on(USER_EVENTS.CONNECTION, () => this._connectGameSocket());
+        this._socket = socketService.connectGameSocket();
+        this.setupListeners();
+        userService.on(USER_EVENTS.CONNECTION, () => socketService.connectGameSocket());
+        userService.on(USER_EVENTS.LOGOUT, () => socketService.connectGameSocket());
 
         this._shouldInvertPositions = false;
         this._gameCreated = false;
 
-        this.setupListeners();
-
         window.addEventListener("routeChange", () => this.handleRouteChange());
 
         GameService._instance = this;
-    }
-
-    _connectGameSocket() {
-        this._socket = io(`${window.location.origin}/game`, {
-            auth: {token: localStorage.getItem("accessToken")},
-            autoConnect: true
-        });
     }
 
     /**
@@ -75,8 +69,6 @@ class GameService extends EventEmitter {
      * @returns {Socket} The socket instance.
      */
     get socket() {
-        if (!this._socket.connected)
-            this._socket.connect();
         return this._socket;
     }
 
@@ -174,7 +166,6 @@ class GameService extends EventEmitter {
         });
 
         this.socket.on("updateELO", (receivedData) => {
-            console.log("updateELO", receivedData);
             userService.updateELO(receivedData);
         });
 

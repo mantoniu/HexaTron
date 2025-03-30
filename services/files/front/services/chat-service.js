@@ -2,6 +2,7 @@ import {USER_EVENTS, userService} from "./user-service.js";
 import {chatStore} from "../js/ChatStore.js";
 import {apiClient} from "../js/ApiClient.js";
 import {EventEmitter} from "../js/EventEmitter.js";
+import {socketService} from "./socket-service.js";
 
 /**
  *  Defines the chat events
@@ -37,11 +38,12 @@ class ChatService extends EventEmitter {
         this._apiUrl = "api/chat";
         ChatService._instance = this;
 
-        this._socket = io(`${window.location.origin}/chat`, {
-            autoConnect: false
-        });
-
         this._chatStore = chatStore;
+    }
+
+    initSocket() {
+        this._socket = socketService.connectChatSocket();
+        this._setupChatSocketListeners();
     }
 
     /**
@@ -50,10 +52,6 @@ class ChatService extends EventEmitter {
      * @returns {Socket} The socket instance.
      */
     get socket() {
-        if (!this._socket.connected) {
-            this._socket.auth = {token: localStorage.getItem("accessToken")};
-            this._socket.connect();
-        }
         return this._socket;
     }
 
@@ -70,7 +68,10 @@ class ChatService extends EventEmitter {
      * @returns {Promise<void>} Resolves when the initialization is complete.
      */
     async init() {
-        userService.on(USER_EVENTS.CONNECTION, () => this._fetchConversations());
+        userService.on(USER_EVENTS.CONNECTION, () => {
+            this.initSocket();
+            this._fetchConversations();
+        });
 
         userService.on(USER_EVENTS.LOGOUT, () => this._chatStore.clear());
 
@@ -84,10 +85,10 @@ class ChatService extends EventEmitter {
             this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         });
 
-        this._setupChatSocketListeners();
-
-        if (userService.isConnected())
+        if (userService.isConnected()) {
+            this.initSocket();
             await this._fetchConversations();
+        }
     }
 
     /**
@@ -167,7 +168,6 @@ class ChatService extends EventEmitter {
         await this._fetchConversation(conversationId);
         return this._chatStore.getConversation(conversationId);
     }
-
 
     /**
      * Initiates a conversation with a specific friend by emitting an event to the server.
