@@ -232,6 +232,7 @@ Object.values(servicesConfig).forEach(service => {
         // Verification according to service configuration
         if (service.ws.requiresAuth && !userId) {
             console.warn(`[WebSocket] Connection refused to ${service.ws.namespace} (auth required)`);
+            clientSocket.emit("token_invalid");
             return clientSocket.disconnect(true);
         }
 
