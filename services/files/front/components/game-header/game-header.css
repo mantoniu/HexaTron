@@ -1,24 +1,38 @@
 :host {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    height: 20%;
-}
-
-#player1 {
-    justify-self: end;
-}
-
-#player2 {
-    justify-self: start;
-}
-
-div {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 80%;
+    margin: 10px auto 0 auto;
+    height: 5rem;
+    padding: 0 10px 0 10px;
+    border-radius: 20px;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
-p {
+.player {
+    margin: 0 20px 0 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.player p {
     margin: 0 0 0 20px;
     font-size: 1.5rem;
+    padding-top: 5px;
+    text-wrap: nowrap;
+}
+
+img {
+    width: 24px;
+    height: 24px;
+    padding-top: 5px;
+}
+
+#header {
+    width: 80%;
+    max-height: 100%;
+    max-width: 100%;
 }
