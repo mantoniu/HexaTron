@@ -19,6 +19,7 @@ export const GameErrors = Object.freeze({
  */
 export const GameStatus = {
     CREATED: 'CREATED',
+    LEAVED: 'LEAVED',
     STARTED: "STARTED",
     POSITIONS_UPDATED: 'POSITION_UPDATED',
     ROUND_END: 'ROUND_END',
@@ -333,6 +334,7 @@ class GameService extends EventEmitter {
         if (!this.game?.id)
             return;
 
+        this.emit(GameStatus.LEAVED);
         this.socket.emit("leaveGame", this.game.id);
         this._clear();
     }

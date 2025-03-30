@@ -17,6 +17,7 @@ export class CustomNav extends ListenerComponent {
         await super.connectedCallback();
 
         this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
+        this.addAutomaticEventListener(gameService, GameStatus.LEAVED, () => this.showElementsAfterGame());
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this.showElementOnConnection());
 
         if (!userService.isConnected()) {
@@ -43,6 +44,12 @@ export class CustomNav extends ListenerComponent {
     hideElementsInGame() {
         CustomNav.HIDE_IN_GAME.forEach(element => {
             this.shadowRoot.getElementById(element).style.display = "none";
+        });
+    }
+
+    showElementsAfterGame() {
+        CustomNav.HIDE_IN_GAME.forEach(element => {
+            this.shadowRoot.getElementById(element).style.display = "block";
         });
     }
 
