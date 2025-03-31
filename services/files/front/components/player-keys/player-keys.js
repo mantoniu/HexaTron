@@ -1,5 +1,5 @@
 import {Component} from "../component/component.js";
-import {convertRemToPixels} from "../../js/Utils.js";
+import {convertRemToPixels} from "../../js/utils.js";
 
 export class PlayerKeys extends Component {
     constructor() {
