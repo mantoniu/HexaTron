@@ -17,14 +17,6 @@
     pointer-events: none;
 }
 
-#game-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+game-board {
     height: 80%;
-}
-
-result-screen {
-    display: none;
 }

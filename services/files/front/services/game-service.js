@@ -27,6 +27,17 @@ export const GameStatus = {
 };
 
 /**
+ * Enum representing the possible results of a game
+ *
+ * @type {{DRAW: string, LOOSE: string, WIN: string}}
+ */
+export const GameResult = {
+    WIN: "YOU WIN",
+    DRAW: "DRAW",
+    LOOSE: "YOU LOSE"
+};
+
+/**
  * Service for game management.
  * This class implements the Singleton pattern to ensure a single instance.
  * It extends EventEmitter to handle game-related events.
@@ -159,7 +170,7 @@ class GameService extends EventEmitter {
                     this.handleRoundEnd(data);
                     break;
                 case GameStatus.GAME_END:
-                    this.handleGameEnd();
+                    this.handleGameEnd(this.calculateResult(receivedData));
                     break;
                 default:
                     console.warn(`Unknown status received: ${status}`);
@@ -255,9 +266,9 @@ class GameService extends EventEmitter {
     /**
      * Handles the end of the game.
      */
-    handleGameEnd() {
+    handleGameEnd(results) {
         this._clear();
-        this.emit(GameStatus.GAME_END);
+        this.emit(GameStatus.GAME_END, results);
     }
 
     /**
@@ -295,6 +306,39 @@ class GameService extends EventEmitter {
     draw() {
         if (this.game)
             this.game.draw(this._context);
+    }
+
+    /**
+     * Calculates the result of the game based on the received data.
+     *
+     * @param {Object} receivedData - The data containing game results.
+     * @returns { status: string, winners: string[], score: number} - The game result, including the result status, the list of winners' names, and the highest score in the game.
+     */
+    calculateResult(receivedData) {
+        let resultByPlayer = Object.fromEntries(Object.keys(this.game._players).map(player => [player, 0]));
+        receivedData.results.forEach(result => {
+            if (result.winner)
+                return resultByPlayer[result.winner] += 1;
+        });
+        let results = {};
+        let max = 0;
+        Object.keys(resultByPlayer).forEach(playerId => {
+            const roundWon = resultByPlayer[playerId];
+            if (roundWon > max) {
+                max = roundWon;
+            }
+            if (!results.hasOwnProperty(roundWon))
+                results[roundWon] = [playerId];
+            else
+                results[roundWon].push(playerId);
+        });
+        if (results[max].includes(userService.user._id)) {
+            if (results[max].length > 1)
+                return {status: GameResult.DRAW, winners: results[max].map(id => this.game._players[id]._name), score: max};
+            else
+                return {status: GameResult.WIN, winners: results[max].map(id => this.game._players[id]._name), score: max};
+        } else
+            return {status: GameResult.LOOSE, winners: results[max].map(id => this.game._players[id]._name), score: max};
     }
 
     /**

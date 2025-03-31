@@ -3,10 +3,48 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-bottom: 20vh;
-    gap: 30px;
+    width: fit-content;
+    max-width: 80%;
+    height: fit-content;
+    margin: 20px auto 0 auto;
+    padding: 0 10px 0 10px;
+    border-radius: 20px;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 8px var(--shadow);
+    animation: fall 2s ease;
+    transition: transform 2s ease, width 2s ease;
+}
+
+#result {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+#result > * {
+    margin: 0;
 }
 
 h1 {
     font-size: 2.5em;
+}
+
+@keyframes fall {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    45% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
