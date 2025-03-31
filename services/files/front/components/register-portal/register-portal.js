@@ -2,12 +2,14 @@ import {SubmitButton} from "../submit-button/submit-button.js";
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {userService} from "../../services/user-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
+import {FormInput} from "../form-input/form-input.js";
 
 export class RegisterPortal extends BaseAuth {
     constructor() {
         super();
 
         SubmitButton.register();
+        FormInput.register();
     }
 
     _registerHandler(data) {
@@ -17,10 +19,18 @@ export class RegisterPortal extends BaseAuth {
                 composed: true,
                 detail: DRAWER_CONTENT.PROFILE,
             }));
-        } else alert(data.error);
+        } else
+            this._createAlertMessageEvent("error", data.error);
     }
 
-    handleSubmit() {
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
+    }
+
+    async handleSubmit() {
         const data = this.getFormData();
         const name = data["username"];
         const password = data["password"];
@@ -30,7 +40,7 @@ export class RegisterPortal extends BaseAuth {
             data["security-question3"]
         ];
 
-        userService.register({name, password, answers})
-            .then((data) => this._registerHandler(data));
+        const res = await userService.register({name, password, answers});
+        this._registerHandler(res);
     }
 }

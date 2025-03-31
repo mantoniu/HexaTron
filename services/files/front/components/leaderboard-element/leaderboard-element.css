@@ -6,6 +6,11 @@
     padding: 0 10px 0 10px;
 }
 
+img {
+    height: 24px;
+    width: 24px;
+}
+
 #elo {
     justify-self: end;
 }

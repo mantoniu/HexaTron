@@ -1,0 +1,17 @@
+:host {
+    width: 100%;
+    flex-direction: column;
+}
+
+#buttons {
+    padding: 20px 0 60px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 10px;
+}
+
+submit-button {
+    flex: 1
+}

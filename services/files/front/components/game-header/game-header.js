@@ -1,4 +1,4 @@
-import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/Utils.js";
+import {convertRemToPixels, hexToRGB, resizeCanvas, rgbToHex, waitForElm} from "../../js/utils.js";
 import {gameService, GameStatus} from "../../services/game-service.js";
 import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";

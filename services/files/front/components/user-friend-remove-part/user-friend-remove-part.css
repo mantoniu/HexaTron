@@ -1,4 +1,6 @@
 :host {
+    margin-top: 20px;
+    justify-content: center;
     flex-direction: row;
     gap: 10px;
 }

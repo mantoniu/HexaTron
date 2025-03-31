@@ -1,28 +1,11 @@
-.user-info {
+:host {
+    width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
     flex-direction: column;
 }
 
-img {
-    width: 9rem;
-}
-
-.inline {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.inline form-input {
-    display: none;
-}
-
-#username-input {
-    display: none;
-}
-
-#part > * {
-    display: none;
+#content {
+    height: 100%;
+    width: 100%;
 }

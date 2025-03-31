@@ -16,6 +16,7 @@ export class UserFriendRemovePart extends Component {
         await super.connectedCallback();
         this._elements = this.initializeElements(UserFriendRemovePart.SELECTORS);
         if (JSON.parse(this.getAttribute("deletion-desactivate"))) {
+            this.style.marginTop = "0px";
             this._elements.DELETE_FRIEND.style.display = "none";
         }
         this.setupEventListeners();
