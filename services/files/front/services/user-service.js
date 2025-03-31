@@ -283,8 +283,6 @@ class UserService extends EventEmitter {
         await apiClient.request("POST", "api/user/disconnect");
 
         this._reset();
-        apiClient.clearTokens();
-
         this.emit(USER_EVENTS.LOGOUT);
     }
 
@@ -441,6 +439,7 @@ class UserService extends EventEmitter {
         this._user = null;
         this._connected = false;
         this._clearLocalStorage();
+        apiClient.clearTokens();
     }
 
     /**
@@ -468,6 +467,12 @@ class UserService extends EventEmitter {
         });
 
         this.socket.on("delete-user", (userId) => {
+            if (userId === this.user._id) {
+                alert("The user has been deleted");
+                window.location.href = "/";
+                this._reset();
+            }
+
             delete this.user.friends[userId];
             this._saveToLocalStorage();
             this.emit(USER_EVENTS.DELETE_USER, {id: userId});
