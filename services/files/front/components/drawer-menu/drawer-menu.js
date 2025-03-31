@@ -44,7 +44,7 @@ export class DrawerMenu extends ListenerComponent {
         this._content = this.shadowRoot.getElementById("content");
         this._closeBtn = this.shadowRoot.getElementById("close-btn");
         this._drawer = this.shadowRoot.getElementById("drawer");
-
+        this._setInitialState();
         this._setupListeners();
     }
 
@@ -85,8 +85,6 @@ export class DrawerMenu extends ListenerComponent {
         this.addAutoCleanListener(window, "changeContent", (event) => {
             this._loadContent(event.detail);
         });
-
-        this._closeBtn.onclick = () => this._nav(this.current);
 
         const returnDiv = this.shadowRoot.getElementById("return");
         this.addAutoCleanListener(returnDiv, "click", () => {
@@ -189,8 +187,14 @@ export class DrawerMenu extends ListenerComponent {
 
     _setInitialState(type) {
         this._closeBtn.innerHTML = `&times;`;
-        this._closeBtn.onclick = () => this._nav(this.current);
-        if (this._loadContent(type))
+        this._closeBtn.onclick = () => {
+            this.dispatchEvent(new CustomEvent("drawerClosed", {
+                bubbles: true,
+                composed: true
+            }));
+            this._nav(this.current);
+        };
+        if (type && this._loadContent(type))
             this._nav(type);
     }
 
