@@ -54,7 +54,7 @@ export class LeaderboardComponent extends Component {
         if (this.isConnected) {
             if (this.leagueData) {
                 leagueContainer.classList.remove("empty");
-                const actualRank = shadowRoot.getElementById("actualRank");
+                let actualRank = shadowRoot.getElementById("actualRank");
 
                 if (actualRank) {
                     shadowRoot.removeChild(actualRank);
@@ -67,6 +67,7 @@ export class LeaderboardComponent extends Component {
                     element.id = "actualRank";
                     element.classList.add("user");
                     leagueContainer.appendChild(element);
+                    actualRank = element;
                 }
 
                 this.leagueData.map((player, i) => {

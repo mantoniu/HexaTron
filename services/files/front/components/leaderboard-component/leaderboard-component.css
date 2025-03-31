@@ -22,7 +22,7 @@
 }
 
 .user {
-    background-color: #eef8ff;
+    background-color: var(--background);
 }
 
 .void {

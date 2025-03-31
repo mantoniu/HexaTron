@@ -21,10 +21,11 @@ h1 {
     background: none;
     border: none;
     border-radius: 10px;
+    text-align: center;
 }
 
 #league-selector:hover {
-    background-color: rgba(108, 108, 108, 0.22);
+    cursor: pointer;
 }
 
 select {
@@ -34,7 +35,10 @@ select {
 
 #league {
     display: flex;
-    gap: 10px
+    gap: 10px;
+    background-color: var(--background);
+    padding: 0 20px 0 20px;
+    border-radius: 12px;
 }
 
 img {
