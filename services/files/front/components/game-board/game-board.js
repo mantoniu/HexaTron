@@ -1,4 +1,5 @@
 import {Component} from "../component/component.js";
+import {resizeCanvas} from "../../js/utils.js";
 import {gameService} from "../../services/game-service.js";
 
 export class GameBoard extends Component {
