@@ -18,6 +18,7 @@ export class CustomNav extends ListenerComponent {
 
         this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hideElementsInGame());
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
+        this.addAutomaticEventListener(gameService, GameStatus.LEAVED, () => this._showElementsAfterGame());
 
         if (!userService.isConnected())
             CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");
@@ -63,9 +64,15 @@ export class CustomNav extends ListenerComponent {
         });
     }
 
+    _showElementsAfterGame() {
+        CustomNav.HIDE_IN_GAME.forEach(element => {
+            this.shadowRoot.getElementById(element).style.display = "flex";
+        });
+    }
+
     _showElementOnConnection() {
         CustomNav.HIDE_NOT_CONNECTED.forEach(id => {
-            this.shadowRoot.getElementById(id).style.display = "block"
+            this.shadowRoot.getElementById(id).style.display = "flex";
         });
     }
 }

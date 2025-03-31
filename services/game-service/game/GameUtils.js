@@ -137,11 +137,5 @@ module.exports = {
     MovementTypes,
     DISPLACEMENT_FUNCTIONS,
     defaultMovementsMapping,
-    defaultMovementsConfiguration,
-    getLowerRightPosition,
-    getLowerLeftPosition,
-    getUpperRightPosition,
-    getUpperLeftPosition,
-    getLeftPosition,
-    getRightPosition
+    defaultMovementsConfiguration
 };

@@ -33,6 +33,8 @@ const mimeTypes = {
     'default': 'application/octet-stream'
 };
 
+spaRoutes = ["/local", "/ai", "/ranked"];
+
 // Main method, exported at the end of the file. It's the one that will be called when a file is requested.
 function manageRequest(request, response) {
     let pathName, extension;
@@ -41,11 +43,16 @@ function manageRequest(request, response) {
         pathName = pathName.replace(/^\/app\//, "./");
         extension = path.parse(pathName).ext;
     } else {
-        // First let's parse the URL, extract the path, and parse it into an easy-to-use object.
-        // We add the baseFrontPath at the beginning to limit the places to search for files.
-        const parsedUrl = url.parse(baseFrontPath + request.url);
-        pathName = `.${parsedUrl.pathname}`;
-        extension = path.parse(pathName).ext;
+        if (spaRoutes.includes(request.url)) {
+            pathName = `./front/${defaultFileIfFolder}`;
+            extension = path.extname(pathName);
+        } else {
+            // First let's parse the URL, extract the path, and parse it into an easy-to-use object.
+            // We add the baseFrontPath at the beginning to limit the places to search for files.
+            const parsedUrl = url.parse(baseFrontPath + request.url);
+            pathName = `.${parsedUrl.pathname}`;
+            extension = path.parse(pathName).ext;
+        }
     }
     // Uncomment the line below if you want to check in the console what url.parse() and path.parse() create.
     //console.log(parsedUrl, pathName, path.parse(pathName));
@@ -76,12 +83,6 @@ function manageRequest(request, response) {
             }
         });
     });
-}
-
-function redirectToRoot(response) {
-    response.statusCode = 301;
-    response.setHeader('Location', '/');
-    response.end();
 }
 
 function send404(path, response) {

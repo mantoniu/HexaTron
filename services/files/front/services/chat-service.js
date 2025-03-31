@@ -1,8 +1,8 @@
 import {USER_EVENTS, userService} from "./user-service.js";
-import {SOCKET_SERVICE_EVENT, socketService} from "./socket-service.js";
 import {chatStore} from "../js/ChatStore.js";
 import {apiClient} from "../js/ApiClient.js";
 import {EventEmitter} from "../js/EventEmitter.js";
+import {socketService} from "./socket-service.js";
 
 /**
  *  Defines the chat events
@@ -41,14 +41,17 @@ class ChatService extends EventEmitter {
         this._chatStore = chatStore;
     }
 
+    initSocket() {
+        this._socket = socketService.connectChatSocket();
+        this._setupChatSocketListeners();
+    }
+
     /**
      * Gets the socket connection for the user.
      *
      * @returns {Socket} The socket instance.
      */
     get socket() {
-        if (!this._socket.connected)
-            this._socket.connect();
         return this._socket;
     }
 
@@ -65,6 +68,11 @@ class ChatService extends EventEmitter {
      * @returns {Promise<void>} Resolves when the initialization is complete.
      */
     async init() {
+        userService.on(USER_EVENTS.CONNECTION, () => {
+            this.initSocket();
+            this._fetchConversations();
+        });
+
         userService.on(USER_EVENTS.LOGOUT, () => this._chatStore.clear());
 
         userService.on(USER_EVENTS.UPDATE_FRIEND, (friend) => {
@@ -77,11 +85,10 @@ class ChatService extends EventEmitter {
             this.emit(CHAT_EVENTS.CONVERSATIONS_UPDATED);
         });
 
-        socketService.on(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, async (socket) => {
-            this._socket = socket;
-            this._setupChatSocketListeners();
+        if (userService.isConnected()) {
+            this.initSocket();
             await this._fetchConversations();
-        });
+        }
     }
 
     /**
@@ -101,28 +108,28 @@ class ChatService extends EventEmitter {
      *
      */
     _setupChatSocketListeners() {
-        this._socket.on("message", (conversationId, message) => {
+        this.socket.on("message", (conversationId, message) => {
             this._chatStore.addMessage(conversationId, message);
             this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
         });
 
-        this._socket.on("deleteMessage", (conversationId, messageId) => {
+        this.socket.on("deleteMessage", (conversationId, messageId) => {
             this._chatStore.deleteMessage(conversationId, messageId);
             this.emit(CHAT_EVENTS.MESSAGE_DELETED, conversationId, messageId);
         });
 
-        this._socket.on("newConversation", (conversation, creatorId) => {
+        this.socket.on("newConversation", (conversation, creatorId) => {
             this._chatStore.setConversation(conversation);
             this._chatStore.markAsFetched(conversation._id);
             this.emit(CHAT_EVENTS.CONVERSATION_CREATED, conversation._id, userService.user._id === creatorId);
         });
 
 
-        this._socket.on("conversationExists", (conversationId, creatorId) => {
+        this.socket.on("conversationExists", (conversationId, creatorId) => {
             this.emit(CHAT_EVENTS.CONVERSATION_CREATED, conversationId, userService.user._id === creatorId);
         });
 
-        this._socket.on("error", (error) => console.error(error));
+        this.socket.on("error", (error) => console.error(error));
     }
 
     /**
@@ -162,7 +169,6 @@ class ChatService extends EventEmitter {
         return this._chatStore.getConversation(conversationId);
     }
 
-
     /**
      * Initiates a conversation with a specific friend by emitting an event to the server.
      *
@@ -174,7 +180,7 @@ class ChatService extends EventEmitter {
      * @event createConversation - Sent to the server with the user ID and friend ID.
      */
     createConversation(friendId) {
-        this.socket.emit("createConversation", userService.user._id, friendId);
+        this.socket.emit("createConversation", friendId);
     }
 
     /**
@@ -200,7 +206,7 @@ class ChatService extends EventEmitter {
      */
     _joinConversations(conversations) {
         const conversationIds = conversations.map(conversation => conversation._id);
-        this._socket.emit("joinConversations", conversationIds);
+        this.socket.emit("joinConversations", conversationIds);
     }
 
     /**
@@ -254,7 +260,7 @@ class ChatService extends EventEmitter {
      * @param {string[]} messageIds - The IDs of the messages to mark as read.
      */
     _markMessagesAsRead(conversationId, messageIds) {
-        this._socket.emit("messagesRead", messageIds, conversationId, userService.user._id);
+        this.socket.emit("messagesRead", messageIds);
 
         messageIds.forEach(id =>
             this._chatStore.updateMessage(conversationId, id, {isRead: true}));
@@ -287,8 +293,8 @@ class ChatService extends EventEmitter {
         };
 
         this._chatStore.addMessage(conversationId, message);
-        this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, message);
-        this._socket.emit("message", content, conversationId, userService.user._id, userService.user.name, (serverMessage) => {
+        this.emit(CHAT_EVENTS.MESSAGE_ADDED, conversationId, {...message, senderName: userService.user.name});
+        this.socket.emit("message", content, conversationId, userService.user._id, userService.user.name, (serverMessage) => {
             this._chatStore.replaceMessage(conversationId, tempId, serverMessage);
             this.emit(CHAT_EVENTS.MESSAGE_SENT, tempId, serverMessage, conversationId);
         });
@@ -301,7 +307,7 @@ class ChatService extends EventEmitter {
      * @param {string} messageId - The ID of the message to be deleted
      */
     deleteMessage(conversationId, messageId) {
-        this._socket.emit("deleteMessage", messageId, userService.user._id);
+        this.socket.emit("deleteMessage", messageId);
     }
 
     /**

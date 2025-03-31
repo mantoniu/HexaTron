@@ -31,7 +31,8 @@ const servicesConfig = {
             requiresAuth: true
         },
         ws: {
-            namespace: "/friends"
+            namespace: "/friends",
+            requiresAuth: true,
         },
         auth: ["userId"]
     },
@@ -46,6 +47,7 @@ const servicesConfig = {
         },
         ws: {
             namespace: '/chat',
+            requiresAuth: true
         },
         auth: ["userId"]
     },
@@ -57,8 +59,9 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: '/game',
+            requiresAuth: false
         },
-        auth: null
+        auth: ["userId"]
     }
 };
 
@@ -212,15 +215,31 @@ Object.values(servicesConfig).forEach(service => {
 
     const nameSpace = ioServer.of(service.ws.namespace);
     nameSpace.on("connection", (clientSocket) => {
+        let userId = null;
 
-        let auth = {};
-        if (service.auth) {
-            auth = {
-                auth: Object.fromEntries(service.auth.map(element => [element, clientSocket.handshake.auth[element]]))
-            };
+        // Check if a token is present and valid
+        try {
+            const token = clientSocket.handshake.auth?.token;
+            if (token) {
+                const decoded = jwt.verify(token, jwtAccessSecretKey);
+                userId = decoded?.userId || null;
+                console.log(`[WebSocket] Connexion avec token : userId = ${userId}`);
+            }
+        } catch (error) {
+            console.warn(`[WebSocket] Invalid token: ${error.message}`);
         }
 
-        const socket = Client(service.target, auth);
+        // Verification according to service configuration
+        if (service.ws.requiresAuth && !userId) {
+            console.warn(`[WebSocket] Connection refused to ${service.ws.namespace} (auth required)`);
+            clientSocket.emit("token_invalid");
+            return clientSocket.disconnect(true);
+        }
+
+        // Create WebSocket client with `userId` in auth
+        const socket = Client(service.target, {
+            auth: {userId}
+        });
 
         clientSocket.onAny((eventName, ...args) => socket.emit(eventName, ...args));
         clientSocket.on("disconnect", () => socket.disconnect());
