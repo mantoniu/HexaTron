@@ -16,42 +16,54 @@ export class CustomNav extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this.hideElementsInGame());
-        this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this.showElementOnConnection());
+        this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hideElementsInGame());
+        this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
 
-        if (!userService.isConnected()) {
+        if (!userService.isConnected())
             CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");
-        }
 
-        this.shadowRoot.querySelectorAll(".nav-button").forEach(button => {
+        const navButtons = this.shadowRoot.querySelectorAll(".nav-button");
+        navButtons.forEach(button => {
             this.addAutoCleanListener(
                 button,
                 "click",
-                () => {
-                    const navValue = button.getAttribute("id");
+                () => this._handleNavClick(button, navButtons));
+        });
 
-                    if (!navValue)
-                        return;
-
-                    window.dispatchEvent(
-                        new CustomEvent("openDrawer", {
-                            bubbles: true,
-                            composed: true,
-                            detail: {type: navValue}
-                        })
-                    );
-                }
-            );
+        this.addAutoCleanListener(window, "drawerClosed", () => {
+            navButtons.forEach(btn => btn.classList.remove("active"));
         });
     }
 
-    hideElementsInGame() {
+    _handleNavClick(button, navButtons) {
+        const navValue = button.getAttribute("id");
+
+        if (!navValue)
+            return;
+
+        if (button.classList.contains("active"))
+            button.classList.remove("active");
+        else {
+            navButtons.forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+        }
+
+        window.dispatchEvent(
+            new CustomEvent("openDrawer", {
+                bubbles: true,
+                composed: true,
+                detail: {type: navValue}
+            })
+        );
+    }
+
+    _hideElementsInGame() {
         CustomNav.HIDE_IN_GAME.forEach(element => {
             this.shadowRoot.getElementById(element).style.display = "none";
         });
     }
 
-    showElementOnConnection() {
+    _showElementOnConnection() {
         CustomNav.HIDE_NOT_CONNECTED.forEach(id => {
             this.shadowRoot.getElementById(id).style.display = "block"
         });

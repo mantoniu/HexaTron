@@ -90,12 +90,15 @@ export class DrawerMenu extends ListenerComponent {
 
         const returnDiv = this.shadowRoot.getElementById("return");
         this.addAutoCleanListener(returnDiv, "click", () => {
+            this.dispatchEvent(new CustomEvent("drawerClosed", {
+                bubbles: true,
+                composed: true
+            }));
             this._alertMessage?.remove();
             this._nav(this.current);
         });
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
-            console.log(event.detail.player);
             event.stopPropagation();
             this.previous = this.current;
             const isCurrentUser = event.detail.player._id === userService.user._id;
