@@ -1,7 +1,7 @@
 import {User} from "../js/User.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {apiClient, DEFAULT_ERROR_MESSAGES} from "../js/ApiClient.js";
-import {SOCKET_SERVICE_EVENT, socketService} from "./socket-service.js";
+import {socketService} from "./socket-service.js";
 
 /**
  * Defines user-related events.
@@ -93,24 +93,18 @@ class UserService extends EventEmitter {
     constructor() {
         super();
 
-        if (UserService._instance) return UserService._instance;
+        if (UserService._instance)
+            return UserService._instance;
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", "assets/profile.svg", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
 
-        if (this._connected) {
-            socketService.connectFriendsSocket(this._user._id);
-            socketService.connectChatSocket(this._user._id);
-        }
-
         if (!this._connected) {
             localStorage.setItem("user", JSON.stringify(this._user));
-        }
-
-        socketService.on(SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, (socket) => {
-            this._socket = socket;
+        } else {
+            this._socket = socketService.connectFriendSocket();
             this._setupFriendSocketListeners();
-        });
+        }
 
         UserService._instance = this;
     }
@@ -121,8 +115,6 @@ class UserService extends EventEmitter {
      * @returns {Socket} The socket instance.
      */
     get socket() {
-        if (!this._socket.connected)
-            this._socket.connect();
         return this._socket;
     }
 
@@ -205,10 +197,10 @@ class UserService extends EventEmitter {
     async _authenticate(endpoint, data, action) {
         const response = await apiClient.request("POST", endpoint, data);
         if (response.success) {
-            this.emit(USER_EVENTS.CONNECTION);
             this._setUserData(response.data);
-            socketService.connectFriendsSocket(this._user._id);
-            socketService.connectChatSocket(this._user._id);
+            this.emit(USER_EVENTS.CONNECTION);
+            this._socket = socketService.connectFriendSocket();
+            this._setupFriendSocketListeners();
             return {success: true, user: this._user};
         }
         return {success: false, error: this._getErrorMessage(response.status, action)};
@@ -291,8 +283,6 @@ class UserService extends EventEmitter {
         await apiClient.request("POST", "api/user/disconnect");
 
         this._reset();
-        apiClient.clearTokens();
-
         this.emit(USER_EVENTS.LOGOUT);
     }
 
@@ -449,6 +439,7 @@ class UserService extends EventEmitter {
         this._user = null;
         this._connected = false;
         this._clearLocalStorage();
+        apiClient.clearTokens();
     }
 
     /**
@@ -476,6 +467,12 @@ class UserService extends EventEmitter {
         });
 
         this.socket.on("delete-user", (userId) => {
+            if (userId === this.user._id) {
+                alert("The user has been deleted");
+                window.location.href = "/";
+                this._reset();
+            }
+
             delete this.user.friends[userId];
             this._saveToLocalStorage();
             this.emit(USER_EVENTS.DELETE_USER, {id: userId});

@@ -1,17 +1,11 @@
-import {EventEmitter} from "../js/EventEmitter.js";
-
-export const SOCKET_SERVICE_EVENT = Object.freeze({
-    CHAT_SOCKET_CONNECTED: "chatSocketConnected",
-    FRIENDS_SOCKET_CONNECTED: "friendsSocketConnected"
-});
+import {apiClient} from "../js/ApiClient.js";
 
 /**
  * Service for managing Socket.IO connections.
  *
  * @class
  */
-class SocketService extends EventEmitter {
-
+class SocketService {
     /**
      * Singleton instance of SocketService.
      *
@@ -26,6 +20,7 @@ class SocketService extends EventEmitter {
      * @type {Object}
      * @property {Socket} game - Socket for the `/game` namespace.
      * @property {Socket} chat - Socket for the `/chat` namespace.
+     * @property {Socket} friends - Socket for the `/friends` namespace.
      */
     _sockets = {
         game: null,
@@ -39,88 +34,11 @@ class SocketService extends EventEmitter {
      * @private
      */
     constructor() {
-        super();
-
         if (SocketService._instance)
             return SocketService._instance;
 
         this.baseUrl = window.location.origin;
-        this._sockets.game = io(`${this.baseUrl}/game`, {autoConnect: true});
-        this._sockets.chat = io(`${this.baseUrl}/chat`, {autoConnect: true});
-
-        this.setupListeners();
-
         SocketService._instance = this;
-    }
-
-    /**
-     * Returns the socket for the `/game` namespace.
-     *
-     * @returns {Socket} The game socket.
-     */
-    get gameSocket() {
-        return this._sockets.game;
-    }
-
-    /**
-     * Returns the socket for the `/chat` namespace.
-     *
-     * @returns {Socket} The chat socket.
-     */
-    get chatSocket() {
-        return this._sockets.chat;
-    }
-
-    /**
-     * Returns the socket for the `/friends` namespace.
-     *
-     * @return {socket} The friends socket.
-     */
-    get friendsSocket() {
-        return this._sockets.friendsSocket;
-    }
-
-    connectChatSocket(userId) {
-        this._sockets.chat = io(`${this.baseUrl}/chat`,
-            {
-                auth: {
-                    userId: userId
-                },
-                autoConnect: true
-            });
-        this._sockets.chat.on("connect", () => {
-            this.emit(SOCKET_SERVICE_EVENT.CHAT_SOCKET_CONNECTED, this._sockets.chat);
-            console.log("[ChatSocket] Connected:", this._sockets.chat.id);
-        });
-        this._sockets.chat.on("disconnect", () => console.warn("[ChatSocket] Disconnected!"));
-    }
-
-
-    /**
-     * Connects the user to the friends-related socket server.
-     *
-     * This function establishes a connection to the friends socket server using the user's ID for authentication.
-     * It sets up the socket connection and listens for the "connect" and "disconnect" events.
-     * Upon connection, the socket instance is saved to the `userService` and setup listeners for handling incoming messages.
-     * The function logs a message upon successful connection and a warning if the connection is lost.
-     *
-     * @param {string} userId - The unique identifier of the user to authenticate the socket connection.
-     *
-     * @returns {void}
-     */
-    connectFriendsSocket(userId) {
-        this._sockets.friends = io(`${this.baseUrl}/friends`,
-            {
-                auth: {
-                    userId: userId
-                },
-                autoConnect: true
-            });
-        this._sockets.friends.on("connect", () => {
-            this.emit(SOCKET_SERVICE_EVENT.FRIENDS_SOCKET_CONNECTED, this._sockets.friends);
-            console.log("[FriendSocket] Connected:", this._sockets.friends.id);
-        });
-        this._sockets.friends.on("disconnect", () => console.warn("[FriendSocket] Disconnected!"));
     }
 
     /**
@@ -137,13 +55,120 @@ class SocketService extends EventEmitter {
     }
 
     /**
-     * Sets up event listeners for the sockets.
+     * Connects to the game socket namespace.
+     *
+     * @returns {Socket} The connected game socket instance.
+     */
+    connectGameSocket() {
+        return this._connectSocket("game");
+    }
+
+    /**
+     * Connects to the chat socket namespace.
+     *
+     * @returns {Socket} The connected chat socket instance.
+     */
+    connectChatSocket() {
+        return this._connectSocket("chat");
+    }
+
+    /**
+     * Connects to the friends socket namespace.
+     *
+     * @returns {Socket} The connected friends socket instance.
+     */
+    connectFriendSocket() {
+        return this._connectSocket("friends");
+    }
+
+    /**
+     * Generic method to connect to any socket namespace
      *
      * @private
+     * @param {string} type - The socket type ('game', 'chat', or 'friends')
+     * @returns {Socket} The connected socket instance
      */
-    setupListeners() {
-        this._sockets.game.on('connect', () => console.log('[GameSocket] Connected:', this._sockets.game.id));
-        this._sockets.game.on('disconnect', () => console.warn('[GameSocket] Disconnected!'));
+    _connectSocket(type) {
+        if (!Object.keys(this._sockets).includes(type)) {
+            console.error(`Unknown socket type: ${type}`);
+            return null;
+        }
+
+        const token = localStorage.getItem("accessToken");
+        if (this._sockets[type]) {
+            this._sockets[type].auth = {token};
+            this._sockets[type].connect();
+            return this._sockets[type];
+        }
+
+        // Configure socket options
+        const options = {
+            autoConnect: true,
+            reconnection: true
+        };
+
+        // Add auth data if available
+        options.auth = {token};
+
+        // Create the socket
+        this._sockets[type] = io(`${this.baseUrl}/${type}`, options);
+
+        // Set up standard event listeners
+        this._setupStandardListeners(type);
+
+        return this._sockets[type];
+    }
+
+    /**
+     * Set up standard event listeners for a socket
+     *
+     * @private
+     * @param {string} type - The socket type
+     */
+    _setupStandardListeners(type) {
+        const socket = this._sockets[type];
+        const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+
+        // Connection events
+        socket.on('connect', () => {
+            console.log(`[${capitalizedType}Socket] Connected: ${socket.id}`);
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.warn(`[${capitalizedType}Socket] Disconnected: ${reason}`);
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error(`[${capitalizedType}Socket] Connection error: ${error.message}`);
+        });
+
+        socket.on('token_invalid', async () => {
+            console.log(`[${capitalizedType}Socket] Token expired, attempting to refresh...`);
+            if (await apiClient.refreshAccessToken()) {
+                Object.keys(this._sockets).forEach(namespace => {
+                    this._connectSocket(namespace);
+                });
+            } else {
+                console.error(`[${capitalizedType}Socket] Token refresh failed, disconnecting...`);
+                socket.disconnect();
+            }
+        });
+
+        socket.on('unauthorized', (error) => {
+            console.error(`[${capitalizedType}Socket] Unauthorized: ${error.message}`);
+        });
+    }
+
+    /**
+     * Disconnect all sockets
+     */
+    disconnectAll() {
+        Object.keys(this._sockets).forEach(type => {
+            if (this._sockets[type]) {
+                this._sockets[type].disconnect();
+                this._sockets[type] = null;
+            }
+        });
     }
 }
 

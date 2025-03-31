@@ -3,11 +3,11 @@ import {Position} from "./Position.js";
 import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
 import {userService} from "../../services/user-service.js";
 
-export const GameType = {
+export const GameType = Object.freeze({
     LOCAL: 0,
     AI: 1,
     RANKED: 2
-};
+});
 
 export class Game {
     constructor(type, rowNumber, columnNumber, players, roundsCount) {

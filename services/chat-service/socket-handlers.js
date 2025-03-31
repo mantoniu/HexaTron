@@ -12,6 +12,13 @@ module.exports = (io) => {
     io.on('connection', (gatewaySocket) => {
         console.log("Socket connected", gatewaySocket.id);
 
+        const userId = gatewaySocket.handshake.auth.userId;
+
+        if (!userId) {
+            console.warn(`Connection refused: No userId provided.`);
+            return gatewaySocket.disconnect(true);
+        }
+
         // Connect the socket to a room using the user ID passed in the auth part to make it accessible by userId.
         gatewaySocket.join(gatewaySocket.handshake.auth.userId);
 
@@ -24,12 +31,10 @@ module.exports = (io) => {
          * @async
          * @function
          * @param {Array<string>} messageIds - The IDs of the messages to mark as read.
-         * @param {string} conversationId - The ID of the conversation where the messages belong.
-         * @param {string} userId - The ID of the user who is marking the messages as read.
          * @listens messagesRead
          * @event error - Emitted if an error occurs while marking the messages as read.
          */
-        gatewaySocket.on("messagesRead", async (messageIds, conversationId, userId) => {
+        gatewaySocket.on("messagesRead", async (messageIds) => {
             try {
                 await markMessagesAsRead(messageIds, userId);
             } catch (error) {
@@ -61,12 +66,11 @@ module.exports = (io) => {
          * @async
          * @function
          * @param {string} messageId - The ID of the message to delete.
-         * @param {string} userId - The ID of the user requesting the deletion.
          * @listens deleteMessage
          * @event deleteMessage - Emitted when a message is deleted in a conversation.
          * @event error - Emitted if an error occurs during message deletion.
          */
-        gatewaySocket.on("deleteMessage", async (messageId, userId) => {
+        gatewaySocket.on("deleteMessage", async (messageId) => {
             try {
                 const conversationId = await deleteMessageWithOwner(messageId, userId);
                 io.to(conversationId).emit("deleteMessage", conversationId, messageId);
@@ -130,14 +134,13 @@ module.exports = (io) => {
          *
          * @async
          * @function
-         * @param {string} userId - The ID of the user initiating the conversation.
          * @param {string} friendsId - The ID of the friend to start the conversation with.
          * @listens createConversation
          * @event conversationExists - Emitted if the conversation already exists.
          * @event newConversation - Emitted when a new conversation is created.
          * @event error - Emitted if an error occurs during conversation creation.
          */
-        gatewaySocket.on("createConversation", async (userId, friendsId) => {
+        gatewaySocket.on("createConversation", async (friendsId) => {
             try {
                 const conversationId = await getConversationIdIfExists(userId, friendsId);
                 if (conversationId.length !== 0) {
