@@ -37,12 +37,6 @@ button:disabled {
     box-shadow: none;
 }
 
-button.active {
-    background-color: var(--primary-blue);
-    color: white;
-    border-color: var(--primary-blue-dark);
-}
-
 #lock-icon {
     display: none;
     width: 16px;

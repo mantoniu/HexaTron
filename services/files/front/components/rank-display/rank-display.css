@@ -1,7 +1,7 @@
 #rank-badge {
     display: flex;
     align-items: center;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: white;
     padding: 5px 15px;
     border-radius: 20px;
     margin-top: 5px;
