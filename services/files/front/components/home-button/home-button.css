@@ -1,0 +1,28 @@
+image-button {
+    height: 24px;
+    width: 24px;
+}
+
+:host {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    background-color: var(--card-bg);
+    border: none;
+    color: var(--primary-blue);
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+:host(:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}

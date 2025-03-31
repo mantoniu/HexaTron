@@ -1,0 +1,52 @@
+:host {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-content: center;
+    z-index: 5;
+    transition: all 0.3s;
+}
+
+.modal-content {
+    margin: auto;
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 400px;
+    max-width: 80%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-20px);
+    transition: all 0.3s;
+}
+
+:host(.modal-content) {
+    transform: translateY(0);
+}
+
+.modal-header {
+    margin-bottom: 1rem;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.modal-body {
+    margin: 1.5rem;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+}
+
+submit-button {
+    width: 110px;
+}

@@ -1,0 +1,21 @@
+:host {
+    border-radius: 20px;
+    padding: 20px 0 20px 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: var(--background);
+}
+
+#profile-picture {
+    width: 9rem;
+    height: 9rem;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+img {
+    width: 9rem;
+}

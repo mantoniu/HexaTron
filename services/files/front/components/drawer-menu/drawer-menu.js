@@ -6,6 +6,7 @@ import {ForgottenPasswordPortal} from "../forgotten-password-portal/forgotten-pa
 import {SettingsPortal} from "../settings-portal/settings-portal.js";
 import {LeaderboardPortal} from "../leaderboard-portal/leaderboard-portal.js";
 import {ChatPortal} from "../chat-portal/chat-portal.js";
+import {createAlertMessage} from "../../js/utils.js";
 import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
@@ -27,7 +28,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this.current = "";
         this.previous = "";
-        this._oppened = false;
+        this._opened = false;
         LoginPortal.register();
         UserProfile.register();
         RegisterPortal.register();
@@ -41,61 +42,104 @@ export class DrawerMenu extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
         this._content = this.shadowRoot.getElementById("content");
+        this._closeBtn = this.shadowRoot.getElementById("close-btn");
+        this._drawer = this.shadowRoot.getElementById("drawer");
 
+        this._setupListeners();
+    }
+
+    _setupUserServiceListeners() {
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.UPDATE_FRIEND,
+            (data) => this._modificationStatus(data));
+
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.REMOVE_FRIEND,
+            (data) => this._modificationStatus(data, false));
+
+        this.addAutomaticEventListener(userService,
+            USER_EVENTS.DELETE_USER,
+            (data) => this._modificationStatus(data, true));
+    }
+
+    _setupChatServiceListeners() {
+        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
+            if (open) {
+                this._setInitialState(DRAWER_CONTENT.CHAT);
+                const chatPortal = this.shadowRoot.querySelector("chat-portal");
+                chatPortal.whenConnected.then(async () => {
+                    await chatPortal.changeToggleSelected("friends");
+                    await chatPortal.openFriendList();
+                    chatPortal._openChatBox(await chatService.getConversation(conversationId));
+                });
+            }
+        });
+    }
+
+    _setupListeners() {
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             this.previous = event.detail.type;
-            this.setInitialState(this.previous);
+            this._setInitialState(this.previous);
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
-            this.loadContent(event.detail);
+            this._loadContent(event.detail);
         });
 
-        this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
+        this._closeBtn.onclick = () => this._nav(this.current);
 
-        this.addAutoCleanListener(document, "click", (event) => {
-            if (!(event.composedPath().some(element => element.localName === "drawer-menu" || element.localName === "custom-nav")) && this._oppened) {
-                this.nav(this.current);
-            }
+        const returnDiv = this.shadowRoot.getElementById("return");
+        this.addAutoCleanListener(returnDiv, "click", () => {
+            this.dispatchEvent(new CustomEvent("drawerClosed", {
+                bubbles: true,
+                composed: true
+            }));
+            this._alertMessage?.remove();
+            this._nav(this.current);
         });
 
         this.addAutoCleanListener(this, "showUserProfile", (event) => {
             event.stopPropagation();
             this.previous = this.current;
-            if (event.detail.player._id === userService.user._id) {
+            const isCurrentUser = event.detail.player._id === userService.user._id;
+
+            if (isCurrentUser) {
                 this.current = DRAWER_CONTENT.PROFILE;
-                this.loadContent(DRAWER_CONTENT.PROFILE);
+                this._loadContent(DRAWER_CONTENT.PROFILE);
             } else {
                 this.current = DRAWER_CONTENT.VOID;
-                this._content.innerHTML = `<user-profile user='${JSON.stringify(event.detail.player)}' editable='false' part='user-friend-part'></user-profile>`;
-                this.replaceCloseWithBack();
+                this.current = DRAWER_CONTENT.PROFILE;
+                this._content.innerHTML = `<user-profile 
+                                   user='${JSON.stringify(event.detail.player)}'>
+                               </user-profile>`;
+                this._replaceCloseWithBack();
             }
         });
 
-        this.addAutomaticEventListener(chatService, CHAT_EVENTS.CONVERSATION_CREATED, async (conversationId, open) => {
-            if (open) {
-                this.setInitialState(DRAWER_CONTENT.CHAT);
-                this.shadowRoot.querySelector("chat-portal").whenConnected.then(async () => {
-                    await this.shadowRoot.querySelector("chat-portal")._changeToggleSelected("friends");
-                    await this.shadowRoot.querySelector("chat-portal")._openFriendList();
-                    this.shadowRoot.querySelector("chat-portal")._openChatBox(await chatService.getConversation(conversationId));
-                });
-            }
+        this._drawer.addEventListener("scroll", () => {
+            this._closeBtn.classList.toggle("scrolled", this._drawer.scrollTop > 0);
         });
 
-        this.addAutomaticEventListener(userService, USER_EVENTS.UPDATE_FRIEND, (data) => this.modificationStatus(data));
-        this.addAutomaticEventListener(userService, USER_EVENTS.REMOVE_FRIEND, (data) => this.modificationStatus(data, false));
-        this.addAutomaticEventListener(userService, USER_EVENTS.DELETE_USER, (data) => this.modificationStatus(data, true));
+        this._content.addEventListener("createAlert", (event) => {
+            const {type, text} = event.detail;
+            const alertContainer = this.shadowRoot.getElementById("alert-container");
+            this._alertMessage = createAlertMessage(alertContainer, type, text);
+        });
 
+
+        this._setupChatServiceListeners();
+        this._setupUserServiceListeners();
     }
 
-    loadContent(type) {
+    _loadContent(type) {
         let component;
+        this._content.classList.remove('animate');
+        this._alertMessage?.remove();
 
         switch (type) {
             case DRAWER_CONTENT.PROFILE:
                 component = (userService.isConnected())
-                    ? `<user-profile user='${JSON.stringify(userService.user)}' editable='true' part='user-password-part'></user-profile>`
+                    ? `<user-profile></user-profile>`
                     : "<login-portal></login-portal>";
                 break;
             case DRAWER_CONTENT.REGISTER:
@@ -120,48 +164,47 @@ export class DrawerMenu extends ListenerComponent {
                 console.warn("This type is not yet supported");
                 return false;
         }
+
         this._content.innerHTML = component;
+        setTimeout(() => {
+            this._content.classList.add('animate');
+        }, 50);
+
         return true;
     }
 
-    nav(type) {
-        const sidenav = this.shadowRoot.getElementById("mySidenav");
-        const closeBtn = this.shadowRoot.getElementById("close-btn");
-
-        if (this._oppened && this.current === type) {
-            closeBtn.style.visibility = "hidden";
-            sidenav.classList.remove("open");
-            this.shadowRoot.getElementById("content").innerHTML = "";
-            this._oppened = !this._oppened;
-
+    _nav(type) {
+        if (this._opened && this.current === type) {
+            this._closeBtn.style.visibility = "hidden";
+            this.classList.remove("open");
+            this._content.innerHTML = "";
+            this._opened = !this._opened;
         } else {
-            closeBtn.style.visibility = "visible";
-            sidenav.classList.add("open");
-            this._oppened = true;
+            this._closeBtn.style.visibility = "visible";
+            this.classList.add("open");
+            this._opened = true;
         }
         this.current = type;
     }
 
-    setInitialState(type) {
-        this.shadowRoot.getElementById("close-btn").innerHTML = `&times;`;
-        this.shadowRoot.getElementById("close-btn").onclick = () => this.nav(this.current);
-        if (this.loadContent(type)) {
-            this.nav(type);
-        }
+    _setInitialState(type) {
+        this._closeBtn.innerHTML = `&times;`;
+        this._closeBtn.onclick = () => this._nav(this.current);
+        if (this._loadContent(type))
+            this._nav(type);
     }
 
-    replaceCloseWithBack() {
-        this.shadowRoot.getElementById("close-btn").innerHTML = `&larr;`;
-        this.shadowRoot.getElementById("close-btn").onclick = () => {
-            this.setInitialState(this.previous);
-        };
+    _replaceCloseWithBack() {
+        this._closeBtn.innerHTML = `&larr;`;
+        this._closeBtn.onclick = () =>
+            this._setInitialState(this.previous);
     }
 
-    modificationStatus(data, deleted) {
+    _modificationStatus(data, deleted) {
         const element = this._content.querySelector("user-profile");
         if (element && element.user._id === data.id) {
             if (deleted) {
-                this.setInitialState(this.previous);
+                this._setInitialState(this.previous);
             } else {
                 let user = data.friendData;
                 user._id = data.id;

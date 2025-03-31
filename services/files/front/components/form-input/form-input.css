@@ -5,9 +5,8 @@
 }
 
 :host label {
+    font-weight: 500;
     font-size: 16px;
-    font-weight: bold;
-    color: #555555;
     display: block;
     margin-bottom: 10px;
 }

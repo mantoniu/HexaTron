@@ -1,6 +1,30 @@
+:root {
+    --primary-blue: #3498db;
+    --primary-blue-dark: #2980b9;
+    --background: #f5f7fa;
+    --text-color: #2c3e50;
+    --card-bg: #ffffff;
+    --red: #e74c3c;
+    --dark-red: #c0392b;
+    --gray: #e0e0e0;
+    --dark-gray: #d0d0d0;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --sidebar-width: 80px;
+}
+
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 #outlet {
     width: 100%;
     height: 100%;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text-color);
+    overflow: hidden;
 }
 
 html, body {
