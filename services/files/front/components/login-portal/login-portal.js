@@ -19,6 +19,11 @@ export class LoginPortal extends BaseAuth {
         });
     }
 
+    async handleSubmit() {
+        const res = await userService.login(this.getFormData());
+        this._loginHandler(res);
+    }
+
     _loginHandler(data) {
         if (data.success) {
             this.dispatchEvent(new CustomEvent("changeContent", {
@@ -26,7 +31,15 @@ export class LoginPortal extends BaseAuth {
                 composed: true,
                 detail: DRAWER_CONTENT.PROFILE,
             }));
-        } else alert(data.error);
+        } else
+            this._createAlertMessageEvent("error", data.error);
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
     }
 
     handleActionClick(event) {
@@ -38,10 +51,5 @@ export class LoginPortal extends BaseAuth {
                 detail: action,
             }));
         }
-    }
-
-    handleSubmit() {
-        userService.login(this.getFormData())
-            .then((data) => this._loginHandler(data));
     }
 }

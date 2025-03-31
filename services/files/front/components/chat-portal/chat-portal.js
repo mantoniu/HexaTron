@@ -35,7 +35,7 @@ export class ChatPortal extends ListenerComponent {
         });
 
         this.addAutoCleanListener(this, "conv-return", async (event) => {
-            await this._openFriendList();
+            await this.openFriendList();
             event.stopPropagation();
         });
     }
@@ -94,7 +94,7 @@ export class ChatPortal extends ListenerComponent {
         this._setupChatListeners();
     }
 
-    async _changeToggleSelected(value) {
+    async changeToggleSelected(value) {
         this._toggleChoice = value;
         this.shadowRoot.getElementById("chat-type").setAttribute("selected", value);
     }
@@ -122,7 +122,7 @@ export class ChatPortal extends ListenerComponent {
         });
     }
 
-    async _openFriendList() {
+    async openFriendList() {
         this._content.innerHTML = "";
         const friendMessages = document.createElement("friend-messages");
         this._content.appendChild(friendMessages);
@@ -136,7 +136,7 @@ export class ChatPortal extends ListenerComponent {
             const globalConversation = await chatService.getGlobalConversation();
             this._openChatBox(globalConversation);
         } else
-            await this._openFriendList();
+            await this.openFriendList();
     }
 
     _updateFriendMessage(conversationId, message) {

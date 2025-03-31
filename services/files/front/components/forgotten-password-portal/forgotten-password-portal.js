@@ -1,20 +1,36 @@
 import {BaseAuth} from "../base-auth/base-auth.js";
 import {userService} from "../../services/user-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
+import {FormInput} from "../form-input/form-input.js";
+import {SubmitButton} from "../submit-button/submit-button.js";
 
 export class ForgottenPasswordPortal extends BaseAuth {
+    constructor() {
+        super();
+
+        FormInput.register();
+        SubmitButton.register();
+    }
+
     _resetPasswordHandler(data) {
         if (data.success) {
-            alert(data.message);
             this.dispatchEvent(new CustomEvent("changeContent", {
                 bubbles: true,
                 composed: true,
                 detail: DRAWER_CONTENT.PROFILE,
             }));
-        } else alert(data.error);
+        } else
+            this._createAlertMessageEvent("error", data.error);
     }
 
-    handleSubmit() {
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
+    }
+
+    async handleSubmit() {
         const data = this.getFormData();
         const username = data["username"];
         const password = data["password"];
@@ -24,7 +40,7 @@ export class ForgottenPasswordPortal extends BaseAuth {
             data["security-question3"]
         ];
 
-        userService.resetPassword(username, password, answers)
-            .then((data) => this._resetPasswordHandler(data));
+        const res = await userService.resetPassword(username, password, answers);
+        this._resetPasswordHandler(res);
     }
 }

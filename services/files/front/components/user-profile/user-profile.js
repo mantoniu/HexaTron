@@ -1,118 +1,147 @@
+import {AccountInformation} from "../account-information/account-information.js";
 import {userService} from "../../services/user-service.js";
-import {FormInput} from "../form-input/form-input.js";
-import {SubmitButton} from "../submit-button/submit-button.js";
-import {ImageButton} from "../image-button/image-button.js";
-import {BaseAuth} from "../base-auth/base-auth.js";
-import {UserPasswordPart} from "../user-password-part/user-password-part.js";
-import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
+import {ProfileHeader} from "../profile-header/profile-header.js";
+import {Component} from "../component/component.js";
+import {ModalDialog} from "../modal-dialog/modal-dialog.js";
+import {AlertMessage} from "../alert-message/alert-message.js";
 
-export class UserProfile extends BaseAuth {
-    static SELECTORS = {
-        PROFILE_PICTURE: "profile-picture",
-        USERNAME: "username",
-        ELO: "elo",
-        LEAGUE: "league",
-        USERNAME_INPUT: "username-input",
-        EDIT_USERNAME: "edit-username",
-        USERNAME_DIV: "username-div",
-    };
-
+//TODO merge with main
+export class UserProfile extends Component {
     constructor() {
         super();
 
-        FormInput.register();
-        SubmitButton.register();
-        ImageButton.register();
-        UserPasswordPart.register();
-        UserFriendPart.register();
-
-        this.editingUsername = false;
-        this._elements = {};
+        AccountInformation.register();
+        ProfileHeader.register();
+        ModalDialog.register();
+        AlertMessage.register();
     }
 
     static get observedAttributes() {
-        return ["user", "editable", "part"];
+        return ["user", "part"];
+    }
+
+    async connectedCallback() {
+        await super.connectedCallback();
+
+        this._content = this.shadowRoot.getElementById("content");
+        this._profileHeader = this.shadowRoot.querySelector("profile-header");
+        let isOtherUser = false;
+
+        if (this.hasAttribute("user")) {
+            this.user = JSON.parse(this.getAttribute("user"));
+            isOtherUser = true;
+        } else
+            this.user = userService.user;
+
+        this._updateProfileHeader();
+        this._loadContent(isOtherUser);
+    }
+
+    _loadContent(isOtherUser) {
+        this._content.innerHTML = "";
+
+        if (isOtherUser) {
+            const friendPart = document.createElement("user-friend-part");
+            friendPart.setAttribute("friend-id", this.user._id);
+            this._content.appendChild(friendPart);
+        } else {
+            const accountInfo = document.createElement("account-information");
+            accountInfo.user = this.user;
+            this._content.appendChild(accountInfo);
+            this._setupListeners(accountInfo);
+        }
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === "user") {
             this.user = JSON.parse(newValue);
-            this.updateUserData();
-        }
-        if (name === "editable" && !newValue) {
-            this.shadowRoot.getElementById("edit-username").style.display = "none";
+            this._updateProfileHeader();
         }
     }
 
-    async connectedCallback() {
-        await super.connectedCallback();
-        if (!JSON.parse(this.getAttribute("editable"))) {
-            this.shadowRoot.getElementById("edit-username").style.display = "none";
-        }
+    _setupListeners(accountInfo) {
+        this.shadowRoot.addEventListener("updateInformation", async (event) => {
+            event.stopPropagation();
+            const res = await userService.updateUser(event.detail);
+            this._handleUpdateResponse(res);
+        });
 
-        this._elements = this.initializeElements(UserProfile.SELECTORS);
-        this.setupEventListeners();
-        this.updateUserData();
+        this.shadowRoot.addEventListener("updatePassword", async (event) => {
+            event.stopPropagation();
+            const data = event.detail;
 
+            const res = await userService.updatePassword(
+                data["current-password"],
+                data["confirm-password"]);
+
+            this._handlePasswordUpdate(res);
+        });
+
+        this._setupAccountInformationListeners(accountInfo);
     }
 
-    setupEventListeners() {
-        this.addAutoCleanListener(this._elements.EDIT_USERNAME, "click", () => this.toggleUsernameEdit());
+    _setupAccountInformationListeners(accountInfo) {
+        accountInfo.addEventListener("delete-user",
+            () => this._createModalPopup());
+
+        accountInfo.addEventListener("disconnect-user",
+            () => this._handleLogout());
     }
 
+    async _handleLogout() {
+        await userService.logout();
+        window.location.href = "/";
+    }
 
-    updateUserData() {
-        if (!this.isConnected && !this.user)
+    _createModalPopup() {
+        const modalPopup = document.createElement("modal-dialog");
+
+        modalPopup.setAttribute("modal-title", "⚠️ Delete your account ?");
+        modalPopup.innerText = "Once you proceed with deletion, all your account information will be permanently removed. This includes your personal details, settings, and your Elo rating, which cannot be recovered. Please make sure you want to continue before confirming this action.";
+
+        modalPopup.addEventListener("action", () => this._handleDelete());
+
+        document.body.appendChild(modalPopup);
+    }
+
+    async _handleDelete() {
+        const data = await userService.delete();
+        if (data.success)
+            window.location.href = "/";
+        else
+            this._createAlertMessageEvent("error", data.error);
+    }
+
+    _handleUpdateResponse(res) {
+        if (res.success) {
+            this._createAlertMessageEvent("success", "Information successfully updated");
+            this.user = userService.user;
+            this._updateProfileHeader();
+        } else
+            this._createAlertMessageEvent("error", res.error);
+    }
+
+    _handlePasswordUpdate(res) {
+        if (res.success)
+            this._createAlertMessageEvent("success", "Password successfully updated");
+        else
+            this._createAlertMessageEvent("error", res.error);
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
+    }
+
+    _updateProfileHeader() {
+        if (!this._profileHeader)
             return;
 
-        const part = this.shadowRoot.querySelector(this.getAttribute("part"));
-        if (part && userService.isConnected()) {
-            if (this.getAttribute("part") === "user-friend-part") {
-                part.setAttribute("friend-id", this.user._id);
-            }
-            part.style.display = "flex";
-        }
-
-        if (this._elements.PROFILE_PICTURE && this.user.profilePicturePath) {
-            this._elements.PROFILE_PICTURE.src = this.user.profilePicturePath;
-            this._elements.PROFILE_PICTURE.onerror = () => console.warn("Error loading the profile picture");
-        }
-
-        if (this._elements.USERNAME && this.user.name)
-            this._elements.USERNAME.innerText = this.user.name;
-
-        if (this._elements.ELO && this.user.elo) {
-            this._elements.ELO.textContent = `ELO: ${Math.round(this.user.elo)}`;
-        }
-        if (this._elements.LEAGUE && this.user.league) {
-            this._elements.LEAGUE.textContent = `League: ${this.user.league}`;
-        }
-    }
-
-    async toggleUsernameEdit() {
-        if (!this.editingUsername) {
-            this.showElement(this._elements.USERNAME_INPUT);
-            this.hideElement(this._elements.USERNAME);
-            this._elements.EDIT_USERNAME.setAttribute("src", "./assets/validate.svg");
-            this._elements.USERNAME_INPUT.setAttribute("value", this.user.name);
-            this.editingUsername = true;
-        } else {
-            if (this.checkInputs(UserProfile.SELECTORS.USERNAME_DIV)) {
-                const newUsername = this._elements.USERNAME_INPUT.shadowRoot.querySelector("input").value;
-                const data = await userService.updateUser({name: newUsername});
-                this._handleUsernameChange(data);
-            }
-        }
-    }
-
-    _handleUsernameChange(data) {
-        if (data.success) {
-            this.hideElement(this._elements.USERNAME_INPUT);
-            this.showElement(this._elements.USERNAME);
-            this._elements.EDIT_USERNAME.setAttribute("src", "./assets/edit.svg");
-            this.editingUsername = false;
-            if (this._elements.USERNAME && data.name)
-                this._elements.USERNAME.innerText = data.name;
-        } else alert(data.error);
+        this._profileHeader.setAttribute("username", this.user.name);
+        this._profileHeader.setAttribute("league", this.user.league);
+        this._profileHeader.setAttribute("elo", this.user.elo);
+        this._profileHeader.setAttribute("profilePicture", this.user.profilePicturePath);
     }
 }
