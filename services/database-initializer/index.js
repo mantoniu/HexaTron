@@ -1,5 +1,5 @@
 const {MongoClient} = require("mongodb");
-const {User, RefreshToken, Conversation, Message} = require("./type-documentation.js");
+const {User, RefreshToken, Conversation, Message, Notifications} = require("./type-documentation.js");
 const uri = process.env.URI;
 const client = new MongoClient(uri);
 const dbName = process.env.DB_NAME;
@@ -11,7 +11,8 @@ const collectionSchemas = {
     [process.env.CONVERSATION_COLLECTION]: Conversation,
     [process.env.MESSAGE_COLLECTION]: Message,
     [process.env.USER_COLLECTION]: User,
-    [process.env.TOKEN_COLLECTION]: RefreshToken
+    [process.env.TOKEN_COLLECTION]: RefreshToken,
+    [process.env.NOTIFICATIONS_COLLECTION]: Notifications
 };
 
 // Define the indexes for each collection with unique constraints when necessary
@@ -35,6 +36,10 @@ const collectionIndexes = {
     // This will improve query performance when looking up refresh tokens by user ID and token.
     [process.env.TOKEN_COLLECTION]: [
         {keys: {userId: 1, refreshToken: 1}, options: {unique: true}}
+    ],
+    //TODO commentary
+    [process.env.NOTIFICATIONS_COLLECTION]: [
+        {keys: {userId: 1}, options: {unique: true}}
     ]
 };
 
@@ -53,6 +58,14 @@ const serviceRoles = {
         permissions: {
             [process.env.CONVERSATION_COLLECTION]: ["find", "insert", "update", "remove"],
             [process.env.MESSAGE_COLLECTION]: ["find", "insert", "update", "remove"],
+            [process.env.USER_COLLECTION]: ["find"]
+        }
+    },
+    notificationService: {
+        username: process.env.MONGO_NOTIFICATIONS_USERNAME,
+        password: process.env.MONGO_NOTIFICATIONS_PWD,
+        permissions: {
+            [process.env.NOTIFICATIONS_COLLECTION]: ["find", "insert", "update", "remove"],
             [process.env.USER_COLLECTION]: ["find"]
         }
     }
