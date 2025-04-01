@@ -10,6 +10,7 @@ import {createAlertMessage} from "../../js/utils.js";
 import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
+import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -19,6 +20,7 @@ export const DRAWER_CONTENT = Object.freeze({
     LEADERBOARD: "leaderboard",
     FRIENDS: "friends",
     CHAT: "chat",
+    NOTIFICATIONS: "notifications",
     VOID: ""
 });
 
@@ -37,6 +39,7 @@ export class DrawerMenu extends ListenerComponent {
         SettingsPortal.register();
         ChatPortal.register();
         FriendsPortal.register();
+        NotificationsPortal.register();
     }
 
     async connectedCallback() {
@@ -159,6 +162,9 @@ export class DrawerMenu extends ListenerComponent {
                 break;
             case DRAWER_CONTENT.FRIENDS:
                 component = "<friends-portal></friends-portal>";
+                break;
+            case DRAWER_CONTENT.NOTIFICATIONS:
+                component = "<notifications-portal></notifications-portal>";
                 break;
             default:
                 console.warn("This type is not yet supported");

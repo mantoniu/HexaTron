@@ -21,11 +21,13 @@ class SocketService {
      * @property {Socket} game - Socket for the `/game` namespace.
      * @property {Socket} chat - Socket for the `/chat` namespace.
      * @property {Socket} friends - Socket for the `/friends` namespace.
+     * @property {Socket} notifications - Socket for the `/notifications` namespace.
      */
     _sockets = {
         game: null,
         chat: null,
-        friends: null
+        friends: null,
+        notifications: null
     };
 
     /**
@@ -82,10 +84,19 @@ class SocketService {
     }
 
     /**
+     * Connects to the notifications socket namespace.
+     *
+     * @returns {Socket} The connected notifications socket instance.
+     */
+    connectNotificationsSocket() {
+        return this._connectSocket("notifications");
+    }
+
+    /**
      * Generic method to connect to any socket namespace
      *
      * @private
-     * @param {string} type - The socket type ('game', 'chat', or 'friends')
+     * @param {string} type - The socket type ('game', 'chat', 'friends' or 'notifications')
      * @returns {Socket} The connected socket instance
      */
     _connectSocket(type) {
