@@ -54,10 +54,7 @@ export class ResultScreen extends Component {
     }
 
     showResult() {
-        const result = this.shadowRoot.getElementById("result");
-        if (result) {
-            result.style.display = this.end ? "flex" : "none";
-        }
+        this.style.maxHeight = this.end ? "80%" : "5rem";
     }
 
     setHeader(element) {
