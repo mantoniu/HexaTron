@@ -53,6 +53,7 @@ services:
     networks:
       - network-services
     environment:
+      - NOTIFICATIONS_SERVICE_URL=${NOTIFICATIONS_SERVICE_URL}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - URI=${URI_DATABASE_USER_SERVICE}
 
@@ -114,6 +115,7 @@ services:
       - GATEWAY_URL=${GATEWAY_URL}
       - CHAT_SERVICE_URL=${CHAT_SERVICE_URL}
       - CHAT_API=${CHAT_API}
+      - NOTIFICATIONS_SERVICE_URL=${NOTIFICATIONS_SERVICE_URL}
 
 
       - USER_COLLECTION=${USER_COLLECTION}
@@ -147,7 +149,7 @@ services:
       - NOTIFICATIONS_API=${NOTIFICATIONS_API}
 
       - USER_COLLECTION=${USER_COLLECTION}
-      - CONVERSATION_COLLECTION=${NOTIFICATIONS_COLLECTION}
+      - NOTIFICATIONS_COLLECTION=${NOTIFICATIONS_COLLECTION}
     depends_on:
       database-initializer:
         condition: service_completed_successfully

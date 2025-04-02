@@ -70,7 +70,7 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: "/notifications",
-            requiresAuth: false
+            requiresAuth: true
         },
         auth: ["userId"]
     }

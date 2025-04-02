@@ -1,3 +1,11 @@
+const NOTIFICATION_TYPE = Object.freeze({
+    NEW_MESSAGE: "newMessage",
+    FRIEND_REQUEST: "friendRequest",
+    FRIEND_DELETION: "friendDeletion",
+    FRIEND_ACCEPT: "friendAccept",
+    FRIENDLY_GAME: "friendlyGame"
+});
+
 /**
  * Custom Error class to handle HTTP errors with a specific status code.
  *
@@ -29,4 +37,30 @@ function getIDInRequest(request) {
     }
 }
 
-module.exports = {HttpError, getIDInRequest};
+/**
+ * Sends a notification to the notifications service.
+ *
+ * This function makes a POST request to the notifications service to create a new notification.
+ *
+ * @async
+ * @function
+ * @param {string} userId - The ID of the user receiving the notification.
+ * @param {string} type - The type of notification.
+ * @param {string[]} objectsId - An array of object IDs related to the notification.
+ * @event error - Emitted if an error occurs during the request.
+ */
+async function sendNotification(userId, type, objectsId) {
+    await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/addNotification", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            userId: userId,
+            type: type,
+            objectsId: objectsId
+        })
+    });
+}
+
+module.exports = {HttpError, getIDInRequest, NOTIFICATION_TYPE, sendNotification};

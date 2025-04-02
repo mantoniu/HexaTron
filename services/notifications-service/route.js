@@ -48,6 +48,11 @@ const routes = [
         method: "GET",
         path: ["doc"],
         handler: controller.documentation
+    },
+    {
+        method: "POST",
+        path: ["addNotification"],
+        handler: controller.addNotification
     }
 ];
 

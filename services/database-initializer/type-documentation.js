@@ -145,7 +145,7 @@ const RefreshToken = {
 
 const Notifications = {
     bsonType: "object",
-    required: ["userId", "type", "objectLinkedId"],
+    required: ["userId", "type", "objectsId"],
     properties: {
         _id: {
             bsonType: "objectId"
@@ -162,6 +162,9 @@ const Notifications = {
             items: {
                 bsonType: "string"
             }
+        },
+        isRead: {
+            bsonType: "bool"
         }
     }
 };

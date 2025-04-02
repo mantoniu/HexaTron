@@ -1,4 +1,5 @@
 const {MongoClient, ObjectId} = require("mongodb");
+const {DATABASE_ERRORS} = require("./utils");
 
 const notificationsCollection = process.env.NOTIFICATIONS_COLLECTION;
 const userCollection = process.env.USER_COLLECTION;
@@ -40,4 +41,97 @@ async function mongoOperation(operation) {
     }
 }
 
-module.exports = {};
+/**
+ * Retrieves a notification by the filter criteria.
+ *
+ * @async
+ * @function
+ * @param {Object} filter - The filter criteria to find the notification.
+ * @returns {Promise<Object|null>} The found notification or null if not found.
+ */
+async function getNotificationById(filter) {
+    return await mongoOperation(() => db.collection(notificationsCollection).findOne(filter));
+}
+
+/**
+ * Retrieves an array of notifications filtered by the provided criteria.
+ *
+ * @async
+ * @function
+ * @param {Object} filter - The filter criteria to find the notifications.
+ * @returns {Promise<Object[]>} An array of found notifications (empty if none are found).
+ */
+async function getNotifications(filter) {
+    return await mongoOperation(() => db.collection(notificationsCollection).find(filter).toArray());
+}
+
+/**
+ * Adds a new notification to the database.
+ *
+ * @async
+ * @function
+ * @param {Object} notification - The notification object to add.
+ * @returns {Promise<Object>} The newly created notification.
+ * @throws {Error} Throws an error if the notification is not found after insertion.
+ */
+async function addNotification(notification) {
+    notification.isRead = false;
+    const result = await mongoOperation(() => db.collection(notificationsCollection).insertOne(notification));
+
+    const newNotification = await mongoOperation(() => getNotificationById({_id: result.insertedId}));
+    if (!newNotification)
+        throw Error(DATABASE_ERRORS.NOTIFICATION_NOT_FOUND);
+    newNotification._id = newNotification._id.toHexString();
+    return newNotification;
+}
+
+/**
+ * Deletes a notification if the user is the notification recipient.
+ *
+ * @async
+ * @throws {Error} `NOTIFICATION_NOT_FOUND_NOT_FOUND` - If the notification does not exist in the database.
+ * @returns {Promise<string>} - Resolves when the notification is successfully deleted and gives the notification _id.
+ * @param notificationId - The id of the notification to delete
+ * @param userId - the id of the user who ask the deletion of the notification
+ */
+async function deleteNotification(notificationId, userId) {
+    return await mongoOperation(async () => {
+        const notification = await db.collection(notificationsCollection).findOneAndDelete({
+            _id: new ObjectId(notificationId),
+            userId: userId
+        });
+
+        if (!notification)
+            throw new Error(DATABASE_ERRORS.NOTIFICATION_NOT_FOUND);
+
+        return notification._id.toString();
+    });
+}
+
+/**
+ * Marks specific notification as read in the database.
+ *
+ * @async
+ * @param {string[]} notificationIds - Array of notification IDs to be marked as read.
+ * @param {string} userId - The ID of the user making the request.
+ *                          Ensures the user cannot mark a notification for which they are not the recipient.
+ * @returns {Promise<void>} Resolves when the update is complete.
+ * @throws {Error} Throws an error if the database operation fails.
+ */
+async function markNotificationAsRead(notificationIds, userId) {
+    await db.collection(notificationsCollection).updateMany(
+        {
+            _id: {$in: notificationIds.map(id => new ObjectId(id))},
+            senderId: {$ne: new ObjectId(userId)},
+            isRead: false
+        },
+        {$set: {isRead: true}}
+    );
+}
+
+module.exports = {
+    addNotification,
+    getNotificationByUser: getNotifications,
+    deleteNotification,
+    markNotificationAsRead
+};

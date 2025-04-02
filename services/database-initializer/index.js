@@ -37,9 +37,10 @@ const collectionIndexes = {
     [process.env.TOKEN_COLLECTION]: [
         {keys: {userId: 1, refreshToken: 1}, options: {unique: true}}
     ],
-    //TODO commentary
+    // Compound index on 'userID' field in the 'notifications' collection.
+    // This will improve query performance when looking up refresh notifications by user ID.
     [process.env.NOTIFICATIONS_COLLECTION]: [
-        {keys: {userId: 1}, options: {unique: true}}
+        {keys: {userId: 1}, options: {unique: false}}
     ]
 };
 
