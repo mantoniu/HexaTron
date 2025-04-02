@@ -23,3 +23,25 @@
 :host(.isRead) #isRead {
     display: none;
 }
+
+#delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--red);
+    color: white;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    padding: 0;
+    text-align: center;
+}
+
+:host(:hover) #delete-btn {
+    display: block;
+}

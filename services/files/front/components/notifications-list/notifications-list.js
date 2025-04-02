@@ -41,4 +41,9 @@ export class NotificationsList extends Component {
             });
         }
     }
+
+    delete(notificationId) {
+        this.notificationsMap.delete(notificationId);
+        this.shadowRoot.removeChild(this.shadowRoot.getElementById(notificationId));
+    }
 }

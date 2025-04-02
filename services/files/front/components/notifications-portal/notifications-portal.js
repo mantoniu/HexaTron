@@ -12,6 +12,10 @@ export class NotificationsPortal extends ListenerComponent {
         await super.connectedCallback();
 
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED, () => this.shadowRoot.getElementById("list").setNotificationsMap(notificationService.getNotifications()));
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, (notificationId) => {
+            this.shadowRoot.getElementById("list").delete(notificationId);
+        });
+        this.addAutoCleanListener(this, "notification-deleted", (event) => this._handleDeletion(event));
         this.initialize();
     }
 
@@ -20,5 +24,10 @@ export class NotificationsPortal extends ListenerComponent {
         if (notificationList) {
             notificationList.setNotificationsMap(notificationService.getNotifications());
         }
+    }
+
+    _handleDeletion(event) {
+        event.stopPropagation();
+        notificationService.deleteNotification(event.detail.notificationId);
     }
 }

@@ -20,6 +20,14 @@ export class NotificationsListElement extends Component {
     async connectedCallback() {
         await super.connectedCallback();
         this.initialise();
+
+        this.addAutoCleanListener(this.shadowRoot.getElementById("delete-btn"), "click", () => {
+            this.dispatchEvent(new CustomEvent("notification-deleted", {
+                bubbles: true,
+                composed: true,
+                detail: {notificationId: this.getAttribute("id")}
+            }));
+        });
     }
 
     initialise() {

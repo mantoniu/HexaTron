@@ -10,7 +10,7 @@ import {EventEmitter} from "../js/EventEmitter.js";
  */
 export const NOTIFICATIONS_EVENTS = Object.freeze({
     NOTIFICATIONS_UPDATED: "NOTIFICATIONS_UPDATED",
-    NOTIFICATIONS_ADDED: "NOTIFICATIONS_ADDED"
+    NOTIFICATIONS_DELETED: "NOTIFICATIONS_DELETED"
 });
 
 /**
@@ -112,6 +112,10 @@ class NotificationsService extends EventEmitter {
         this.emit(NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED);
     }
 
+    deleteNotification(notificationId) {
+        this._socket.emit("deleteNotifications", notificationId);
+    }
+
     /**
      * Sets up the socket event listeners for notification addition.
      *
@@ -140,6 +144,11 @@ class NotificationsService extends EventEmitter {
         this.socket.on("new-notification", (data) => {
             this._notificationsStore.addNotification(data.notification);
             this.emit(NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED);
+        });
+
+        this.socket.on("deleteNotifications", (data) => {
+            this._notificationsStore.deleteNotification(data);
+            this.emit(NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, data);
         });
 
         this.socket.on("disconnect", () => this._notificationsStore.clear());
