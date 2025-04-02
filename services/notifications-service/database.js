@@ -62,7 +62,11 @@ async function getNotificationById(filter) {
  * @returns {Promise<Object[]>} An array of found notifications (empty if none are found).
  */
 async function getNotifications(filter) {
-    return await mongoOperation(() => db.collection(notificationsCollection).find(filter).toArray());
+    const notifications = await mongoOperation(() => db.collection(notificationsCollection).find(filter).toArray());
+    return notifications.map(notification => ({
+        ...notification,
+        _id: notification._id.toHexString()
+    }));
 }
 
 /**
@@ -112,17 +116,15 @@ async function deleteNotification(notificationId, userId) {
  * Marks specific notification as read in the database.
  *
  * @async
- * @param {string[]} notificationIds - Array of notification IDs to be marked as read.
  * @param {string} userId - The ID of the user making the request.
- *                          Ensures the user cannot mark a notification for which they are not the recipient.
+ *                          Ensures the user cannot mark a notification for which they are the recipient.
  * @returns {Promise<void>} Resolves when the update is complete.
  * @throws {Error} Throws an error if the database operation fails.
  */
-async function markNotificationAsRead(notificationIds, userId) {
+async function markNotificationAsRead(userId) {
     await db.collection(notificationsCollection).updateMany(
         {
-            _id: {$in: notificationIds.map(id => new ObjectId(id))},
-            senderId: {$ne: new ObjectId(userId)},
+            userId: userId,
             isRead: false
         },
         {$set: {isRead: true}}
@@ -131,7 +133,7 @@ async function markNotificationAsRead(notificationIds, userId) {
 
 module.exports = {
     addNotification,
-    getNotificationByUser: getNotifications,
+    getNotifications,
     deleteNotification,
     markNotificationAsRead
 };

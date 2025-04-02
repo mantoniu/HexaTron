@@ -1,5 +1,5 @@
 const eventBus = require("./event-bus");
-const {getNotificationByUser, deleteNotification, markNotificationAsRead} = require("./database");
+const {getNotifications, deleteNotification, markNotificationAsRead} = require("./database");
 
 module.exports = (io) => {
     io.on("connection", async (gatewaySocket) => {
@@ -15,7 +15,19 @@ module.exports = (io) => {
         // Connect the socket to a room using the user ID passed in the auth part to make it accessible by userId.
         gatewaySocket.join(gatewaySocket.handshake.auth.userId);
 
-        gatewaySocket.emit("notifications", await getNotificationByUser({userId: gatewaySocket.handshake.auth.userId}));
+        /**
+         * Listens for the "getNotifications" event, fetches the notifications for the
+         * specific user in the database and emits them back to the client.
+         *
+         * @async
+         * @function
+         * @listens getNotifications
+         * @event getNotifications - Emitted when the server sends the notifications to the client.
+         * @throws {Error} Throws an error if there's an issue fetching the notifications.
+         */
+        gatewaySocket.on("getNotifications", async () => {
+            gatewaySocket.emit("getNotifications", await getNotifications({userId: gatewaySocket.handshake.auth.userId}));
+        });
 
         /**
          * Handles the deletion of a notification.
@@ -45,13 +57,13 @@ module.exports = (io) => {
          *
          * @async
          * @function
-         * @param {Array<string>} notificationIds - The IDs of the notifications to mark as read.
          * @listens notificationsRead
          * @event error - Emitted if an error occurs while marking the notifications as read.
          */
-        gatewaySocket.on("notificationsRead", async (notificationIds) => {
+        gatewaySocket.on("notificationsRead", async () => {
             try {
-                await markNotificationAsRead(notificationIds, userId);
+                console.log(userId);
+                await markNotificationAsRead(userId);
             } catch (error) {
                 console.error("Error marking notifications as read:", error);
                 gatewaySocket.emit("error", {message: "Failed to mark notifications as read"});
