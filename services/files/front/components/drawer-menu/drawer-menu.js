@@ -11,6 +11,7 @@ import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
+import {notificationService} from "../../services/notifications-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -87,6 +88,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
             this._loadContent(event.detail);
+            this._nav(event.detail);
         });
 
         this._closeBtn.onclick = () => this._nav(this.current);
@@ -180,6 +182,9 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _nav(type) {
+        if (this._opened && this.current === "notifications") {
+            notificationService.setAllRead();
+        }
         if (this._opened && this.current === type) {
             this._closeBtn.style.visibility = "hidden";
             this.classList.remove("open");
