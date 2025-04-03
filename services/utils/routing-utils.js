@@ -85,7 +85,11 @@ function createServiceServer(routes, apiOptions = null, documentationPath = null
             const route = routes.find(
                 (route) =>
                     route.method === req.method &&
-                    (route.path[0] === "*" || route.path.every((segment, index) => segment.startsWith(":") || segment === path[index]))
+                    (route.path[0] === "*" ||
+                        route.path.every((segment, index) => {
+                            return segment.startsWith(":") || segment === path[index];
+                        }) &&
+                        path.length === route.path.length)
             );
 
             if (!route)
