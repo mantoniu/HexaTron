@@ -83,9 +83,7 @@ export class GameHeader extends ListenerComponent {
         }
 
         this.context.closePath();
-
         fill ? this.context.fill() : this.context.stroke();
-
     }
 
     drawHeader(n, color, fill) {
