@@ -396,7 +396,7 @@ exports.addFriend = async (req, res) => {
         const result = await addFriend(userId, friendId);
         res.end(JSON.stringify({message: "New friend successfully added", friends: result.userFriends}));
         eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
-        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_REQUEST, [userId]);
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_REQUEST, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }
@@ -421,7 +421,7 @@ exports.acceptFriend = async (req, res) => {
         const result = await acceptFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend status successfully updated", friends: result.userFriends}));
         eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
-        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_ACCEPT, [userId]);
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_ACCEPT, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }
@@ -446,7 +446,7 @@ exports.removeFriend = async (req, res) => {
         await removeFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend successfully deleted", friendId: friendId}));
         eventBus.emit("remove-friend", {userId: userId, friendId: friendId});
-        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_DELETION, [userId]);
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_DELETION, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }

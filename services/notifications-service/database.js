@@ -50,7 +50,25 @@ async function mongoOperation(operation) {
  * @returns {Promise<Object|null>} The found notification or null if not found.
  */
 async function getNotificationById(filter) {
-    return await mongoOperation(() => db.collection(notificationsCollection).findOne(filter));
+    const notifications = await mongoOperation(() =>
+        db.collection(notificationsCollection).aggregate([
+            {$match: filter},
+            {
+                $lookup: {
+                    from: userCollection,
+                    localField: "friendId",
+                    foreignField: "_id",
+                    as: "friendInfo"
+                }
+            },
+            {
+                $addFields: {
+                    friendName: {$arrayElemAt: ["$friendInfo.name", 0]}
+                }
+            },
+            {$project: {friendInfo: 0}}
+        ]).toArray());
+    return notifications[0];
 }
 
 /**
@@ -62,7 +80,25 @@ async function getNotificationById(filter) {
  * @returns {Promise<Object[]>} An array of found notifications (empty if none are found).
  */
 async function getNotifications(filter) {
-    const notifications = await mongoOperation(() => db.collection(notificationsCollection).find(filter).toArray());
+    const notifications = await mongoOperation(() =>
+        db.collection(notificationsCollection).aggregate([
+            {$match: filter},
+            {
+                $lookup: {
+                    from: userCollection,
+                    localField: "friendId",
+                    foreignField: "_id",
+                    as: "friendInfo"
+                }
+            },
+            {
+                $addFields: {
+                    friendName: {$arrayElemAt: ["$friendInfo.name", 0]}
+                }
+            },
+            {$project: {friendInfo: 0}}
+        ]).toArray()
+    );
     return notifications.map(notification => ({
         ...notification,
         _id: notification._id.toHexString()
@@ -80,6 +116,7 @@ async function getNotifications(filter) {
  */
 async function addNotification(notification) {
     notification.isRead = false;
+    notification.friendId = new ObjectId(notification.friendId);
     const result = await mongoOperation(() => db.collection(notificationsCollection).insertOne(notification));
 
     const newNotification = await mongoOperation(() => getNotificationById({_id: result.insertedId}));

@@ -85,8 +85,9 @@ exports.deleteUser = async (req, res) => {
  * @param {string[]} friendsId - An array of friend IDs to notify.
  */
 exports.saveMessage = async (message, senderId, friendsId) => {
+    //TODO rework on the objectID
     await saveMessage(message);
-    friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, [senderId]));
+    friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, senderId));
 };
 
 /**
