@@ -88,9 +88,14 @@ export class CustomNav extends ListenerComponent {
                 numberNotRead.addEventListener("animationend", function () {
                     numberNotRead.classList.remove("bounce-animation");
                 });
-                numberNotRead.textContent = Array.from(notificationService.getNotifications())
+                const nbNotifications = Array.from(notificationService.getNotifications())
                     .filter(([_, notification]) => !notification.isRead)
-                    .length + "";
+                    .length
+                if (nbNotifications === 0)
+                    numberNotRead.style.display = "none";
+                else
+                    numberNotRead.style.display = "block";
+                numberNotRead.textContent = nbNotifications;
             }
         }
     }
