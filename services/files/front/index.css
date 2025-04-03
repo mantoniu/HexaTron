@@ -1,4 +1,5 @@
 :root {
+    --win-green: #180;
     --primary-blue: #3498db;
     --primary-blue-dark: #2980b9;
     --background: #f5f7fa;
@@ -6,6 +7,7 @@
     --card-bg: #ffffff;
     --red: #e74c3c;
     --dark-red: #c0392b;
+    --loose-red: #ea1600;
     --gray: #e0e0e0;
     --dark-gray: #d0d0d0;
     --shadow: rgba(0, 0, 0, 0.1);
