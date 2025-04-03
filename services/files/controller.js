@@ -7,16 +7,38 @@ const JSON_API_PATH = './front/api.json';
 
 createDir(STORAGE_DIR);
 
+/**
+ * Creates a directory if it does not already exist.
+ *
+ * @param {string} dirName - The name of the directory to create.
+ * @returns {void}
+ */
 function createDir(dirName) {
     if (!fs.existsSync(dirName))
         fs.mkdirSync(dirName, {recursive: true});
 }
 
+/**
+ * Sends a response to the client with a given status and data.
+ *
+ * @param {ServerResponse} res - The HTTP response object.
+ * @param {number} status - The HTTP status code to send.
+ * @param {Object} data - The data to send in the response body.
+ * @returns {void}
+ */
 function sendResponse(res, status, data) {
     res.writeHead(status, {'Content-Type': 'application/json'});
     res.end(JSON.stringify(data));
 }
 
+/**
+ * Deletes a user's profile picture from the server.
+ * Returns a promise that resolves when the deletion process is complete.
+ *
+ * @param {string} userId - The ID of the user whose profile picture should be deleted.
+ * @param {NodeJS.ServerResponse|null} [response=null] - The HTTP response object. If provided, the response will be sent after deletion.
+ * @returns {Promise<void>} Resolves when the deletion is complete, or when an error occurs.
+ */
 function deleteUserProfilePicture(userId, response = null) {
     return new Promise((resolve, _) => {
         const uploadDir = join(STORAGE_DIR, PROFILE_PICTURE_DIR);
@@ -59,6 +81,13 @@ function deleteUserProfilePicture(userId, response = null) {
     });
 }
 
+/**
+ * Deletes a user's profile picture from the server.
+ *
+ * @param {IncomingMessage} request - The HTTP request object.
+ * @param {ServerResponse} response - The HTTP response object.
+ * @returns {void}
+ */
 exports.profilePictureDelete = (request, response) => {
     const userId = request.headers['x-user-id'];
     if (!userId) {
@@ -75,6 +104,14 @@ exports.profilePictureDelete = (request, response) => {
         });
 };
 
+/**
+ * Uploads a new profile picture for a user, replacing any existing one.
+ * Ensures that the file is an image and handles multipart form data.
+ *
+ * @param {IncomingMessage} request - The HTTP request object containing the file to upload.
+ * @param {ServerResponse} response - The HTTP response object.
+ * @returns {void}
+ */
 exports.profilePictureUpload = async (request, response) => {
     const userId = request.headers['x-user-id'];
     if (!userId) {
@@ -155,7 +192,15 @@ exports.profilePictureUpload = async (request, response) => {
     });
 };
 
-exports.jsonUpload = (request, response) => {
+/**
+ * Uploads a JSON file to update the JSON API data on the server.
+ * Accepts the incoming request data, validates the JSON format, and writes it to a file.
+ *
+ * @param {IncomingMessage} request - The HTTP request object containing the JSON data.
+ * @param {ServerResponse} response - The HTTP response object.
+ * @returns {void}
+ */
+exports.jsonApiUpload = (request, response) => {
     let data = '';
 
     request.on('data', chunk => {
