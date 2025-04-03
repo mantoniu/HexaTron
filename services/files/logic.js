@@ -34,6 +34,7 @@ const mimeTypes = {
 };
 
 spaRoutes = ["/local", "/ai", "/ranked"];
+STORAGE_PATH = "/storage";
 
 // Main method, exported at the end of the file. It's the one that will be called when a file is requested.
 function manageRequest(request, response) {
@@ -47,9 +48,11 @@ function manageRequest(request, response) {
             pathName = `./front/${defaultFileIfFolder}`;
             extension = path.extname(pathName);
         } else {
-            // First let's parse the URL, extract the path, and parse it into an easy-to-use object.
-            // We add the baseFrontPath at the beginning to limit the places to search for files.
-            const parsedUrl = url.parse(baseFrontPath + request.url);
+            const isStorage = request.url.startsWith(STORAGE_PATH);
+            const basePath = isStorage ? "" : baseFrontPath;
+
+            // Construct the file path
+            const parsedUrl = url.parse(basePath + request.url);
             pathName = `.${parsedUrl.pathname}`;
             extension = path.parse(pathName).ext;
         }
