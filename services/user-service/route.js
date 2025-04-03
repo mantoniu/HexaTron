@@ -107,6 +107,76 @@ const routes = [
     {
         /**
          * @swagger
+         * /api/user/profile-picture:
+         *   patch:
+         *     summary: Upload and update user profile picture
+         *     description: Uploads a new profile picture for the authenticated user and updates the user record.
+         *     tags:
+         *       - User Service
+         *     parameters:
+         *       - $ref: '#/components/parameters/AuthorizationHeader'
+         *     requestBody:
+         *       description: Image file for profile picture upload.
+         *       required: true
+         *       content:
+         *         multipart/form-data:
+         *           schema:
+         *             type: object
+         *             properties:
+         *               image:
+         *                 type: string
+         *                 format: binary
+         *     responses:
+         *       200:
+         *         description: Profile picture successfully updated.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 imageFile:
+         *                   type: string
+         *                   example: "profile_pictures/user123.jpg"
+         *       400:
+         *         description: Bad request - Invalid image format or missing file.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: "Only multipart uploads are accepted"
+         *       401:
+         *         description: Unauthorized - Missing or invalid authentication token.
+         *       502:
+         *         description: Bad gateway - Failed to connect to file service.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: "Failed to connect to file service: Service unavailable"
+         *       500:
+         *         description: Internal server error.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: "Internal server error"
+         */
+        method: "PATCH",
+        path: ["me", "profile-picture"],
+        handler: controller.updateProfilePicture
+    },
+    {
+        /**
+         * @swagger
          * /api/user/me:
          *   patch:
          *     summary: Modify a registered user
@@ -152,7 +222,7 @@ const routes = [
     {
         /**
          * @swagger
-         * /api/user/refreshToken:
+         * /api/user/refresh-token:
          *   post:
          *     summary: Generate a new access token
          *     description: Generate a new access token, using the refresh token for authentication.
@@ -173,13 +243,13 @@ const routes = [
          *        description: Failed to generate new access token or Internal Server Error
          */
         method: "POST",
-        path: ["refreshToken"],
+        path: ["refresh-token"],
         handler: controller.refreshToken
     },
     {
         /**
          * @swagger
-         * /api/user/resetPassword:
+         * /api/user/reset-password:
          *   post:
          *     summary: Reset the Password
          *     description: Replace the password of a given user with a new one.
@@ -203,7 +273,7 @@ const routes = [
          *        description: Internal Server Error
          */
         method: "POST",
-        path: ["resetPassword"],
+        path: ["reset-password"],
         handler: controller.resetPassword
     },
     {
@@ -232,7 +302,7 @@ const routes = [
     {
         /**
          * @swagger
-         * /api/user/updatePassword:
+         * /api/user/update-password:
          *   patch:
          *     summary: Modify the password of a user
          *     description: Modify a user's password in the database by verifying the previous password.
@@ -260,7 +330,7 @@ const routes = [
          *        description: Internal server error during update
          */
         method: "POST",
-        path: ["updatePassword"],
+        path: ["update-password"],
         handler: controller.updatePassword
     },
     {
