@@ -1,23 +1,33 @@
 import {Component} from "../component/component.js";
 import {RankDisplay} from "../rank-display/rank-display.js";
+import {ImagePicker} from "../image-picker/image-picker.js";
 
 export class ProfileHeader extends Component {
     constructor() {
         super();
 
+        ImagePicker.register();
         RankDisplay.register();
     }
 
     static get observedAttributes() {
-        return ["username", "league", "elo", "profilePicture"];
+        return ["username", "league", "elo", "profile-picture"];
     }
 
     async connectedCallback() {
         await super.connectedCallback();
 
-        this._profilePictureElem = this.shadowRoot.getElementById("profile-picture");
+        this._profilePictureElem = this.shadowRoot.querySelector("image-picker");
         this._rankDisplay = this.shadowRoot.getElementById("rank-display");
         this._usernameElem = this.shadowRoot.getElementById("username");
+
+        this.addEventListener("imageUpdate", (e) => {
+            if (this._profilePictureElem) {
+                this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate", {
+                    detail: e.detail
+                }));
+            }
+        });
 
         this._update();
     }
@@ -33,8 +43,8 @@ export class ProfileHeader extends Component {
             case "elo":
                 this._elo = parseFloat(newValue);
                 break;
-            case "profilePicture":
-                this._profilePicture = newValue;
+            case "profile-picture":
+                this._profilePicture = (newValue && newValue !== "null") ? newValue : null;
                 break;
         }
 
@@ -42,10 +52,8 @@ export class ProfileHeader extends Component {
     }
 
     _update() {
-        if (this._profilePictureElem && this._profilePicture) {
-            this._profilePictureElem.src = this._profilePicture;
-            this._profilePictureElem.onerror = () => console.warn("Error loading the profile picture");
-        }
+        if (this._profilePictureElem && this._profilePicture)
+            this._profilePictureElem.setAttribute("image-src", this._profilePicture);
 
         if (this._usernameElem && this._username)
             this._usernameElem.innerText = this._username;
