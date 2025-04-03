@@ -73,6 +73,7 @@ image-button {
     top: 0;
     right: 0;
     background-color: var(--red);
+    color: white;
     border-radius: 20px;
     height: 1.5rem;
     width: 1.5rem;

@@ -38,20 +38,23 @@ export class NotificationsListElement extends Component {
             return;
         }
 
-        console.log(this.notification);
         switch (this.notification.type) {
             case NOTIFICATIONS_TYPE.FRIEND_ACCEPT:
                 message.textContent = `${this.notification.friendName} accepted your friend request`;
-                button.textContent = `Check Out Your Friends`;
+                button.textContent = `Check your friends`;
                 this.addAutoCleanListener(button, "click", () => this.goToFriendsPortal());
+                this.classList.add("friend");
                 break;
             case NOTIFICATIONS_TYPE.FRIEND_DELETION:
-                message.textContent = `${this.notification.friendName} deleted you from the friend list`;
+                message.textContent = `${this.notification.friendName} has removed you from their friend list`;
+                this.classList.add("button_hidden");
+                this.classList.add("friend");
                 break;
             case NOTIFICATIONS_TYPE.FRIEND_REQUEST:
                 message.textContent = `${this.notification.friendName} wants to become your friend`;
-                button.textContent = `Manage Friends`;
+                button.textContent = `Manage your friends`;
                 this.addAutoCleanListener(button, "click", () => this.goToFriendsPortal());
+                this.classList.add("friend");
                 break;
             case NOTIFICATIONS_TYPE.FRIENDLY_GAME:
                 message.textContent = "Friendly game";
@@ -59,16 +62,20 @@ export class NotificationsListElement extends Component {
                 break;
             case NOTIFICATIONS_TYPE.NEW_MESSAGE:
                 //this.notification.objectsId => [conversationId, messageId]
-                message.textContent = `${this.notification.friendName} deleted you from the friend list`;
+                message.textContent = `${this.notification.friendName} sent you a message`;
                 button.textContent = `Open the chat`;
                 this.addAutoCleanListener(button, "click", () => this.openChatWithFriend());
+                this.classList.add("message");
                 break;
             default:
                 console.warn("Type of notification unknown");
         }
 
-        if (this.notification.isRead)
-            this.classList.add("isRead");
+        if (!this.notification.isRead) {
+            this.classList.remove("friend");
+            this.classList.remove("message");
+            this.classList.add("isNotRead");
+        }
     }
 
     goToFriendsPortal() {
