@@ -26,7 +26,6 @@ export class ResultScreen extends Component {
                 this.move();
                 break;
             case "results":
-                console.log(newValue);
                 this.results = JSON.parse(newValue);
                 this.update_results();
                 break;
@@ -39,7 +38,6 @@ export class ResultScreen extends Component {
         const backToMenu = this.shadowRoot.getElementById("back-to-menu");
         this.addAutoCleanListener(backToMenu, "click", () => window.location.href = "/");
         this.addAutoCleanListener(this, "transitionend", (event) => {
-            console.log(event);
             this.showResult();
         });
         this.move();
@@ -70,16 +68,16 @@ export class ResultScreen extends Component {
             case GameResult.WIN:
                 status.textContent = GameResult.WIN;
                 status.style.color = "var(--win-green)";
-                score.textContent = `You win against ${this.results.winners[0]} with a score of ${this.results.score}`;
+                score.textContent = `You win against ${this.results.winners[0]}`;
                 break;
             case GameResult.DRAW:
                 status.textContent = GameResult.DRAW;
-                score.textContent = `You tied against ${this.results.winners.filter(name => name !== userService.user.name)[0]} with a score of ${this.results.score}`;
+                score.textContent = `You tied against ${this.results.winners.filter(name => name !== userService.user.name)[0]}`;
                 break;
             case GameResult.LOOSE:
                 status.textContent = GameResult.LOOSE;
                 status.style.color = "var(--loose-red)";
-                score.textContent = `${this.results.winners[0]} win against you with a score of ${this.results.score}`;
+                score.textContent = `${this.results.winners[0]} win against you`;
                 break;
             default:
                 console.warn("Game result type not specified");
