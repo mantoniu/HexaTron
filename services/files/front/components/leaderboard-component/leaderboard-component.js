@@ -85,7 +85,7 @@ export class LeaderboardComponent extends Component {
                             {
                                 root: null,
                                 rootMargin: "0px",
-                                threshold: [0, 1]
+                                threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
                             }
                         );
                         this.observer.observe(this.shadowRoot.getElementById(i + 1));
@@ -115,10 +115,10 @@ export class LeaderboardComponent extends Component {
         const boundingClientRect = entries[0].boundingClientRect;
         const intersectionRect = entries[0].intersectionRect;
 
-        if (boundingClientRect.top === intersectionRect.top && boundingClientRect.bottom === intersectionRect.bottom) {
+        if (Math.abs(boundingClientRect.top - intersectionRect.top) < 1 && Math.abs(boundingClientRect.bottom - intersectionRect.bottom) < 1) {
             this.shadowRoot.getElementById("actualRank").style.visibility = "hidden";
             this.voidElement.style.display = "none";
-        } else if (boundingClientRect.bottom === intersectionRect.bottom && entries[0].intersectionRatio !== 1 && this.scrollDirection === SCROLL_DIRECTION.DOWN) {
+        } else if (Math.abs(boundingClientRect.bottom - intersectionRect.bottom) < 1 && entries[0].intersectionRatio !== 1 && this.scrollDirection === SCROLL_DIRECTION.DOWN) {
             this.shadowRoot.getElementById("actualRank").style.visibility = "hidden";
             this.voidElement.style.display = "none";
         } else {
