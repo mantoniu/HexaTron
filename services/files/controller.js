@@ -4,6 +4,7 @@ const {join} = require('path');
 const STORAGE_DIR = 'storage';
 const PROFILE_PICTURE_DIR = 'profile-pictures';
 const JSON_API_PATH = './front/api.json';
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 createDir(STORAGE_DIR);
 
@@ -29,6 +30,21 @@ function createDir(dirName) {
 function sendResponse(res, status, data) {
     res.writeHead(status, {'Content-Type': 'application/json'});
     res.end(JSON.stringify(data));
+}
+
+/**
+ * Formats bytes into human-readable sizes (KB, MB).
+ *
+ * @param {number} bytes - File size in bytes.
+ * @returns {string} Formatted size (e.g., "5.2 MB").
+ */
+function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024) {
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    } else if (bytes >= 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${bytes} bytes`;
 }
 
 /**
@@ -133,12 +149,35 @@ exports.profilePictureUpload = async (request, response) => {
 
     const boundary = Buffer.from(`--${contentType.split('boundary=')[1]}`);
     let data = Buffer.alloc(0);
+    let fileSizeExceeded = false;
+    let responseAlreadySent = false;
 
     request.on('data', chunk => {
-        data = Buffer.concat([data, chunk]); // Accumulate binary data
+        if (fileSizeExceeded)
+            return;
+
+        if (data.length > MAX_FILE_SIZE) {
+            fileSizeExceeded = true;
+            responseAlreadySent = true;
+            console.log(`File too large: ${formatFileSize(data.length)}. Max: ${formatFileSize(MAX_FILE_SIZE)}`);
+
+            response.on('finish', () =>
+                request.destroy());
+
+            sendResponse(response, 413, {
+                error: `File too large (${formatFileSize(data.length)}). Maximum allowed: ${formatFileSize(MAX_FILE_SIZE)}`
+            });
+
+            return;
+        }
+
+        data = Buffer.concat([data, chunk]);
     });
 
     request.on('end', () => {
+        if (responseAlreadySent)
+            return;
+
         const boundaryIndex = data.indexOf(boundary);
         if (boundaryIndex === -1)
             return sendResponse(response, 400, {error: 'Boundary not found'});
@@ -173,6 +212,10 @@ exports.profilePictureUpload = async (request, response) => {
 
         // Extract the actual image content (without headers)
         const fileBuffer = data.subarray(headerEndIndex + 4, data.lastIndexOf(boundary) - 2);
+
+        // Check the final size of the file
+        if (fileBuffer.length > MAX_FILE_SIZE)
+            return sendResponse(response, 413, {error: `File too large (${formatFileSize(fileBuffer.length)}). Maximum allowed: ${formatFileSize(MAX_FILE_SIZE)}`});
 
         // Save the file
         fs.writeFile(filePath, fileBuffer, err => {
