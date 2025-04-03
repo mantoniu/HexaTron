@@ -111,7 +111,6 @@ module.exports = (io) => {
                     timestamp: new Date(),
                     isRead: false
                 };
-
                 let socketFriend = await io.in(conversationId).fetchSockets();
                 if (socketFriend) {
                     socketFriend = socketFriend.map(socket => socket.handshake.auth.userId).filter(id => id !== senderId);

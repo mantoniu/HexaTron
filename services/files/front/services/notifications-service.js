@@ -10,7 +10,8 @@ import {EventEmitter} from "../js/EventEmitter.js";
  */
 export const NOTIFICATIONS_EVENTS = Object.freeze({
     NOTIFICATIONS_UPDATED: "NOTIFICATIONS_UPDATED",
-    NOTIFICATIONS_DELETED: "NOTIFICATIONS_DELETED"
+    NOTIFICATIONS_DELETED: "NOTIFICATIONS_DELETED",
+    MENU_OPEN: "MENU_OPEN"
 });
 
 /**
@@ -117,6 +118,43 @@ class NotificationsService extends EventEmitter {
     }
 
     /**
+     * Removes notifications related to friends (accept, request, and deletion).
+     *
+     * @function
+     * @returns {void}
+     */
+    removeFriendsNotifications() {
+        this._notificationsStore.notifications.forEach((notification, id) => {
+            if ([NOTIFICATIONS_TYPE.FRIEND_ACCEPT, NOTIFICATIONS_TYPE.FRIEND_REQUEST, NOTIFICATIONS_TYPE.FRIEND_DELETION].includes(notification.type))
+                this._socket.emit("deleteNotifications", id);
+        });
+    }
+
+    /**
+     * Removes notifications related to a specific conversation.
+     *
+     * @function
+     * @param {string} conversationId - The ID of the conversation whose notifications need to be removed.
+     * @returns {void}
+     */
+    removeConversationNotifications(conversationId) {
+        this._notificationsStore.notifications.forEach((notification, id) => {
+            if (notification.type === NOTIFICATIONS_TYPE.NEW_MESSAGE && notification.objectsId[0] === conversationId)
+                this._socket.emit("deleteNotifications", id);
+        });
+    }
+
+    /**
+     * Emits an event indicating that the notifications have been updated.
+     *
+     * @function
+     * @returns {void}
+     */
+    sendUpdateEvent() {
+        this.emit(NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED);
+    }
+
+    /**
      * Sets up the socket event listeners for notification addition.
      *
      * This function listens for two socket events:
@@ -143,7 +181,7 @@ class NotificationsService extends EventEmitter {
 
         this.socket.on("new-notification", (data) => {
             this._notificationsStore.addNotification(data.notification);
-            this.emit(NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED);
+            this.emit(NOTIFICATIONS_EVENTS.MENU_OPEN, data.notification);
         });
 
         this.socket.on("deleteNotifications", (data) => {

@@ -11,7 +11,7 @@ import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
-import {notificationService} from "../../services/notifications-service.js";
+import {NOTIFICATIONS_EVENTS, notificationService} from "../../services/notifications-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -80,6 +80,26 @@ export class DrawerMenu extends ListenerComponent {
         });
     }
 
+    _setupNotificationServiceListeners() {
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.MENU_OPEN, (notification) => {
+            switch (this.current) {
+                case DRAWER_CONTENT.CHAT:
+                    const chatPortal = this.shadowRoot.querySelector("chat-portal");
+                    if (chatPortal && notification.objectsId === chatPortal.getActualConversationId())
+                        notificationService.removeConversationNotifications(notification.objectsId);
+                    else
+                        notificationService.sendUpdateEvent();
+                    break;
+                case DRAWER_CONTENT.FRIENDS:
+                    notificationService.removeFriendsNotifications();
+                    break;
+                default:
+                    notificationService.sendUpdateEvent();
+                    break;
+            }
+        });
+    }
+
     _setupListeners() {
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             this.previous = event.detail.type;
@@ -128,6 +148,7 @@ export class DrawerMenu extends ListenerComponent {
                 await chatPortal.changeToggleSelected("friends");
                 await chatPortal.openFriendList();
                 chatPortal._openChatBox(await chatService.getConversation(conversationId.detail));
+                notificationService.removeConversationNotifications(conversationId.detail);
             });
         });
 
@@ -144,6 +165,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this._setupChatServiceListeners();
         this._setupUserServiceListeners();
+        this._setupNotificationServiceListeners();
     }
 
     _loadContent(type) {

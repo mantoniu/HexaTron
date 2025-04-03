@@ -21,6 +21,7 @@ export class CustomNav extends ListenerComponent {
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
         this.addAutomaticEventListener(gameService, GameStatus.LEAVED, () => this._showElementsAfterGame());
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED, () => this._numberNotRead());
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, () => this._numberNotRead());
 
         if (!userService.isConnected())
             CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");

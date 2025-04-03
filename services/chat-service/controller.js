@@ -86,7 +86,8 @@ exports.deleteUser = async (req, res) => {
  */
 exports.saveMessage = async (message, senderId, friendsId) => {
     const messageId = await saveMessage(message);
-    friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, senderId, [message.conversationId, messageId]));
+    if (message.conversationId.toString() !== process.env.GLOBAL_CONVERSATION_ID)
+        friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, senderId, [message.conversationId, messageId]));
 };
 
 /**
