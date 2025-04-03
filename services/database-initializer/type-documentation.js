@@ -91,6 +91,9 @@ const User = {
             maxLength: 20,
             pattern: "^[a-zA-Z0-9_\\-]+$"
         },
+        profilePicturePath: {
+            bsonType: "string"
+        },
         parameters: Parameters,
         password: {
             bsonType: "string",
