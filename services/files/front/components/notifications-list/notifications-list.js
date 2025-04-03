@@ -8,7 +8,6 @@ export class NotificationsList extends Component {
         NotificationsListElement.register();
 
         this.notificationsMap = new Map();
-
     }
 
     setNotificationsMap(notificationsMap) {
@@ -27,6 +26,7 @@ export class NotificationsList extends Component {
 
     setupList() {
         if (this.isConnected) {
+            this.emptyNotificationMap();
             this.notificationsMap.forEach((notification, id) => {
                 const notificationElement = this.shadowRoot.getElementById(id);
                 if (notificationElement)
@@ -44,6 +44,21 @@ export class NotificationsList extends Component {
 
     delete(notificationId) {
         this.notificationsMap.delete(notificationId);
-        this.shadowRoot.removeChild(this.shadowRoot.getElementById(notificationId));
+        if (this.shadowRoot.getElementById(notificationId))
+            this.shadowRoot.removeChild(this.shadowRoot.getElementById(notificationId));
+        this.emptyNotificationMap();
+    }
+
+    emptyNotificationMap() {
+        if (this.notificationsMap.size === 0) {
+            const emptyText = document.createElement("p");
+            emptyText.textContent = "No notifications at the moment";
+            emptyText.id = "empty";
+            this.shadowRoot.appendChild(emptyText);
+        } else {
+            const emptyText = this.shadowRoot.getElementById("empty");
+            if (emptyText)
+                this.shadowRoot.removeChild(emptyText);
+        }
     }
 }
