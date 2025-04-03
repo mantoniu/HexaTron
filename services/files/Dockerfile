@@ -9,7 +9,7 @@ RUN npm install
 
 FROM base AS dev
 
-COPY ./index.js /app/index.js
+COPY ./*.js ./
 COPY ./logic.js ./logic.js
 
 EXPOSE 8001
@@ -19,9 +19,7 @@ CMD ["npm", "start"]
 
 FROM base AS prod
 
-COPY ./index.js /app/index.js
+COPY ./*.js ./
 COPY ./front ./front
-COPY ./logic.js ./logic.js
-
 EXPOSE 8001
 CMD ["npm", "start"]
