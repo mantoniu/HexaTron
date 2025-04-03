@@ -5,7 +5,6 @@ import {Component} from "../component/component.js";
 import {ModalDialog} from "../modal-dialog/modal-dialog.js";
 import {AlertMessage} from "../alert-message/alert-message.js";
 
-//TODO merge with main
 export class UserProfile extends Component {
     constructor() {
         super();
@@ -66,6 +65,17 @@ export class UserProfile extends Component {
             this._handleUpdateResponse(res);
         });
 
+        this.shadowRoot.addEventListener("imageChanged", async (event) => {
+            event.stopPropagation();
+            const {file} = event.detail;
+
+            const res = await userService.updateProfilePicture(file);
+            this._handleProfilePictureUpdate(res);
+
+            this._profileHeader.dispatchEvent(new CustomEvent("imageUpdate"));
+            this._updateProfileHeader();
+        });
+
         this.shadowRoot.addEventListener("updatePassword", async (event) => {
             event.stopPropagation();
             const data = event.detail;
@@ -76,6 +86,9 @@ export class UserProfile extends Component {
 
             this._handlePasswordUpdate(res);
         });
+
+        this.shadowRoot.addEventListener("uploadError", (event) =>
+            this._createAlertMessageEvent("error", event.detail.text));
 
         this._setupAccountInformationListeners(accountInfo);
     }
@@ -114,7 +127,7 @@ export class UserProfile extends Component {
 
     _handleUpdateResponse(res) {
         if (res.success) {
-            this._createAlertMessageEvent("success", "Information successfully updated");
+            this._createAlertMessageEvent("success", "Information successfully updated.");
             this.user = userService.user;
             this._updateProfileHeader();
         } else
@@ -123,7 +136,14 @@ export class UserProfile extends Component {
 
     _handlePasswordUpdate(res) {
         if (res.success)
-            this._createAlertMessageEvent("success", "Password successfully updated");
+            this._createAlertMessageEvent("success", "Password successfully updated.");
+        else
+            this._createAlertMessageEvent("error", res.error);
+    }
+
+    _handleProfilePictureUpdate(res) {
+        if (res.success)
+            this._createAlertMessageEvent("success", "Profile picture successfully updated.");
         else
             this._createAlertMessageEvent("error", res.error);
     }
@@ -142,6 +162,6 @@ export class UserProfile extends Component {
         this._profileHeader.setAttribute("username", this.user.name);
         this._profileHeader.setAttribute("league", this.user.league);
         this._profileHeader.setAttribute("elo", this.user.elo);
-        this._profileHeader.setAttribute("profilePicture", this.user.profilePicturePath);
+        this._profileHeader.setAttribute("profile-picture", this.user.profilePicturePath);
     }
 }
