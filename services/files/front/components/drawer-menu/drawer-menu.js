@@ -121,6 +121,16 @@ export class DrawerMenu extends ListenerComponent {
             }
         });
 
+        this.addAutoCleanListener(this, "openConversation", async (conversationId) => {
+            this._setInitialState(DRAWER_CONTENT.CHAT);
+            const chatPortal = this.shadowRoot.querySelector("chat-portal");
+            chatPortal.whenConnected.then(async () => {
+                await chatPortal.changeToggleSelected("friends");
+                await chatPortal.openFriendList();
+                chatPortal._openChatBox(await chatService.getConversation(conversationId.detail));
+            });
+        });
+
         this._drawer.addEventListener("scroll", () => {
             this._closeBtn.classList.toggle("scrolled", this._drawer.scrollTop > 0);
         });
