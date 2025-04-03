@@ -43,7 +43,7 @@ export class ProfilePicture extends Component {
             const cacheBuster = `?t=${Date.now()}`;
             this._img.src = "";
             setTimeout(() =>
-                    this._img.src = `${profilePicturesPath}/${this._src}${cacheBuster}`
+                    this._img.src = `${profilePicturesPath}${this._src}${cacheBuster}`
                 , 10);
         }
     }

@@ -23,31 +23,42 @@ export class ImagePicker extends Component {
         return ["image-src"];
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name === "image-src")
-            this._imageSrc = newValue;
-
-        this._update();
-    }
-
     async connectedCallback() {
         await super.connectedCallback();
 
         this.container = this.shadowRoot.getElementById("profile-container");
         this.profilePicture = this.shadowRoot.querySelector('profile-picture');
         this.fileInput = this.shadowRoot.querySelector('#file-input');
+        this.overlay = this.shadowRoot.querySelector('image-overlay');
 
-        this.addEventListener('click', () => this.fileInput.click());
-        this.profilePicture.style.cursor = 'pointer';
-        this.fileInput.addEventListener('change', this._handleFileSelect.bind(this));
+        const disabled = this.hasAttribute("disabled");
+        if (disabled) {
+            this.fileInput.disabled = true;
+            if (this.overlay)
+                this.overlay.style.display = "none";
+        } else {
+            this.addEventListener('click', () => this.fileInput.click());
+            this.fileInput.addEventListener('change', this._handleFileSelect.bind(this));
+        }
 
-        this.addEventListener("imageUpdate", () => this._onImageLoad());
+        this.addEventListener("imageUpdate",
+            () => this._onImageLoad());
 
         this.profilePicture.addEventListener("imageLoaded",
             () => this._onImageLoad());
 
         this.profilePicture.addEventListener("imageError",
             () => this._onImageError());
+
+        this._update();
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        switch (name) {
+            case "image-src":
+                this._imageSrc = newValue;
+                break;
+        }
 
         this._update();
     }

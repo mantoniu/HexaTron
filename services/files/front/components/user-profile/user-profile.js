@@ -32,7 +32,7 @@ export class UserProfile extends Component {
         } else
             this.user = userService.user;
 
-        this._updateProfileHeader();
+        this._updateProfileHeader(isOtherUser);
         this._loadContent(isOtherUser);
     }
 
@@ -155,13 +155,16 @@ export class UserProfile extends Component {
         }));
     }
 
-    _updateProfileHeader() {
+    _updateProfileHeader(isOtherUser) {
         if (!this._profileHeader)
             return;
 
+        this._profileHeader.setAttribute("other-user", isOtherUser);
         this._profileHeader.setAttribute("username", this.user.name);
         this._profileHeader.setAttribute("league", this.user.league);
         this._profileHeader.setAttribute("elo", this.user.elo);
-        this._profileHeader.setAttribute("profile-picture", this.user.profilePicturePath);
+
+        if (this.user.profilePicturePath)
+            this._profileHeader.setAttribute("profile-picture", this.user.profilePicturePath);
     }
 }

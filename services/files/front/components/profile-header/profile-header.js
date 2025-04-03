@@ -1,17 +1,19 @@
 import {Component} from "../component/component.js";
 import {RankDisplay} from "../rank-display/rank-display.js";
 import {ImagePicker} from "../image-picker/image-picker.js";
+import {ProfilePicture} from "../profile-picture/profile-picture.js";
 
 export class ProfileHeader extends Component {
     constructor() {
         super();
 
         ImagePicker.register();
+        ProfilePicture.register();
         RankDisplay.register();
     }
 
     static get observedAttributes() {
-        return ["username", "league", "elo", "profile-picture"];
+        return ["username", "league", "elo", "profile-picture", "other-user"];
     }
 
     async connectedCallback() {
@@ -29,6 +31,9 @@ export class ProfileHeader extends Component {
             }
         });
 
+        if (this._otherUser)
+            this._profilePictureElem.setAttribute("disabled", "");
+
         this._update();
     }
 
@@ -45,6 +50,9 @@ export class ProfileHeader extends Component {
                 break;
             case "profile-picture":
                 this._profilePicture = (newValue && newValue !== "null") ? newValue : null;
+                break;
+            case "other-user":
+                this._otherUser = newValue === "true";
                 break;
         }
 
