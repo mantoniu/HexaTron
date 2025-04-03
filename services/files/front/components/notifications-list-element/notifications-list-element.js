@@ -34,7 +34,8 @@ export class NotificationsListElement extends Component {
     initialise() {
         const message = this.shadowRoot.getElementById("message");
         const button = this.shadowRoot.getElementById("action");
-        if (!this.notification || !message || !button) {
+        const type = this.shadowRoot.getElementById("type");
+        if (!this.notification || !message || !button || !type) {
             return;
         }
 
@@ -44,17 +45,20 @@ export class NotificationsListElement extends Component {
                 button.textContent = `Check your friends`;
                 this.addAutoCleanListener(button, "click", () => this.goToFriendsPortal());
                 this.classList.add("friend");
+                type.textContent = "Friend";
                 break;
             case NOTIFICATIONS_TYPE.FRIEND_DELETION:
                 message.textContent = `${this.notification.friendName} has removed you from their friend list`;
                 this.classList.add("button_hidden");
                 this.classList.add("friend");
+                type.textContent = "Friend";
                 break;
             case NOTIFICATIONS_TYPE.FRIEND_REQUEST:
                 message.textContent = `${this.notification.friendName} wants to become your friend`;
                 button.textContent = `Manage your friends`;
                 this.addAutoCleanListener(button, "click", () => this.goToFriendsPortal());
                 this.classList.add("friend");
+                type.textContent = "Friend";
                 break;
             case NOTIFICATIONS_TYPE.FRIENDLY_GAME:
                 message.textContent = "Friendly game";
@@ -66,6 +70,7 @@ export class NotificationsListElement extends Component {
                 button.textContent = `Open the chat`;
                 this.addAutoCleanListener(button, "click", () => this.openChatWithFriend());
                 this.classList.add("message");
+                type.textContent = "Message";
                 break;
             default:
                 console.warn("Type of notification unknown");

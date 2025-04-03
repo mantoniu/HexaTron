@@ -1,15 +1,27 @@
 :host {
     position: relative;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    align-items: center;
-    justify-content: center;
+    display: flex;
+    flex-direction: column;
     padding: 5px 10px 5px 10px;
     background-color: var(--card-bg);
     border-radius: 12px;
     width: 90%;
     text-align: center;
     font-size: 1.2rem;
+}
+
+#content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    align-items: center;
+    justify-content: center;
+}
+
+#type {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0;
+    padding: 5px 0 5px 0;
 }
 
 #isNotRead {
@@ -23,16 +35,29 @@
 }
 
 :host(.isNotRead) {
-    background-color: color-mix(in srgb, var(--red) 10%, transparent);;
+    background-color: color-mix(in srgb, var(--red) 10%, transparent);
 }
 
 :host(.friend) {
-    background-color: color-mix(in srgb, green 10%, transparent);;
+    background-color: color-mix(in srgb, green 10%, transparent);
 }
 
 :host(.message) {
-    background-color: color-mix(in srgb, var(--primary-blue) 10%, transparent);;
+    background-color: color-mix(in srgb, var(--primary-blue) 10%, transparent);
 }
+
+:host(.isNotRead) #type {
+    border-bottom: 1px solid var(--red);
+}
+
+:host(.friend) #type {
+    border-bottom: 1px solid green;
+}
+
+:host(.message) #type {
+    border-bottom: 1px solid var(--primary-blue);
+}
+
 
 :host(:not(.isNotRead)) #isNotRead {
     display: none;
@@ -60,8 +85,8 @@
     display: block;
 }
 
-:host(.button_hidden) {
-    grid-template-columns: 4fr;
+:host(.button_hidden) #content {
+    grid-template-columns: 1fr;
 }
 
 :host(.button_hidden) button {
