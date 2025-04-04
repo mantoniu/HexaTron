@@ -273,11 +273,18 @@ exports.disconnect = async (req, res) => {
  */
 exports.delete = async (req, res) => {
     try {
-        const userID = getIDInRequest(req);
-        await deleteUserByID(userID);
+        const userId = getIDInRequest(req);
+        await deleteUserByID(userId);
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
-        eventBus.emit("delete-user", userID);
+        eventBus.emit("delete-user", userId);
+        await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/deleteUser", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({userId})
+        });
     } catch (error) {
         if (error.message === DATABASE_ERRORS.USER_NOT_FOUND)
             throw new HttpError(404, "User not found");

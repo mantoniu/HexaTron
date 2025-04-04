@@ -168,9 +168,38 @@ async function markNotificationAsRead(userId) {
     );
 }
 
+/**
+ * Deletes notifications associated with a user by removing notifications where the user appears
+ * in the `userId` or `friendId` fields.
+ *
+ * @async
+ * @function
+ * @param {string} userId - The ID of the user whose notifications are to be deleted.
+ * @returns {Object} An object where the keys are `userId` and the values are the notification IDs (`_id`).
+ * @throws {Error} If there is an issue during the database operations.
+ */
+async function deleteNotificationsWithUser(userId) {
+    const filter = {
+        $or: [
+            {userId: userId},
+            {friendId: new ObjectId(userId)}
+        ]
+    };
+
+    const friendNotificationsToDelete = await mongoOperation(() => db.collection(notificationsCollection).find({friendId: new ObjectId(userId)}, {
+        projection: {
+            _id: 1,
+            userId: 1
+        }
+    }).toArray());
+    await mongoOperation(() => db.collection(notificationsCollection).deleteMany(filter));
+    return Object.fromEntries(friendNotificationsToDelete.map(notification => [notification.userId, notification._id.toHexString()]));
+}
+
 module.exports = {
     addNotification,
     getNotifications,
     deleteNotification,
-    markNotificationAsRead
+    markNotificationAsRead,
+    deleteNotificationsWithUser
 };

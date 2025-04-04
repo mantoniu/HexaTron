@@ -35,7 +35,7 @@ module.exports = (io) => {
          * @async
          * @function
          * @param {string} notificationId - The ID of the notification to delete.
-         * @listens deleteNotifications
+         * @event deleteNotifications
          * @event notificationDeletionSucessfull - Emitted when a notification is deleted.
          * @event error - Emitted if an error occurs during notification deletion.
          */
@@ -57,12 +57,11 @@ module.exports = (io) => {
          *
          * @async
          * @function
-         * @listens notificationsRead
+         * @event notificationsRead
          * @event error - Emitted if an error occurs while marking the notifications as read.
          */
         gatewaySocket.on("notificationsRead", async () => {
             try {
-                console.log(userId);
                 await markNotificationAsRead(userId);
             } catch (error) {
                 console.error("Error marking notifications as read:", error);
@@ -80,12 +79,32 @@ module.exports = (io) => {
      * @param {Object} notification - The notification object
      */
     eventBus.on("new-notification", async (notification) => {
-        console.log(notification);
         const socketUser = await io.in(notification.notification.userId).fetchSockets();
         if (socketUser) {
             socketUser.forEach(socket => {
                 socket.emit("new-notification", notification);
             });
+        }
+    });
+
+    /**
+     * Handles the deletion of notifications for specific different users.
+     *
+     *
+     * @async
+     * @function
+     * @param {Object} notifications - The object containing notifications to process.
+     * @event delete-notification-user
+     * @event deleteNotifications - The event emitted for each notification to be deleted, with the notification ID.
+     */
+    eventBus.on("delete-notification-user", async (notifications) => {
+        for (const [userId, notificationId] of Object.entries(notifications.notifications)) {
+            const socketUser = await io.in(userId).fetchSockets();
+            if (socketUser && socketUser.length > 0) {
+                socketUser.forEach(socket => {
+                    socket.emit("deleteNotifications", notificationId.toString());
+                });
+            }
         }
     });
 };

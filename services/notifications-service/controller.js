@@ -1,6 +1,6 @@
 const {HttpError} = require("../utils/controller-utils");
 const {readData} = require("../utils/api-utils");
-const {addNotification} = require("./database");
+const {addNotification, deleteNotificationsWithUser} = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 const eventBus = require("./event-bus");
 
@@ -59,7 +59,6 @@ exports.health = async (req, res) => {
  * @event error - Emitted if an error occurs during notification creation.
  */
 exports.addNotification = async (req, res) => {
-    console.log(req.body);
     try {
         const notificationData = req.body;
         const notification = await addNotification(notificationData);
@@ -75,5 +74,27 @@ exports.addNotification = async (req, res) => {
             throw new HttpError(400, "Invalid notification data format");
 
         throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * Handles the deletion of notifications when a user deletes their account, including notifications where they appear in the userId or friendId fields. *
+ *
+ * @async
+ * @function
+ * @param {Object} req - The request object containing the `userId` in the body.
+ * @param {Object} res - The response object used to send a success message to the user-service.
+ * @throws {Error} Throws an error if the deletion or event emission fails.
+ * @event delete-notification-user - Emits the event with the notifications to be deleted.
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const notifications = await deleteNotificationsWithUser(req.body.userId);
+        eventBus.emit("delete-notification-user", {notifications});
+
+        res.writeHead(201, {"Content-Type": "application/json"});
+        res.end(JSON.stringify({message: "Notification Successfully created"}));
+    } catch (error) {
+
     }
 };

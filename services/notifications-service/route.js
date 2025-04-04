@@ -53,6 +53,11 @@ const routes = [
         method: "POST",
         path: ["addNotification"],
         handler: controller.addNotification
+    },
+    {
+        method: "DELETE",
+        path: ["deleteUser"],
+        handler: controller.deleteUser
     }
 ];
 
