@@ -1,14 +1,5 @@
 import {AlertMessage} from "../components/alert-message/alert-message.js";
 
-export function resizeCanvas(percentWidth, percentHeight, id, drawingFunction) {
-    const rect = this.getBoundingClientRect();
-    const canvas = this.shadowRoot.getElementById(id);
-    canvas.setAttribute("width", (rect.width * percentWidth).toString());
-    canvas.setAttribute("height", (rect.height * percentHeight).toString());
-    if (drawingFunction)
-        drawingFunction();
-}
-
 export function convertRemToPixels(rem) {
     return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
@@ -50,6 +41,28 @@ export async function waitForElm(context, id) {
 export function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
+
+export const LEAGUES = Object.freeze({
+    WOOD: "Wood",
+    STONE: "Stone",
+    IRON: "Iron",
+    SILVER: "Silver",
+    GOLD: "Gold",
+    PLATINUM: "Platinum",
+    DIAMOND: "Diamond",
+    GLOBAL: "Global"
+});
+
+export const LEAGUE_ICONS = Object.freeze({
+    [LEAGUES.WOOD]: "../../assets/leagues/wood.png",
+    [LEAGUES.STONE]: "../../assets/leagues/stone.png",
+    [LEAGUES.IRON]: "../../assets/leagues/iron.png",
+    [LEAGUES.SILVER]: "../../assets/leagues/silver.png",
+    [LEAGUES.GOLD]: "../../assets/leagues/gold.png",
+    [LEAGUES.PLATINUM]: "../../assets/leagues/platinum.png",
+    [LEAGUES.DIAMOND]: "../../assets/leagues/diamond.png",
+    [LEAGUES.GLOBAL]: "../../assets/leaderboard.svg"
+});
 
 /**
  * Creates and displays an alert message inside the specified container.

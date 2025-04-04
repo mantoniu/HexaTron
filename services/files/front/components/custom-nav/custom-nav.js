@@ -34,8 +34,10 @@ export class CustomNav extends ListenerComponent {
                 () => this._handleNavClick(button, navButtons));
         });
 
-        this.addAutoCleanListener(window, "drawerClosed", () => {
+        this.addAutoCleanListener(window, "drawerChanged", (event) => {
             navButtons.forEach(btn => btn.classList.remove("active"));
+            if (event.detail)
+                this.shadowRoot.getElementById(event.detail).classList.add("active");
         });
     }
 

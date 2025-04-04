@@ -48,7 +48,7 @@ export class DrawerMenu extends ListenerComponent {
         this._content = this.shadowRoot.getElementById("content");
         this._closeBtn = this.shadowRoot.getElementById("close-btn");
         this._drawer = this.shadowRoot.getElementById("drawer");
-
+        this._setInitialState();
         this._setupListeners();
     }
 
@@ -111,11 +111,9 @@ export class DrawerMenu extends ListenerComponent {
             this._nav(event.detail);
         });
 
-        this._closeBtn.onclick = () => this._nav(this.current);
-
         const returnDiv = this.shadowRoot.getElementById("return");
         this.addAutoCleanListener(returnDiv, "click", () => {
-            this.dispatchEvent(new CustomEvent("drawerClosed", {
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
                 bubbles: true,
                 composed: true
             }));
@@ -127,6 +125,11 @@ export class DrawerMenu extends ListenerComponent {
             event.stopPropagation();
             this.previous = this.current;
             const isCurrentUser = event.detail.player._id === userService.user._id;
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
+                bubbles: true,
+                composed: true,
+                detail: isCurrentUser ? DRAWER_CONTENT.PROFILE : null
+            }));
 
             if (isCurrentUser) {
                 this.current = DRAWER_CONTENT.PROFILE;
@@ -232,15 +235,27 @@ export class DrawerMenu extends ListenerComponent {
 
     _setInitialState(type) {
         this._closeBtn.innerHTML = `&times;`;
-        this._closeBtn.onclick = () => this._nav(this.current);
-        if (this._loadContent(type))
+        this._closeBtn.onclick = () => {
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
+                bubbles: true,
+                composed: true
+            }));
+            this._nav(this.current);
+        };
+        if (type && this._loadContent(type))
             this._nav(type);
     }
 
     _replaceCloseWithBack() {
         this._closeBtn.innerHTML = `&larr;`;
-        this._closeBtn.onclick = () =>
+        this._closeBtn.onclick = () => {
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
+                bubbles: true,
+                composed: true,
+                detail: this.previous
+            }));
             this._setInitialState(this.previous);
+        }
     }
 
     _modificationStatus(data, deleted) {

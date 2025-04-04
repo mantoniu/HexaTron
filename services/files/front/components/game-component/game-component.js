@@ -15,14 +15,32 @@ export class GameComponent extends ListenerComponent {
         ResultScreen.register();
     }
 
-    showResultScreen() {
+    endScreen() {
+        const header = this.shadowRoot.querySelector("game-header");
+        const clone = header.cloneNode(true);
+        if (clone) {
+            clone.style.visibility = "hidden";
+            this.shadowRoot.getElementById("game").replaceChild(clone, header);
+        }
+
+        const resultScreen = this.shadowRoot.querySelector("result-screen");
+        if (resultScreen) {
+            resultScreen.style.display = "flex";
+            resultScreen.setHeader(header);
+        }
+    }
+
+    showResultScreen(results) {
         const gameBoard = this.shadowRoot.querySelector("game-board");
         if (gameBoard)
             gameBoard.style.display = "none";
 
-        const resultScreen = this.shadowRoot.querySelector("result-screen");
-        if (resultScreen)
-            resultScreen.style.display = "flex";
+        const result_screen = this.shadowRoot.getElementById("game").querySelector("result-screen");
+        if (result_screen) {
+            result_screen.setAttribute("end", "true");
+            result_screen.setAttribute("results", JSON.stringify(results));
+
+        }
     }
 
     async connectedCallback() {
@@ -40,6 +58,7 @@ export class GameComponent extends ListenerComponent {
                 gameDiv.style.visibility = "visible";
                 gameDiv.style.opacity = "1";
                 gameDiv.style.transition = "opacity 0.5s ease-in-out";
+                gameDiv.querySelector("result-screen").setAttribute("end", "false");
             }
         };
 
@@ -50,7 +69,7 @@ export class GameComponent extends ListenerComponent {
             () => this.hideLoader());
 
         this.addAutomaticEventListener(gameService, GameStatus.GAME_END,
-            () => this.showResultScreen());
+            (event) => this.showResultScreen(event));
     }
 
     disconnectedCallback() {

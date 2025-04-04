@@ -4,8 +4,8 @@ import {ProfileHeader} from "../profile-header/profile-header.js";
 import {Component} from "../component/component.js";
 import {ModalDialog} from "../modal-dialog/modal-dialog.js";
 import {AlertMessage} from "../alert-message/alert-message.js";
+import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
 
-//TODO merge with main
 export class UserProfile extends Component {
     constructor() {
         super();
@@ -14,6 +14,7 @@ export class UserProfile extends Component {
         ProfileHeader.register();
         ModalDialog.register();
         AlertMessage.register();
+        UserFriendPart.register();
     }
 
     static get observedAttributes() {
