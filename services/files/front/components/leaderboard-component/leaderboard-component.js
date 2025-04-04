@@ -18,6 +18,7 @@ export class LeaderboardComponent extends Component {
         this.lastScrollTop = 0;
         this.scrollDirection = null;
         this.observer = null;
+        this.voidElement = null;
     }
 
     setLeague(leagueName, leagueData, rank) {
@@ -40,43 +41,63 @@ export class LeaderboardComponent extends Component {
     }
 
     initialise() {
-        if (this.isConnected && this.leagueData) {
-            if (!this.shadowRoot.getElementById("league-container")) {
-                return;
-            }
-            this.shadowRoot.getElementById("league-container").innerHTML = "";
 
-            if (this.shadowRoot.getElementById("actualRank")) {
-                this.shadowRoot.removeChild(this.shadowRoot.getElementById("actualRank"));
-            }
+        const shadowRoot = this.shadowRoot;
+        const leagueContainer = shadowRoot.getElementById("league-container");
 
-            if (userService.isConnected() && Object.keys(this.rank).includes(this.league)) {
-                let element = document.createElement("leaderboard-element");
-                element.setPlayer(userService.user);
-                element.rank = this.rank[this.league];
-                element.id = "actualRank";
-                this.shadowRoot.appendChild(element);
-            }
+        if (!leagueContainer)
+            return;
 
-            this.leagueData.map((player, i) => {
-                const element = document.createElement("leaderboard-element");
-                element.setPlayer(player);
-                element.id = i + 1;
-                element.rank = player.leagueRank;
-                this.shadowRoot.getElementById("league-container").appendChild(element);
+        leagueContainer.innerHTML = "";
+        leagueContainer.classList.add("empty");
 
-                if (this.shadowRoot.getElementById("actualRank") && userService.user.name === player.name) {
-                    this.observer = new IntersectionObserver(
-                        this.elementVisible.bind(this),
-                        {
-                            root: null,
-                            rootMargin: "0px",
-                            threshold: [0, 1]
-                        }
-                    );
-                    this.observer.observe(this.shadowRoot.getElementById(i + 1));
+        if (this.isConnected) {
+            if (this.leagueData) {
+                leagueContainer.classList.remove("empty");
+                let actualRank = shadowRoot.getElementById("actualRank");
+
+                if (actualRank) {
+                    shadowRoot.removeChild(actualRank);
                 }
-            });
+
+                if (userService.isConnected() && Object.keys(this.rank).includes(this.league)) {
+                    let element = document.createElement("leaderboard-element");
+                    element.setPlayer(userService.user);
+                    element.rank = this.rank[this.league];
+                    element.id = "actualRank";
+                    element.classList.add("user");
+                    leagueContainer.appendChild(element);
+                    actualRank = element;
+                }
+
+                this.leagueData.map((player, i) => {
+                    const element = document.createElement("leaderboard-element");
+                    element.setPlayer(player);
+                    element.id = i + 1;
+                    element.rank = player.leagueRank;
+                    if (player._id === userService.user._id)
+                        element.classList.add("user");
+                    leagueContainer.appendChild(element);
+
+                    if (actualRank && userService.user.name === player.name) {
+                        this.observer = new IntersectionObserver(
+                            this.elementVisible.bind(this),
+                            {
+                                root: null,
+                                rootMargin: "0px",
+                                threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+                            }
+                        );
+                        this.observer.observe(this.shadowRoot.getElementById(i + 1));
+                    }
+                });
+
+                this.voidElement = document.createElement("leaderboard-element");
+                leagueContainer.appendChild(this.voidElement);
+                this.voidElement.style.display = "none";
+                this.voidElement.classList.add("void");
+            } else
+                leagueContainer.textContent = "Nobody here for the moment";
         }
     }
 
@@ -94,22 +115,23 @@ export class LeaderboardComponent extends Component {
         const boundingClientRect = entries[0].boundingClientRect;
         const intersectionRect = entries[0].intersectionRect;
 
-        if (boundingClientRect.top === intersectionRect.top && boundingClientRect.bottom === intersectionRect.bottom) {
+        if (Math.abs(boundingClientRect.top - intersectionRect.top) < 1 && Math.abs(boundingClientRect.bottom - intersectionRect.bottom) < 1) {
             this.shadowRoot.getElementById("actualRank").style.visibility = "hidden";
-            this.shadowRoot.getElementById("actualRank").style.backgroundColor = "none";
-        } else if (boundingClientRect.bottom === intersectionRect.bottom && entries[0].intersectionRatio !== 1 && this.scrollDirection === SCROLL_DIRECTION.DOWN) {
+            this.voidElement.style.display = "none";
+        } else if (Math.abs(boundingClientRect.bottom - intersectionRect.bottom) < 1 && entries[0].intersectionRatio !== 1 && this.scrollDirection === SCROLL_DIRECTION.DOWN) {
             this.shadowRoot.getElementById("actualRank").style.visibility = "hidden";
-            this.shadowRoot.getElementById("actualRank").style.backgroundColor = "none";
+            this.voidElement.style.display = "none";
         } else {
             this.shadowRoot.getElementById("actualRank").style.visibility = "visible";
+            this.voidElement.style.display = "flex";
         }
     }
+
 
     disconnectedCallback() {
         super.disconnectedCallback();
 
-        if (this.observer) {
+        if (this.observer)
             this.observer.disconnect();
-        }
     }
 }
