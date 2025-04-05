@@ -19,10 +19,6 @@ export class ImagePicker extends Component {
         this._loading = false;
     }
 
-    static get observedAttributes() {
-        return ["image-src"];
-    }
-
     async connectedCallback() {
         await super.connectedCallback();
 
@@ -30,6 +26,7 @@ export class ImagePicker extends Component {
         this.profilePicture = this.shadowRoot.querySelector('profile-picture');
         this.fileInput = this.shadowRoot.querySelector('#file-input');
         this.overlay = this.shadowRoot.querySelector('image-overlay');
+        this._userId = this.getAttribute("user-id");
 
         const disabled = this.hasAttribute("disabled");
         if (disabled) {
@@ -41,8 +38,8 @@ export class ImagePicker extends Component {
             this.fileInput.addEventListener('change', this._handleFileSelect.bind(this));
         }
 
-        this.addEventListener("imageUpdate",
-            () => this._onImageLoad());
+        this.addEventListener("imageUpdate", () =>
+            this.profilePicture.dispatchEvent(new CustomEvent("imageUpdate")));
 
         this.profilePicture.addEventListener("imageLoaded",
             () => this._onImageLoad());
@@ -79,7 +76,7 @@ export class ImagePicker extends Component {
         });
     }
 
-    _handleFileSelect(event) {
+    async _handleFileSelect(event) {
         if (this._loading)
             return;
 
@@ -98,15 +95,15 @@ export class ImagePicker extends Component {
             return;
         }
 
+        const croppedBlob = await this._cropImageToSquare(file);
         this.fileInput.disabled = true;
-
         this.container.classList.add("loading");
         this._loading = true;
 
         this.dispatchEvent(new CustomEvent('imageChanged', {
             bubbles: true,
             composed: true,
-            detail: {file: file}
+            detail: {file: croppedBlob}
         }));
     }
 
@@ -119,8 +116,8 @@ export class ImagePicker extends Component {
     }
 
     _update() {
-        if (this.profilePicture && this._imageSrc)
-            this.profilePicture.setAttribute("src", this._imageSrc);
+        if (this.profilePicture && this._userId)
+            this.profilePicture.setAttribute("user-id", this._userId);
     }
 
     _onImageLoad() {

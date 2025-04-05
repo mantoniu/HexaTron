@@ -22,14 +22,10 @@ export class ProfileHeader extends Component {
         this._profilePictureElem = this.shadowRoot.querySelector("image-picker");
         this._rankDisplay = this.shadowRoot.getElementById("rank-display");
         this._usernameElem = this.shadowRoot.getElementById("username");
+        this._userId = this.getAttribute("user-id");
 
-        this.addEventListener("imageUpdate", (e) => {
-            if (this._profilePictureElem) {
-                this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate", {
-                    detail: e.detail
-                }));
-            }
-        });
+        this.addEventListener("imageUpdate", () =>
+            this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate")));
 
         if (this._otherUser)
             this._profilePictureElem.setAttribute("disabled", "");
@@ -60,8 +56,8 @@ export class ProfileHeader extends Component {
     }
 
     _update() {
-        if (this._profilePictureElem && this._profilePicture)
-            this._profilePictureElem.setAttribute("image-src", this._profilePicture);
+        if (this._profilePictureElem && this._userId)
+            this._profilePictureElem.setAttribute("user-id", this._userId);
 
         if (this._usernameElem && this._username)
             this._usernameElem.innerText = this._username;

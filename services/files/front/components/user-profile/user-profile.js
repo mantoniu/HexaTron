@@ -162,11 +162,9 @@ export class UserProfile extends Component {
             return;
 
         this._profileHeader.setAttribute("other-user", isOtherUser);
+        this._profileHeader.setAttribute("user-id", this.user._id);
         this._profileHeader.setAttribute("username", this.user.name);
         this._profileHeader.setAttribute("league", this.user.league);
         this._profileHeader.setAttribute("elo", this.user.elo);
-
-        if (this.user.profilePicturePath)
-            this._profileHeader.setAttribute("profile-picture", this.user.profilePicturePath);
     }
 }
