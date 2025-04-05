@@ -249,12 +249,8 @@ class UserService extends EventEmitter {
         formData.append("profile_picture", file);
 
         const response = await apiClient.request("PATCH", "api/user/me/profile-picture", formData);
-        if (response.success) {
-            this._user.profilePicturePath = response.data.imageFile;
-
-            localStorage.setItem("user", JSON.stringify(this._user));
-            return {success: true, profilePicture: response.data.imageFile};
-        }
+        if (response.success)
+            return {success: true};
 
         return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.UPDATE_PROFILE_PICTURE)};
     }
