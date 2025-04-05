@@ -83,7 +83,9 @@ export class DrawerMenu extends ListenerComponent {
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
-            this._loadContent(event.detail);
+            if (this._loadContent(event.detail)) {
+                this._nav(event.detail);
+            }
         });
 
         const returnDiv = this.shadowRoot.getElementById("return");
@@ -147,6 +149,7 @@ export class DrawerMenu extends ListenerComponent {
                 break;
             case DRAWER_CONTENT.REGISTER:
                 component = "<register-portal></register-portal>";
+                this._replaceCloseWithBack();
                 break;
             case DRAWER_CONTENT.FORGOT_PASSWORD:
                 component = "<forgotten-password-portal></forgotten-password-portal>";
