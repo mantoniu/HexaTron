@@ -25,7 +25,6 @@ export class PlayerDisplay extends Component {
     attributeChangedCallback(name, oldValue, newValue) {
         switch (name) {
             case "name":
-                console.log(newValue);
                 this._name = newValue;
                 break;
         }
@@ -34,7 +33,6 @@ export class PlayerDisplay extends Component {
     }
 
     _update() {
-        console.log(this._profilePictureElem, this._userId);
         if (this._profilePictureElem && this._userId)
             this._profilePictureElem.setAttribute("user-id", this._userId);
 
