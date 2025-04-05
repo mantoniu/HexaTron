@@ -77,8 +77,6 @@ export class NotificationsListElement extends Component {
         }
 
         if (!this.notification.isRead) {
-            this.classList.remove("friend");
-            this.classList.remove("message");
             this.classList.add("isNotRead");
         }
     }

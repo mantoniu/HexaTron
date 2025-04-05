@@ -225,6 +225,10 @@ export class DrawerMenu extends ListenerComponent {
             this.classList.remove("open");
             this._content.innerHTML = "";
             this._opened = !this._opened;
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
+                bubbles: true,
+                composed: true
+            }));
         } else {
             this._closeBtn.style.visibility = "visible";
             this.classList.add("open");

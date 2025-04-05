@@ -95,6 +95,9 @@ exports.deleteUser = async (req, res) => {
         res.writeHead(201, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "Notification Successfully created"}));
     } catch (error) {
+        if (error instanceof HttpError)
+            throw error;
 
+        throw new HttpError(500, error.message);
     }
 };
