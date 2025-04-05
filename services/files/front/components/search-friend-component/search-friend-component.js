@@ -85,7 +85,7 @@ export class SearchFriendComponent extends ListenerComponent {
 
         const searchBarRect = this.searchInput.getBoundingClientRect();
         this.resultsContainer.style.top = `${searchBarRect.bottom}px`;
-        this.resultsContainer.style.width = `${searchBarRect.left - searchBarRect.right}px`;
+        this.resultsContainer.style.width = `${searchBarRect.width}px`;
 
         this.resultsContainer.style.display = "block";
     }

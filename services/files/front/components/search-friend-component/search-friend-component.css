@@ -16,14 +16,12 @@ label {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin: 15px 0 15px 0;
     border: 5px solid #ffffff;
-
 }
 
 #search-result {
     display: none;
     position: absolute;
     max-height: 300px;
-    width: 70%;
     overflow: auto;
     background-color: white;
     border-top: none;
@@ -34,6 +32,4 @@ label {
 
 friend-list-element {
     border-bottom: 1px solid #eee;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
 }
