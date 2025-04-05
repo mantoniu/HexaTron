@@ -41,7 +41,6 @@ export class LeaderboardComponent extends Component {
     }
 
     initialise() {
-
         const shadowRoot = this.shadowRoot;
         const leagueContainer = shadowRoot.getElementById("league-container");
 
