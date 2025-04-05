@@ -9,7 +9,7 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const SIZES = {
     large: 512,
-    medium: 128,
+    medium: 256,
     small: 64
 };
 
