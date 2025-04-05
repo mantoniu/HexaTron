@@ -1,5 +1,6 @@
 import {Component} from "../component/component.js";
 import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
+import {PlayerDisplay} from "../player-display/player-display.js";
 
 export class FriendListElement extends Component {
     constructor() {
@@ -7,6 +8,7 @@ export class FriendListElement extends Component {
 
         UserFriendPart.register();
         FriendListElement.register();
+        PlayerDisplay.register();
 
         this.player = null;
     }
@@ -37,8 +39,8 @@ export class FriendListElement extends Component {
 
         const shadowRoot = this.shadowRoot;
         const userFriendPart = shadowRoot.querySelector("user-friend-part");
-        const profilePicture = shadowRoot.getElementById("profile-picture");
-        const playerName = shadowRoot.getElementById("name");
+        const userDisplay = shadowRoot.querySelector("player-display");
+
         if (userFriendPart) {
             userFriendPart.setAttribute("friend-id", this.player._id);
 
@@ -49,13 +51,13 @@ export class FriendListElement extends Component {
                 userFriendPart.style.display = "none";
             }
         }
-        if (profilePicture) {
-            profilePicture.src = this.player.hasOwnProperty("profile-picture")
-                ? this.player["profile-picture"]
-                : "../../assets/profile.svg";
-        }
-        if (playerName) {
-            playerName.textContent = this.player.name;
+
+        if (userDisplay) {
+            userDisplay.setAttribute("name", this.player.name);
+
+            if (userDisplay.hasAttribute("user-id")) {
+                userDisplay.dispatchEvent(new CustomEvent("imageUpdate"));
+            } else userDisplay.setAttribute("user-id", this.player._id);
         }
     }
 }

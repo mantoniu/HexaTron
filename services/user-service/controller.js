@@ -175,10 +175,12 @@ exports.update = async (req, res) => {
  */
 exports.updateProfilePicture = async (req, res) => {
     try {
+        const userID = getIDInRequest(req);
         await uploadProfilePicture(req);
 
         res.writeHead(200, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "Profile picture successfully updated."}));
+        await notifyFriendOfEvent(userID);
     } catch (error) {
         if (error instanceof HttpError)
             throw error;
