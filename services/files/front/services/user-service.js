@@ -248,7 +248,7 @@ class UserService extends EventEmitter {
         const formData = new FormData();
         formData.append("profile_picture", file);
 
-        const response = await apiClient.request("PATCH", "api/user/me/profile-picture", formData);
+        const response = await apiClient.request("PATCH", "api/user/me/profile-picture", formData, null, false);
         if (response.success)
             return {success: true};
 

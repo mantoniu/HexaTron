@@ -70,17 +70,26 @@ export class ApiClient {
      * @param {string} endpoint - The API endpoint.
      * @param {Object|null} body - The request body (if applicable).
      * @param {string|null} token - The authentication token.
+     * @param {boolean} [asJson=true] - Whether to send the body as JSON. If false, assumes body is already in the correct format (e.g., FormData).
      * @returns {Promise<Object>} The response object.
      */
-    async request(method, endpoint, body = null, token = this._accessToken) {
-        const headers = {"Content-Type": "application/json"};
+    async request(method, endpoint, body = null, token = null, asJson = true) {
+        token = token ?? this._accessToken;
+
+        const headers = {};
+
         if (token)
             headers["Authorization"] = `Bearer ${token}`;
+
+        if (asJson) {
+            headers["Content-Type"] = "application/json";
+            body = body ? JSON.stringify(body) : null;
+        }
 
         const options = {
             method,
             headers,
-            body: body ? JSON.stringify(body) : null
+            body
         };
 
         try {
