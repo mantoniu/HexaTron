@@ -84,9 +84,8 @@ export class SearchFriendComponent extends ListenerComponent {
         this.searchInput.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
 
         const searchBarRect = this.searchInput.getBoundingClientRect();
-        this.resultsContainer.style.top = `${searchBarRect.bottom}px`;
+        this.resultsContainer.style.top = `${this.searchInput.offsetTop + searchBarRect.height}px`;
         this.resultsContainer.style.width = `${searchBarRect.width}px`;
-
         this.resultsContainer.style.display = "block";
     }
 
