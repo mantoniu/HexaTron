@@ -37,9 +37,9 @@ export class ProfilePicture extends Component {
             const imgHeight = this._img.clientHeight;
 
             let imageSize = 'small';
-            if (imgWidth >= 500 || imgHeight >= 500)
+            if (imgWidth >= 140 || imgHeight >= 140)
                 imageSize = 'large';
-            else if (imgWidth >= 100 || imgHeight >= 100)
+            else if (imgWidth >= 60 || imgHeight >= 60)
                 imageSize = 'medium';
 
             const cacheBuster = `?t=${Date.now()}`;
