@@ -4,6 +4,7 @@ import {FriendMessages} from "../friend-messages/friend-messages.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 import {userService} from "../../services/user-service.js";
+import {notificationService} from "../../services/notifications-service.js";
 
 export class ChatPortal extends ListenerComponent {
     constructor() {
@@ -32,6 +33,7 @@ export class ChatPortal extends ListenerComponent {
         this.addAutoCleanListener(this, "open-conversation", async (event) => {
             const conversation = await chatService.getConversation(event.detail.conversationId);
             this._openChatBox(conversation);
+            notificationService.removeConversationNotifications(event.detail.conversationId);
         });
 
         this.addAutoCleanListener(this, "conv-return", async (event) => {
@@ -46,8 +48,9 @@ export class ChatPortal extends ListenerComponent {
             if (chatBox && chatBox.getAttribute("id") === conversationId) {
                 chatBox.messageAdded(conversationId, message);
 
-                if (message.senderId !== userService.user._id)
+                if (message.senderId !== userService.user._id) {
                     await chatService.markAsRead(conversationId, message._id);
+                }
             }
 
             this._updateFriendMessage(conversationId, message);
@@ -145,5 +148,11 @@ export class ChatPortal extends ListenerComponent {
             return;
 
         friendMessages.updateFriendMessage(conversationId, message);
+    }
+
+    getActualConversationId() {
+        const chatBox = this.shadowRoot.querySelector("chat-box");
+        if (chatBox)
+            return chatBox.getAttribute("id");
     }
 }

@@ -17,7 +17,7 @@ const {
     getUserByID,
     getFriendStatus
 } = require("./database");
-const {getIDInRequest, HttpError} = require("../utils/controller-utils");
+const {getIDInRequest, HttpError, NOTIFICATION_TYPE, sendNotification} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
 const {DATABASE_ERRORS, USER_FIELDS} = require("./utils");
 const {readData} = require("../utils/api-utils");
@@ -323,13 +323,20 @@ exports.disconnect = async (req, res) => {
  */
 exports.delete = async (req, res) => {
     try {
-        const userID = getIDInRequest(req);
-        deleteProfilePicture(userID);
-        await deleteUserByID(userID);
+        const userId = getIDInRequest(req);
+        deleteProfilePicture(userId);
+        await deleteUserByID(userId);
 
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
-        eventBus.emit("delete-user", userID);
+        eventBus.emit("delete-user", userId);
+        await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/deleteUser", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({userId})
+        });
     } catch (error) {
         if (error.message === DATABASE_ERRORS.USER_NOT_FOUND)
             throw new HttpError(404, "User not found");
@@ -452,6 +459,7 @@ exports.addFriend = async (req, res) => {
         const result = await addFriend(userId, friendId);
         res.end(JSON.stringify({message: "New friend successfully added", friends: result.userFriends}));
         eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_REQUEST, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }
@@ -476,6 +484,7 @@ exports.acceptFriend = async (req, res) => {
         const result = await acceptFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend status successfully updated", friends: result.userFriends}));
         eventBus.emit("update-status-friends", {friendId: friendId, friendFriends: result.friend});
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_ACCEPT, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }
@@ -500,6 +509,7 @@ exports.removeFriend = async (req, res) => {
         await removeFriend(userId, friendId);
         res.end(JSON.stringify({message: "Friend successfully deleted", friendId: friendId}));
         eventBus.emit("remove-friend", {userId: userId, friendId: friendId});
+        await sendNotification(friendId, NOTIFICATION_TYPE.FRIEND_DELETION, userId);
     } catch (error) {
         throw new HttpError(500, error.message);
     }

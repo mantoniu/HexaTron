@@ -1,5 +1,4 @@
 const {
-    saveMessage,
     deleteMessageWithOwner,
     markMessagesAsRead,
     createConversation,
@@ -7,6 +6,7 @@ const {
     getConversationWithMessagesBeforeDate
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
+const {saveMessage} = require("./controller");
 
 module.exports = (io) => {
     io.on('connection', (gatewaySocket) => {
@@ -111,8 +111,12 @@ module.exports = (io) => {
                     timestamp: new Date(),
                     isRead: false
                 };
+                let socketFriend = await io.in(conversationId).fetchSockets();
+                if (socketFriend) {
+                    socketFriend = socketFriend.map(socket => socket.handshake.auth.userId).filter(id => id !== senderId);
+                }
 
-                const messageId = await saveMessage(message);
+                const messageId = await saveMessage(message, senderId, socketFriend);
                 const newMessage = {_id: messageId, ...message, senderName: senderName};
 
                 if (callback)

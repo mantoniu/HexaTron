@@ -10,6 +10,8 @@ import {createAlertMessage} from "../../js/utils.js";
 import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
+import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
+import {NOTIFICATIONS_EVENTS, notificationService} from "../../services/notifications-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -19,6 +21,7 @@ export const DRAWER_CONTENT = Object.freeze({
     LEADERBOARD: "leaderboard",
     FRIENDS: "friends",
     CHAT: "chat",
+    NOTIFICATIONS: "notifications",
     VOID: ""
 });
 
@@ -37,6 +40,7 @@ export class DrawerMenu extends ListenerComponent {
         SettingsPortal.register();
         ChatPortal.register();
         FriendsPortal.register();
+        NotificationsPortal.register();
     }
 
     async connectedCallback() {
@@ -76,6 +80,26 @@ export class DrawerMenu extends ListenerComponent {
         });
     }
 
+    _setupNotificationServiceListeners() {
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.MENU_OPEN, (notification) => {
+            switch (this.current) {
+                case DRAWER_CONTENT.CHAT:
+                    const chatPortal = this.shadowRoot.querySelector("chat-portal");
+                    if (chatPortal && notification.objectsId === chatPortal.getActualConversationId())
+                        notificationService.removeConversationNotifications(notification.objectsId);
+                    else
+                        notificationService.sendUpdateEvent();
+                    break;
+                case DRAWER_CONTENT.FRIENDS:
+                    notificationService.removeFriendsNotifications();
+                    break;
+                default:
+                    notificationService.sendUpdateEvent();
+                    break;
+            }
+        });
+    }
+
     _setupListeners() {
         this.addAutoCleanListener(window, "openDrawer", (event) => {
             this.previous = event.detail.type;
@@ -84,6 +108,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
             this._loadContent(event.detail);
+            this._nav(event.detail);
         });
 
         const returnDiv = this.shadowRoot.getElementById("return");
@@ -119,6 +144,17 @@ export class DrawerMenu extends ListenerComponent {
             }
         });
 
+        this.addAutoCleanListener(this, "openConversation", async (conversationId) => {
+            this._setInitialState(DRAWER_CONTENT.CHAT);
+            const chatPortal = this.shadowRoot.querySelector("chat-portal");
+            chatPortal.whenConnected.then(async () => {
+                await chatPortal.changeToggleSelected("friends");
+                await chatPortal.openFriendList();
+                chatPortal._openChatBox(await chatService.getConversation(conversationId.detail));
+                notificationService.removeConversationNotifications(conversationId.detail);
+            });
+        });
+
         this._drawer.addEventListener("scroll", () => {
             this._closeBtn.classList.toggle("scrolled", this._drawer.scrollTop > 0);
         });
@@ -132,6 +168,7 @@ export class DrawerMenu extends ListenerComponent {
 
         this._setupChatServiceListeners();
         this._setupUserServiceListeners();
+        this._setupNotificationServiceListeners();
     }
 
     _loadContent(type) {
@@ -163,6 +200,9 @@ export class DrawerMenu extends ListenerComponent {
             case DRAWER_CONTENT.FRIENDS:
                 component = "<friends-portal></friends-portal>";
                 break;
+            case DRAWER_CONTENT.NOTIFICATIONS:
+                component = "<notifications-portal></notifications-portal>";
+                break;
             default:
                 console.warn("This type is not yet supported");
                 return false;
@@ -177,11 +217,18 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _nav(type) {
+        if (this._opened && this.current === "notifications") {
+            notificationService.setAllRead();
+        }
         if (this._opened && this.current === type) {
             this._closeBtn.style.visibility = "hidden";
             this.classList.remove("open");
             this._content.innerHTML = "";
             this._opened = !this._opened;
+            this.dispatchEvent(new CustomEvent("drawerChanged", {
+                bubbles: true,
+                composed: true
+            }));
         } else {
             this._closeBtn.style.visibility = "visible";
             this.classList.add("open");

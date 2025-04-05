@@ -143,6 +143,34 @@ const RefreshToken = {
     }
 };
 
+const Notifications = {
+    bsonType: "object",
+    required: ["userId", "type", "friendId", "isRead"],
+    properties: {
+        _id: {
+            bsonType: "objectId"
+        },
+        userId: {
+            bsonType: "string"
+        },
+        type: {
+            bsonType: "string"
+        },
+        friendId: {
+            bsonType: "objectId"
+        },
+        objectsId: {
+            bsonType: "array",
+            items: {
+                bsonType: "string"
+            }
+        },
+        isRead: {
+            bsonType: "bool"
+        }
+    }
+};
+
 /* UTILS */
 const bsonToJsonMap = new Map([
     ["double", "number"],
@@ -193,4 +221,4 @@ userJson["_id"] = {"type": "string"};
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
 
 /* EXPORTS */
-module.exports = {User, Conversation, Message, Parameters, RefreshToken, userJson, refreshTokenJson};
+module.exports = {User, Conversation, Message, Parameters, RefreshToken, Notifications, userJson, refreshTokenJson};
