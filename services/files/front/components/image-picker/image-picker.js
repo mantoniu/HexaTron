@@ -53,14 +53,30 @@ export class ImagePicker extends Component {
         this._update();
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        switch (name) {
-            case "image-src":
-                this._imageSrc = newValue;
-                break;
-        }
+    _cropImageToSquare(file, targetSize = 512) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const size = Math.min(img.width, img.height);
+                const offsetX = (img.width - size) / 2;
+                const offsetY = (img.height - size) / 2;
 
-        this._update();
+                const canvas = document.createElement('canvas');
+                canvas.width = targetSize;
+                canvas.height = targetSize;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(
+                    img,
+                    offsetX, offsetY, size, size,
+                    0, 0, targetSize, targetSize
+                );
+
+                canvas.toBlob(blob => resolve(blob), file.type);
+            };
+
+            img.src = URL.createObjectURL(file);
+        });
     }
 
     _handleFileSelect(event) {
