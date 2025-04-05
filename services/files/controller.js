@@ -1,3 +1,4 @@
+const sharp = require('sharp');
 const fs = require('fs');
 const {join} = require('path');
 
@@ -5,6 +6,12 @@ const STORAGE_DIR = 'storage';
 const PROFILE_PICTURE_DIR = 'profile-pictures';
 const JSON_API_PATH = './front/api.json';
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+const SIZES = {
+    large: 512,
+    medium: 128,
+    small: 64
+};
 
 createDir(STORAGE_DIR);
 
@@ -48,6 +55,25 @@ function formatFileSize(bytes) {
 }
 
 /**
+ * Deletes a file from the filesystem.
+ *
+ * @param {string} filePath - The path of the file to delete.
+ * @returns {Promise<void>} A promise that resolves if the file is deleted successfully,
+ *                          or rejects with an error if the deletion fails.
+ */
+function deleteFile(filePath) {
+    return new Promise((resolve, reject) => {
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error(`Error deleting ${filePath}:`, err);
+                reject(err);
+            } else
+                resolve();
+        });
+    });
+}
+
+/**
  * Deletes a user's profile picture from the server.
  * Returns a promise that resolves when the deletion process is complete.
  *
@@ -56,45 +82,53 @@ function formatFileSize(bytes) {
  * @returns {Promise<void>} Resolves when the deletion is complete, or when an error occurs.
  */
 function deleteUserProfilePicture(userId, response = null) {
-    return new Promise((resolve, _) => {
+    return new Promise((resolve, reject) => {
         const uploadDir = join(STORAGE_DIR, PROFILE_PICTURE_DIR);
 
-        fs.readdir(uploadDir, (err, files) => {
+        fs.readdir(uploadDir, async (err, files) => {
             if (err) {
                 console.error("Error reading upload directory:", err);
                 if (response)
                     sendResponse(response, 500, {error: "Server error"});
-                return resolve();
+                return reject(err);
             }
 
-            const userFile = files.find(file => file.includes(userId));
+            const userFiles = files.filter(file => file.includes(userId));
 
-            if (!userFile) {
+            if (userFiles.length === 0) {
                 console.log(`No profile picture found for user: ${userId}`);
                 if (response)
                     sendResponse(response, 404, {error: "Profile picture not found"});
                 return resolve();
             }
 
-            if (userFile) {
-                const oldFilePath = join(uploadDir, userFile);
-                fs.unlink(oldFilePath, (err) => {
-                    if (err) {
-                        console.error("Error deleting file:", err);
-                        if (response)
-                            sendResponse(response, 500, {error: "Error deleting file"});
-                    } else {
-                        console.log(`Deleted profile picture: ${userFile}`);
-                        if (response)
-                            sendResponse(response, 200, {message: "Profile picture deleted successfully"});
-                    }
-                    resolve();
-                });
-            } else {
-                resolve();
-            }
+            await Promise.all(userFiles.map(file => {
+                const fullPath = join(uploadDir, file);
+                return deleteFile(fullPath);
+            }));
+
+            console.log(`Deleted profile pictures for user ${userId}: ${userFiles.join(', ')}`);
+            resolve();
         });
     });
+}
+
+/**
+ * Saves different resized versions of an image for a user's profile picture.
+ *
+ * @param {Buffer} fileBuffer - The image file data as a buffer.
+ * @param {string} userId - The ID of the user for whom the image is being saved.
+ * @returns {Promise<void>} A promise that resolves when all resized images are saved.
+ */
+async function saveImageVersions(fileBuffer, userId) {
+    const outputDir = join(STORAGE_DIR, PROFILE_PICTURE_DIR);
+
+    const image = sharp(fileBuffer);
+    await Promise.all(Object.entries(SIZES).map(([sizeName, size]) =>
+        image
+            .resize(size, size)
+            .toFile(join(outputDir, `${userId}-${sizeName}.jpg`))
+    ));
 }
 
 /**
@@ -113,7 +147,7 @@ exports.profilePictureDelete = (request, response) => {
 
     deleteUserProfilePicture(userId, response)
         .then(() => {
-            sendResponse(response, 204, {message: "Profile picture deleted successfully"});
+            sendResponse(response, 200, {message: "Profile picture deleted successfully"});
         })
         .catch(_ => {
             sendResponse(response, 500, {error: "Error deleting profile picture"});
@@ -174,7 +208,7 @@ exports.profilePictureUpload = async (request, response) => {
         data = Buffer.concat([data, chunk]);
     });
 
-    request.on('end', () => {
+    request.on('end', async () => {
         if (responseAlreadySent)
             return;
 
@@ -217,16 +251,14 @@ exports.profilePictureUpload = async (request, response) => {
         if (fileBuffer.length > MAX_FILE_SIZE)
             return sendResponse(response, 413, {error: `File too large (${formatFileSize(fileBuffer.length)}). Maximum allowed: ${formatFileSize(MAX_FILE_SIZE)}`});
 
-        // Save the file
-        fs.writeFile(filePath, fileBuffer, err => {
-            if (err) {
-                console.error("Error saving file:", err);
-                return sendResponse(response, 500, {error: 'Error saving file'});
-            }
-
+        // Save the file in different versions
+        try {
+            await saveImageVersions(fileBuffer, userId);
             console.log(`Upload complete for ${userId}: ${filePath}`);
-            sendResponse(response, 201, {message: 'File uploaded successfully', fileName: fileName});
-        });
+            sendResponse(response, 201, {message: 'File uploaded successfully'});
+        } catch (error) {
+            return sendResponse(response, 500, {error: 'Error saving file'});
+        }
     });
 
     request.on('error', err => {
