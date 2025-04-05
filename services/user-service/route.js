@@ -134,9 +134,9 @@ const routes = [
          *             schema:
          *               type: object
          *               properties:
-         *                 imageFile:
+         *                 message:
          *                   type: string
-         *                   example: "profile_pictures/user123.jpg"
+         *                   example: "Profile picture successfully updated."
          *       400:
          *         description: Bad request - Invalid image format or missing file.
          *         content:

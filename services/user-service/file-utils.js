@@ -59,8 +59,7 @@ async function uploadProfilePicture(req) {
                     return reject(new HttpError(proxyRes.statusCode, proxyRes.error));
 
                 try {
-                    const {fileName} = JSON.parse(responseData);
-                    resolve(fileName);
+                    resolve();
                 } catch (error) {
                     reject(new HttpError(500, "Invalid response from file service"));
                 }
