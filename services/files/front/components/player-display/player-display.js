@@ -16,6 +16,9 @@ export class PlayerDisplay extends Component {
         await super.connectedCallback();
 
         this._profilePictureElem = this.shadowRoot.querySelector("profile-picture");
+        this.addEventListener("imageUpdate", () =>
+            this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate")));
+
         this._nameElem = this.shadowRoot.getElementById("name");
         this._userId = this.getAttribute("user-id");
 
