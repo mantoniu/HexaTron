@@ -97,7 +97,7 @@ export class ApiClient {
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
                 await this.refreshAccessToken();
-                return this.request(method, endpoint, body, this._accessToken);
+                return this.request(method, endpoint, body, this._accessToken, asJson);
             }
 
             if (!response.ok)
