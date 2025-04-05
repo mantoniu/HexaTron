@@ -10,7 +10,6 @@ RUN npm install
 FROM base AS dev
 
 COPY ./*.js ./
-COPY ./logic.js ./logic.js
 
 EXPOSE 8001
 CMD ["npm", "start"]
