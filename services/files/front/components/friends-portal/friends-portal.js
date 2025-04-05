@@ -2,6 +2,7 @@ import {FriendsList} from "../friends-list/friends-list.js";
 import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {SearchFriendComponent} from "../search-friend-component/search-friend-component.js";
+import {notificationService} from "../../services/notifications-service.js";
 
 export class FriendsPortal extends ListenerComponent {
     constructor() {
@@ -22,6 +23,7 @@ export class FriendsPortal extends ListenerComponent {
         this.shadowRoot.getElementById("not-friend-list").setStatusAccepted(["pending", "requested"]);
 
         this.initialize();
+        notificationService.removeFriendsNotifications();
     }
 
     initialize() {

@@ -2,10 +2,11 @@ import {ImageButton} from "../image-button/image-button.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {gameService, GameStatus} from "../../services/game-service.js";
 import {USER_EVENTS, userService} from "../../services/user-service.js";
+import {NOTIFICATIONS_EVENTS, notificationService} from "../../services/notifications-service.js";
 
 export class CustomNav extends ListenerComponent {
     static HIDE_IN_GAME = ["leaderboard", "friends"];
-    static HIDE_NOT_CONNECTED = ["friends", "chat"];
+    static HIDE_NOT_CONNECTED = ["friends", "chat", "notifications"];
 
     constructor() {
         super();
@@ -19,6 +20,8 @@ export class CustomNav extends ListenerComponent {
         this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hideElementsInGame());
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
         this.addAutomaticEventListener(gameService, GameStatus.LEAVED, () => this._showElementsAfterGame());
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED, () => this._numberNotRead());
+        this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, () => this._numberNotRead());
 
         if (!userService.isConnected())
             CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");
@@ -76,5 +79,27 @@ export class CustomNav extends ListenerComponent {
         CustomNav.HIDE_NOT_CONNECTED.forEach(id => {
             this.shadowRoot.getElementById(id).style.display = "flex";
         });
+    }
+
+    _numberNotRead() {
+        const button = this.shadowRoot.getElementById("notifications");
+        if (button) {
+            const numberNotRead = this.shadowRoot.getElementById("numberNotRead");
+            if (numberNotRead) {
+                numberNotRead.classList.add("bounce-animation");
+
+                numberNotRead.addEventListener("animationend", function () {
+                    numberNotRead.classList.remove("bounce-animation");
+                });
+                const nbNotifications = Array.from(notificationService.getNotifications())
+                    .filter(([_, notification]) => !notification.isRead)
+                    .length
+                if (nbNotifications === 0)
+                    numberNotRead.style.display = "none";
+                else
+                    numberNotRead.style.display = "block";
+                numberNotRead.textContent = nbNotifications;
+            }
+        }
     }
 }

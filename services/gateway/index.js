@@ -62,6 +62,17 @@ const servicesConfig = {
             requiresAuth: false
         },
         auth: ["userId"]
+    },
+
+    notifications: {
+        target: process.env.NOTIFICATIONS_SERVICE_URL,
+
+        http: null,
+        ws: {
+            namespace: "/notifications",
+            requiresAuth: true
+        },
+        auth: ["userId"]
     }
 };
 
