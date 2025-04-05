@@ -39,6 +39,11 @@ STORAGE_PATH = "/storage";
 // Main method, exported at the end of the file. It's the one that will be called when a file is requested.
 function manageRequest(request, response) {
     let pathName, extension;
+
+    const parsedUrl = url.parse(request.url, true);
+    const query = parsedUrl.query;
+    const requestPath = parsedUrl.pathname;
+
     if (request.url.startsWith("/doc")) {
         pathName = path.join(swaggerUiPath, request.url.replace("/doc", ""));
         pathName = pathName.replace(/^\/app\//, "./");
@@ -48,13 +53,24 @@ function manageRequest(request, response) {
             pathName = `./front/${defaultFileIfFolder}`;
             extension = path.extname(pathName);
         } else {
-            const isStorage = request.url.startsWith(STORAGE_PATH);
+            const isStorage = requestPath.startsWith(STORAGE_PATH);
             const basePath = isStorage ? "" : baseFrontPath;
 
-            // Construct the file path
-            const parsedUrl = url.parse(basePath + request.url);
-            pathName = `.${parsedUrl.pathname}`;
-            extension = path.parse(pathName).ext;
+            pathName = `.${basePath}${requestPath}`;
+            extension = path.extname(pathName);
+
+            if (isStorage) {
+                const allowedSizes = ['small', 'medium', 'large'];
+                const requestedSize = query.size || 'large';
+
+                if (!allowedSizes.includes(requestedSize)) {
+                    send404(pathName, response);
+                    return;
+                }
+
+                const nameWithoutExt = pathName.slice(0, -extension.length);
+                pathName = `${nameWithoutExt}-${requestedSize}${extension}`;
+            }
         }
     }
     // Uncomment the line below if you want to check in the console what url.parse() and path.parse() create.
