@@ -6,7 +6,8 @@ import {userService} from "../../services/user-service.js";
 export const GameType = Object.freeze({
     LOCAL: 0,
     AI: 1,
-    RANKED: 2
+    RANKED: 2,
+    FRIENDLY: 3
 });
 
 export class Game {
