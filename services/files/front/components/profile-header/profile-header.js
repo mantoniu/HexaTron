@@ -13,7 +13,7 @@ export class ProfileHeader extends Component {
     }
 
     static get observedAttributes() {
-        return ["username", "league", "elo", "profile-picture", "other-user"];
+        return ["username", "league", "elo", "other-user"];
     }
 
     async connectedCallback() {
@@ -25,7 +25,7 @@ export class ProfileHeader extends Component {
         this._userId = this.getAttribute("user-id");
 
         this.addEventListener("imageUpdate", () =>
-            this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate")));
+            this._updateProfilePicture());
 
         if (this._otherUser)
             this._profilePictureElem.setAttribute("disabled", "");
@@ -44,9 +44,6 @@ export class ProfileHeader extends Component {
             case "elo":
                 this._elo = parseFloat(newValue);
                 break;
-            case "profile-picture":
-                this._profilePicture = (newValue && newValue !== "null") ? newValue : null;
-                break;
             case "other-user":
                 this._otherUser = newValue === "true";
                 break;
@@ -55,9 +52,17 @@ export class ProfileHeader extends Component {
         this._update();
     }
 
+    _updateProfilePicture() {
+        this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate"));
+    }
+
     _update() {
-        if (this._profilePictureElem && this._userId)
-            this._profilePictureElem.setAttribute("user-id", this._userId);
+        if (this._profilePictureElem && this._userId) {
+            if (this._profilePictureElem.hasAttribute("user-id"))
+                this._updateProfilePicture();
+            else
+                this._profilePictureElem.setAttribute("user-id", this._userId);
+        }
 
         if (this._usernameElem && this._username)
             this._usernameElem.innerText = this._username;
