@@ -3,7 +3,8 @@ const NOTIFICATION_TYPE = Object.freeze({
     FRIEND_REQUEST: "friendRequest",
     FRIEND_DELETION: "friendDeletion",
     FRIEND_ACCEPT: "friendAccept",
-    FRIENDLY_GAME: "friendlyGame"
+    FRIENDLY_GAME: "friendlyGame",
+    GAME_INVITATION: "gameInvitation"
 });
 
 /**
@@ -47,17 +48,17 @@ function getIDInRequest(request) {
  * @param {string} userId - The ID of the user receiving the notification.
  * @param {string} type - The type of notification.
  * @param {string} friendId - The id of the friend that execute an action
- * @param {string[]} objectId - Ids of several object if necessary
+ * @param {string[]} objectsId - Ids of several object if necessary
  * @event error - Emitted if an error occurs during the request.
  */
-async function sendNotification(userId, type, friendId, objectId = null) {
+async function sendNotification(userId, type, friendId, objectsId = null) {
     let body;
-    if (objectId)
+    if (objectsId)
         body = JSON.stringify({
             userId: userId,
             type: type,
             friendId: friendId,
-            objectsId: objectId
+            objectsId: objectsId
         });
 
     else
