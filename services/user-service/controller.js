@@ -54,7 +54,7 @@ async function notifyFriendOfEvent(id) {
         ...user
     } = await getUserByID(id, [USER_FIELDS.parameters, USER_FIELDS.answers, USER_FIELDS.password]);
     for (const friend in friends) {
-        const status = await getFriendStatus(new ObjectId(id), new ObjectId(friend));
+        const status = await getFriendStatus(new ObjectId(friend), new ObjectId(id));
         const friendData = {id: user._id, friendData: {...user, status: status}};
         eventBus.emit("update-status-friends", {friendId: friend, friendFriends: friendData});
     }
