@@ -55,7 +55,7 @@ export class ApiClient {
      * @returns {Promise<Object>} A promise that resolves to the new access token or an error.
      */
     async refreshAccessToken() {
-        const response = await this.request("POST", "api/user/refreshToken", null, this._refreshToken);
+        const response = await this.request("POST", "api/user/refresh-token", null, this._refreshToken);
         if (response) {
             this._accessToken = response.data.accessToken;
             localStorage.setItem("accessToken", this._accessToken);
