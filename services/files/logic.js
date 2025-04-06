@@ -38,7 +38,7 @@ const mimeTypes = {
  *
  * @type {string[]}
  */
-const SPA_ROUTES = ["/local", "/ai", "/ranked"];
+const SPA_ROUTES = ["/local", "/ai", "/ranked", "/friendly"];
 
 /**
  * Base path for all storage-related file requests
