@@ -1,0 +1,17 @@
+:host {
+    justify-self: center;
+    margin: 0 20px 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+profile-picture {
+    width: 50px;
+    height: 50px;
+}
+
+p {
+    margin: 0 0 0 15px;
+    font-size: 1.5rem;
+    text-wrap: nowrap;
+}

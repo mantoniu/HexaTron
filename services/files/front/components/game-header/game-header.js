@@ -1,11 +1,15 @@
-import {convertRemToPixels, hexToRGB, rgbToHex, waitForElm} from "../../js/utils.js";
+import {convertRemToPixels, hexToRGB, rgbToHex} from "../../js/utils.js";
 import {gameService, GameStatus} from "../../services/game-service.js";
 import {userService} from "../../services/user-service.js";
 import {ListenerComponent} from "../component/listener-component.js";
+import {PlayerDisplay} from "../player-display/player-display.js";
+import {PlayerType} from "../../js/game/Player.js";
 
 export class GameHeader extends ListenerComponent {
     constructor() {
         super();
+
+        PlayerDisplay.register();
 
         this._roundEndHandler = null;
         this.players = [];
@@ -129,18 +133,19 @@ export class GameHeader extends ListenerComponent {
 
     async receiveData(players) {
         const ids = Object.keys(players);
-        let n = 1;
         for (let k = 0; k < ids.length; k++) {
-            n = userService.user._id === ids[k] ? 1 : 2;
-            waitForElm(this, "name-player" + n).then((element) => {
-                element.innerText = players[ids[k]]._name;
-            });
+            const playerId = ids[k];
+            const playerData = players[playerId];
 
-            waitForElm(this, "pp-player" + n).then((element) => {
-                if (element) {
-                    element.src = "../../assets/profile.svg";
-                }
-            });
+            const n = userService.user._id === playerId ? 1 : 2;
+
+            const playerDisplay = this.shadowRoot.querySelector(`#player${n}-display`);
+
+            if (playerDisplay) {
+                playerDisplay.setAttribute("name", playerData._name);
+                if (playerId !== "guest" && playerData._playerType !== PlayerType.AI)
+                    playerDisplay.setAttribute("user-id", playerId);
+            }
         }
     }
 }

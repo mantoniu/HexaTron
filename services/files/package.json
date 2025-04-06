@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "sharp": "^0.34.0",
     "swagger-ui-dist": "^5.19.0"
   }
 }

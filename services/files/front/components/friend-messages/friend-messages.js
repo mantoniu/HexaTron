@@ -18,19 +18,20 @@ export class FriendMessages extends Component {
             this._showNoConversationsText();
 
         conversations.forEach(conversation => {
-            const friendName = conversation.participants[0].name;
-                this.createFriendMessage(conversation._id, friendName, Array.from(conversation.messages.values()).at(-1));
+            const friend = conversation.participants[0];
+            this.createFriendMessage(conversation._id, friend.id, friend.name, Array.from(conversation.messages.values()).at(-1));
             }
         );
     }
 
-    createFriendMessage(conversationId, friendName, lastMessage) {
+    createFriendMessage(conversationId, friendId, friendName, lastMessage) {
         if (!this._convDiv)
             return;
 
         const friendMessage = document.createElement("friend-message");
 
         friendMessage.setAttribute("id", conversationId);
+        friendMessage.setAttribute("friend-id", friendId);
         friendMessage.setAttribute("name", friendName);
 
         if (lastMessage) {

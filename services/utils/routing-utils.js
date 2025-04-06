@@ -32,21 +32,26 @@ function handleError(req, res, error) {
 }
 
 /**
- * Parses the body of a request into JSON.
+ * Parses the body of a request into JSON only if the content type is application/json.
  *
  * @param {IncomingMessage} request - The request object.
- * @returns {Promise<Object>} The parsed request body.
+ * @returns {Promise<void>} Resolves when parsing is done (or skipped).
  */
 function parseRequestBody(request) {
     return new Promise((resolve, reject) => {
+        const contentType = request.headers["content-type"] || "";
+
+        if (!contentType.includes("application/json"))
+            return resolve();
+
         let body = "";
         request.on("data", (chunk) => (body += chunk.toString()));
 
         request.on("end", () => {
-            if (!body.trim())
-                return resolve({});
+            if (!body.trim()) return resolve();
             try {
-                resolve(JSON.parse(body));
+                request.body = JSON.parse(body);
+                resolve();
             } catch (e) {
                 reject(new HttpError(400, "Invalid JSON"));
             }
@@ -80,13 +85,17 @@ function createServiceServer(routes, apiOptions = null, documentationPath = null
             const route = routes.find(
                 (route) =>
                     route.method === req.method &&
-                    (route.path[0] === "*" || route.path.every((segment, index) => segment.startsWith(":") || segment === path[index]))
+                    (route.path[0] === "*" ||
+                        route.path.every((segment, index) => {
+                            return segment.startsWith(":") || segment === path[index];
+                        }) &&
+                        path.length === route.path.length)
             );
 
             if (!route)
                 throw new HttpError(404, "Route not found");
 
-            req.body = await parseRequestBody(req);
+            await parseRequestBody(req);
             await route.handler(req, res);
         } catch (error) {
             handleError(req, res, error);

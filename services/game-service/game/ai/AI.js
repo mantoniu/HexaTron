@@ -1,5 +1,5 @@
 const {neighbour} = require("./AIUtils");
-const {Player} = require("../Player");
+const {Player, PlayerType} = require("../Player");
 
 class AI extends Player {
     constructor(id, name) {
@@ -71,6 +71,13 @@ class AI extends Player {
         this.previous = ((this.dictMovesIndex[moveInActualConfiguration] - 3) + 6) % 6;
 
         return this.moves[indexMoveInDefaultConfiguration];
+    }
+
+    /**
+     * @returns {number} The type of the player (AI).
+     */
+    get playerType() {
+        return PlayerType.AI;
     }
 }
 

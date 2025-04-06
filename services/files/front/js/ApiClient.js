@@ -55,7 +55,7 @@ export class ApiClient {
      * @returns {Promise<Object>} A promise that resolves to the new access token or an error.
      */
     async refreshAccessToken() {
-        const response = await this.request("POST", "api/user/refreshToken", null, this._refreshToken);
+        const response = await this.request("POST", "api/user/refresh-token", null, this._refreshToken);
         if (response) {
             this._accessToken = response.data.accessToken;
             localStorage.setItem("accessToken", this._accessToken);
@@ -70,17 +70,26 @@ export class ApiClient {
      * @param {string} endpoint - The API endpoint.
      * @param {Object|null} body - The request body (if applicable).
      * @param {string|null} token - The authentication token.
+     * @param {boolean} [asJson=true] - Whether to send the body as JSON. If false, assumes body is already in the correct format (e.g., FormData).
      * @returns {Promise<Object>} The response object.
      */
-    async request(method, endpoint, body = null, token = this._accessToken) {
-        const headers = {"Content-Type": "application/json"};
+    async request(method, endpoint, body = null, token = null, asJson = true) {
+        token = token ?? this._accessToken;
+
+        const headers = {};
+
         if (token)
             headers["Authorization"] = `Bearer ${token}`;
+
+        if (asJson) {
+            headers["Content-Type"] = "application/json";
+            body = body ? JSON.stringify(body) : null;
+        }
 
         const options = {
             method,
             headers,
-            body: body ? JSON.stringify(body) : null
+            body
         };
 
         try {
@@ -88,7 +97,7 @@ export class ApiClient {
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
                 await this.refreshAccessToken();
-                return this.request(method, endpoint, body, this._accessToken);
+                return this.request(method, endpoint, body, this._accessToken, asJson);
             }
 
             if (!response.ok)

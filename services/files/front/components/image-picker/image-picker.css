@@ -1,0 +1,51 @@
+#profile-container {
+    position: relative;
+    display: inline-block;
+    width: 9rem;
+    height: 9rem;
+}
+
+#profile-picture {
+    width: 9rem;
+    height: 9rem;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s;
+}
+
+image-overlay {
+    opacity: 0;
+}
+
+#profile-container:hover image-overlay {
+    opacity: 1;
+}
+
+custom-spinner {
+    display: none;
+}
+
+#file-input {
+    display: none;
+}
+
+.loading image-overlay {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.loading #profile-container {
+    pointer-events: none;
+}
+
+#profile-picture {
+    pointer-events: none;
+}
+
+.loading #profile-picture {
+    opacity: 0.3;
+}
+
+.loading custom-spinner {
+    display: block;
+}

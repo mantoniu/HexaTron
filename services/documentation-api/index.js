@@ -76,7 +76,7 @@ async function sendDoc() {
         }
     };
 
-    const req = http.request(process.env.FILES_URL, options, (response) => {
+    const req = http.request(process.env.FILES_URL + "/api", options, (response) => {
         let responseData = "";
 
         response.on("data", (chunk) => {

@@ -1,6 +1,21 @@
 const {
-    removeFriend, addFriend, acceptFriend, addUser, deleteToken, generateToken, generateRefreshToken, checkPassword, updateUser, resetPassword,
-    refreshAccessToken, deleteUserByID, getElo, leaderboard, getRank, getUserByID, getFriendStatus
+    removeFriend,
+    addFriend,
+    acceptFriend,
+    addUser,
+    deleteToken,
+    generateToken,
+    generateRefreshToken,
+    checkPassword,
+    updateUser,
+    resetPassword,
+    refreshAccessToken,
+    deleteUserByID,
+    getElo,
+    leaderboard,
+    getRank,
+    getUserByID,
+    getFriendStatus
 } = require("./database");
 const {getIDInRequest, HttpError, NOTIFICATION_TYPE, sendNotification} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
@@ -9,6 +24,7 @@ const {readData} = require("../utils/api-utils");
 const {parse} = require("url");
 const eventBus = require("./event-bus");
 const {ObjectId} = require("mongodb");
+const {deleteProfilePicture, uploadProfilePicture} = require("./file-utils");
 const saltRounds = 10;
 
 /**
@@ -33,9 +49,12 @@ async function hashPassword(password) {
  * @param {string} id - The ID of the user whose data has been modified.
  */
 async function notifyFriendOfEvent(id) {
-    const {friends, ...user} = await getUserByID(id, [USER_FIELDS.parameters, USER_FIELDS.answers, USER_FIELDS.password]);
+    const {
+        friends,
+        ...user
+    } = await getUserByID(id, [USER_FIELDS.parameters, USER_FIELDS.answers, USER_FIELDS.password]);
     for (const friend in friends) {
-        const status = await getFriendStatus(new ObjectId(id), new ObjectId(friend));
+        const status = await getFriendStatus(new ObjectId(friend), new ObjectId(id));
         const friendData = {id: user._id, friendData: {...user, status: status}};
         eventBus.emit("update-status-friends", {friendId: friend, friendFriends: friendData});
     }
@@ -128,7 +147,7 @@ exports.update = async (req, res) => {
         const userData = await updateUser(req.body, userID);
         res.writeHead(200, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User successfully updated.", user: userData}));
-        await notifyFriendOfEvent(userID, true);
+        await notifyFriendOfEvent(userID);
     } catch (error) {
         if (error instanceof HttpError)
             throw error;
@@ -141,6 +160,37 @@ exports.update = async (req, res) => {
             throw new HttpError(400, "Invalid data format");
 
         throw new HttpError(500, "Internal server error during update");
+    }
+};
+
+
+/**
+ * Updates a user's profile picture by uploading the file and saving the new file path in the database.
+ *
+ * @param {Object} req - The request object containing the user's profile picture.
+ * @param {Object} res - The response object used to send back the update result.
+ * @return {Promise<void>} - Sends a response with the uploaded image file name upon success.
+ * @throws {HttpError} - Throws specific HttpErrors for upload issues, user update failures,
+ *                       or internal server errors.
+ */
+exports.updateProfilePicture = async (req, res) => {
+    try {
+        const userID = getIDInRequest(req);
+        await uploadProfilePicture(req);
+
+        res.writeHead(200, {"Content-Type": "application/json"});
+        res.end(JSON.stringify({message: "Profile picture successfully updated."}));
+        await notifyFriendOfEvent(userID);
+    } catch (error) {
+        if (error instanceof HttpError)
+            throw error;
+
+        if (error.message === DATABASE_ERRORS.USER_NOT_FOUND)
+            throw new HttpError(404, "User not found");
+        if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
+            throw new HttpError(400, "Invalid data format");
+
+        throw new HttpError(500, `Internal server error during profile picture update: ${error.message}`);
     }
 };
 
@@ -274,7 +324,9 @@ exports.disconnect = async (req, res) => {
 exports.delete = async (req, res) => {
     try {
         const userId = getIDInRequest(req);
+        deleteProfilePicture(userId);
         await deleteUserByID(userId);
+
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
         eventBus.emit("delete-user", userId);
@@ -375,7 +427,11 @@ exports.leaderboard = async (req, res) => {
 
         if (parsedUrl.query.id) {
             const rank = await getRank(parsedUrl.query.id);
-            res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking, rank: rank}));
+            res.end(JSON.stringify({
+                message: "Successfully recover the leaderboard",
+                playersELO: playersRanking,
+                rank: rank
+            }));
         } else {
             res.end(JSON.stringify({message: "Successfully recover the leaderboard", playersELO: playersRanking}));
         }

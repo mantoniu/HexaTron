@@ -217,6 +217,29 @@ function createNewGame(players, gameType) {
 }
 
 /**
+ * Retrieves a summary of the players in the form of a dictionary
+ *
+ * @param {Map<string, Object>} players - A Map where the keys are player IDs and the values are player objects.
+ * Each object should have at least a `name` and `playerType` property.
+ *
+ * @returns {Object} - A dictionary where the key is the player ID and the value is an object containing:
+ *                     - `_id`: The player ID.
+ *                     - `_name`: The player name.
+ *                     - `_playerType`: The player type.
+ */
+function getPlayersSummary(players) {
+    const playerSummary = {};
+    players.forEach((player, playerId) => {
+        playerSummary[playerId] = {
+            _id: playerId,
+            _name: player.name,
+            _playerType: player.playerType
+        };
+    });
+    return playerSummary;
+}
+
+/**
  * Starts the game if all required players have joined.
  *
  * @param {GameEngine} gameEngine - The game engine instance managing the game.
@@ -231,7 +254,7 @@ function startGameIfReady(gameEngine) {
 
         io.to(gameEngine.id).emit("refreshStatus", {
             status: CREATED,
-            data: {id: gameEngine.id, players: Object.fromEntries(gameEngine.game.players)}
+            data: {id: gameEngine.id, players: getPlayersSummary(gameEngine.game.players)}
         });
 
         gameEngine.start().then().catch(({type, _}) => {
