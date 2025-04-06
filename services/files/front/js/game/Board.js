@@ -10,6 +10,7 @@ export class Board {
         this._tiles = [];
         this._row = row;
         this._column = column;
+        this._utils = null;
 
         this.initialize();
     }
@@ -97,7 +98,7 @@ export class Board {
 
     fillTile(pos, color, direction, context, drawBike, finalState = false) {
         if (!this._utils)
-            this._utils = this.calculateUtils(context);
+            this.draw(context);
         let dPos = [this._utils.gapX + this._utils.dx * (pos.column - (pos.row % 2 === 1 ? 0.5 : 0)) + context.lineWidth, this._utils.gapY + this._utils.dy * (pos.row - 1) + context.lineWidth];
         this.getTile(pos).fill(dPos, this._utils.size, context, this.getStrokeColor(pos.row, pos.column, color), color, direction, drawBike, true, finalState);
     }
