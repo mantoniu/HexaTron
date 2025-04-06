@@ -63,3 +63,37 @@ image-button {
 .hidden {
     display: none;
 }
+
+#notifications {
+    position: relative;
+}
+
+#numberNotRead {
+    position: absolute;
+    display: none;
+    top: 0;
+    right: 0;
+    background-color: var(--red);
+    color: white;
+    border-radius: 20px;
+    height: 1.5rem;
+    width: 1.5rem;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.bounce-animation {
+    animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}

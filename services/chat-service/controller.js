@@ -1,9 +1,9 @@
 const {parse} = require('url');
-const {getIDInRequest, HttpError} = require("../utils/controller-utils");
+const {getIDInRequest, HttpError, sendNotification, NOTIFICATION_TYPE} = require("../utils/controller-utils");
 const {
     getUserConversationsWithLastMessage,
     getConversationWithMessagesBeforeDate,
-    deleteUser
+    deleteUser, saveMessage
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../utils/api-utils");
@@ -74,6 +74,20 @@ exports.deleteUser = async (req, res) => {
 
         throw new HttpError(500, error.message);
     }
+};
+
+/**
+ * Saves a message and sends a notification to all friends.
+ *
+ *
+ * @param {Object} message - The message object to be saved.
+ * @param {string} senderId - The ID of the sender.
+ * @param {string[]} friendsId - An array of friend IDs to notify.
+ */
+exports.saveMessage = async (message, senderId, friendsId) => {
+    const messageId = await saveMessage(message);
+    if (message.conversationId.toString() !== process.env.GLOBAL_CONVERSATION_ID)
+        friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, senderId, [message.conversationId, messageId]));
 };
 
 /**

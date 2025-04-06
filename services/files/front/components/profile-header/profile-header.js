@@ -1,23 +1,34 @@
 import {Component} from "../component/component.js";
 import {RankDisplay} from "../rank-display/rank-display.js";
+import {ImagePicker} from "../image-picker/image-picker.js";
+import {ProfilePicture} from "../profile-picture/profile-picture.js";
 
 export class ProfileHeader extends Component {
     constructor() {
         super();
 
+        ImagePicker.register();
+        ProfilePicture.register();
         RankDisplay.register();
     }
 
     static get observedAttributes() {
-        return ["username", "league", "elo", "profilePicture"];
+        return ["username", "league", "elo", "other-user"];
     }
 
     async connectedCallback() {
         await super.connectedCallback();
 
-        this._profilePictureElem = this.shadowRoot.getElementById("profile-picture");
+        this._profilePictureElem = this.shadowRoot.querySelector("image-picker");
         this._rankDisplay = this.shadowRoot.getElementById("rank-display");
         this._usernameElem = this.shadowRoot.getElementById("username");
+        this._userId = this.getAttribute("user-id");
+
+        this.addEventListener("imageUpdate", () =>
+            this._updateProfilePicture());
+
+        if (this._otherUser)
+            this._profilePictureElem.setAttribute("disabled", "");
 
         this._update();
     }
@@ -33,18 +44,24 @@ export class ProfileHeader extends Component {
             case "elo":
                 this._elo = parseFloat(newValue);
                 break;
-            case "profilePicture":
-                this._profilePicture = newValue;
+            case "other-user":
+                this._otherUser = newValue === "true";
                 break;
         }
 
         this._update();
     }
 
+    _updateProfilePicture() {
+        this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate"));
+    }
+
     _update() {
-        if (this._profilePictureElem && this._profilePicture) {
-            this._profilePictureElem.src = this._profilePicture;
-            this._profilePictureElem.onerror = () => console.warn("Error loading the profile picture");
+        if (this._profilePictureElem && this._userId) {
+            if (this._profilePictureElem.hasAttribute("user-id"))
+                this._updateProfilePicture();
+            else
+                this._profilePictureElem.setAttribute("user-id", this._userId);
         }
 
         if (this._usernameElem && this._username)

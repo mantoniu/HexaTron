@@ -26,6 +26,7 @@ export const USER_ACTIONS = Object.freeze({
     LOGIN: "login",
     REGISTER: "register",
     UPDATE_USERNAME: "editUsername",
+    UPDATE_PROFILE_PICTURE: "updateProfilePicture",
     UPDATE_PASSWORD: "updatePassword",
     RESET_PASSWORD: "resetPassword",
     LOGOUT: "logout",
@@ -68,6 +69,9 @@ const ERROR_MESSAGES = {
     [USER_ACTIONS.RESET_PASSWORD]: {
         401: "The security answers provided are incorrect. Please try again.",
         404: "No account found with the provided username."
+    },
+    [USER_ACTIONS.UPDATE_PROFILE_PICTURE]: {
+        500: "Unable to update the profile picture. Please try again later"
     },
     [USER_ACTIONS.DELETE]: {
         404: "The user account you are trying to delete does not exist.",
@@ -231,6 +235,27 @@ class UserService extends EventEmitter {
     }
 
     /**
+     * Updates the user's profile picture.
+     * Sends the new profile picture file to the backend for processing, and updates the user's profile with the new image.
+     *
+     * @param {File} file - The new profile picture file to be uploaded. It should be a valid image file (e.g., JPEG, PNG, GIF).
+     *
+     * @returns {Promise<Object>} A promise that resolves to an object indicating the success or failure of the operation:
+     * - If successful: `{ success: true, profilePicture: "newImageFilePath" }`
+     * - If failed: `{ success: false, error: "Error message" }`
+     */
+    async updateProfilePicture(file) {
+        const formData = new FormData();
+        formData.append("profile_picture", file);
+
+        const response = await apiClient.request("PATCH", "api/user/me/profile-picture", formData, null, false);
+        if (response.success)
+            return {success: true};
+
+        return {success: false, error: this._getErrorMessage(response.status, USER_ACTIONS.UPDATE_PROFILE_PICTURE)};
+    }
+
+    /**
      * Updates the password of the current user.
      *
      * @param {string} curPassword - The current password.
@@ -238,7 +263,7 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} A promise that resolves to an object indicating success or failure.
      */
     async updatePassword(curPassword, newPassword) {
-        const response = await apiClient.request("POST", "api/user/updatePassword", {
+        const response = await apiClient.request("POST", "api/user/update-password", {
             oldPassword: curPassword,
             newPassword
         });
@@ -310,7 +335,7 @@ class UserService extends EventEmitter {
      * @returns {Promise<Object>} A promise that resolves to an object indicating success or failure.
      */
     async resetPassword(username, password, answers) {
-        const response = await apiClient.request("POST", "api/user/resetPassword", {username, password, answers});
+        const response = await apiClient.request("POST", "api/user/reset-password", {username, password, answers});
         if (response.success)
             return {success: true, message: "Password successfully reset."};
 

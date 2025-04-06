@@ -31,7 +31,7 @@ export class HomeButton extends Component {
         await super.connectedCallback();
 
         this.update();
-        this.addAutoCleanListener(this.shadowRoot.querySelector("image-button"), "click", () => {
+        this.addAutoCleanListener(this, "click", () => {
             if (window.location.pathname !== "/")
                 window.location.href = "/";
         });
