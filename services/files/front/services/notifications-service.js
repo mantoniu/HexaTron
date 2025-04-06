@@ -24,7 +24,6 @@ export const NOTIFICATIONS_TYPE = Object.freeze({
     FRIEND_REQUEST: "friendRequest",
     FRIEND_DELETION: "friendDeletion",
     FRIEND_ACCEPT: "friendAccept",
-    FRIENDLY_GAME: "friendlyGame",
     GAME_INVITATION: "gameInvitation"
 });
 
