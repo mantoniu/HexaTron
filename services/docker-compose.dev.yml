@@ -4,18 +4,31 @@ services:
       context: ./files/
       network: host
       target: dev
+    restart: no
     volumes:
       - ./files/front:/app/front
 
   gateway:
+    restart: no
     environment:
       - NODE_ENV=development
       - GATEWAY_URL=${GATEWAY_URL_HTTP}
 
   game-service:
+    restart: no
     environment:
       - GATEWAY_URL=${GATEWAY_URL_HTTP}
 
   chat-service:
+    restart: no
     environment:
       - GATEWAY_URL=${GATEWAY_URL_HTTP}
+
+  notifications-service:
+    restart: no
+
+  user-service:
+    restart: no
+
+  mongodb:
+    restart: no
