@@ -14,10 +14,10 @@ services:
     expose:
       - "27017"
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
+      test: [ "CMD", "mongo", "--quiet", "--eval", "db.adminCommand('ping')" ]
+      interval: 60s
       retries: 5
-      start_period: 10s
+      start_period: 20s
       timeout: 5s
 
   database-initializer:
@@ -76,7 +76,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8003/api/user/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -99,7 +99,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8002/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -132,7 +132,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8005/api/user/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -161,7 +161,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8007/api/notifications/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -181,7 +181,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8001/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
