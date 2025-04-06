@@ -81,7 +81,8 @@ services:
 
   game-service:
     build:
-      context: ./game-service/
+      context: .
+      dockerfile: game-service/Dockerfile
       network: host
     networks:
       - network-services
@@ -91,6 +92,7 @@ services:
       - GATEWAY_URL=${GATEWAY_URL}
       - GAME_SERVICE_URL=${GAME_SERVICE_URL}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - NOTIFICATIONS_SERVICE_URL=${NOTIFICATIONS_SERVICE_URL}
     depends_on:
       mongodb:
         condition: service_healthy

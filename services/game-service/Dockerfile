@@ -2,12 +2,14 @@ FROM node:18-slim
 
 RUN apt-get update && apt-get install -y curl
 
-WORKDIR /app
-COPY package*.json ./
+WORKDIR /app/game-service/
+COPY ./game-service/package*.json ./
+COPY ./game-service/*.js ./
+COPY ./game-service/game ./game
+COPY ../utils/* /app/utils/
+
 RUN npm install
+RUN cd /app/utils && npm install
 
-COPY ./index.js /app/index.js
-COPY ./game /app/game
-
-EXPOSE 8002
+EXPOSE 8007
 CMD ["npm", "start"]
