@@ -33,8 +33,8 @@ export class ProfilePicture extends Component {
                 this.dispatchEvent(new CustomEvent("imageError"));
             };
 
-            const imgWidth = this._img.clientWidth;
-            const imgHeight = this._img.clientHeight;
+            const imgWidth = this.clientWidth;
+            const imgHeight = this.clientHeight;
 
             let imageSize = 'small';
             if (imgWidth >= 300 || imgHeight >= 300)
