@@ -5,6 +5,7 @@ const {GAME_END, CREATED} = require("./game/GameStatus");
 const RemotePlayer = require("./game/RemotePlayer");
 const {GameType} = require("./game/Game");
 const {GAME_SETTINGS} = require("./game/Utils");
+const {NOTIFICATION_TYPE, sendNotification} = require("../utils/controller-utils");
 
 const ErrorTypes = Object.freeze({
     GAME_NOT_FOUND: 'GAME_NOT_FOUND',
@@ -277,30 +278,40 @@ function startGameIfReady(gameEngine) {
 }
 
 /**
- * Allows a player to join a friendly game, either by joining an existing one or creating a new one.
+ * Creates a new friendly game and sends an invitation to the expected opponent to join the game.
  *
- * @param {RemotePlayer} player - The player attempting to join the game.
- * @param {string} expectedPlayerId - The ID of the expected opponent.
- * @param {Socket} socket - The socket instance of the player.
+ * @param {RemotePlayer} player - The player creating the friendly game.
+ * @param {string} expectedPlayerId - The ID of the expected opponent to whom the invitation will be sent.
+ * @param {Socket} socket - The socket instance of the player, used to join the new game room.
  */
-function joinFriendlyGame(player, expectedPlayerId, socket) {
-    let game;
+function createFriendlyGame(player, expectedPlayerId, socket) {
+    const game = createNewGame([player], GameType.FRIENDLY);
+    socket.join(game.id);
+    friendlyGames.set(game.id, game);
 
-    // If the player already has a pending friendly game, add them to it
-    if (friendlyGames.has(player.id)) {
-        game = friendlyGames.get(player.id);
-        game.addPlayer(player);
-        socket.join(game.id);
-    }
-    // Otherwise, if an expected player ID is provided, create a new game
-    else if (expectedPlayerId) {
-        game = createNewGame([player], GameType.FRIENDLY);
-        socket.join(game.id);
-        friendlyGames.set(expectedPlayerId, game);
-    }
+    sendNotification(expectedPlayerId,
+        NOTIFICATION_TYPE.GAME_INVITATION,
+        player.id,
+        [game.id]).catch(error => console.error(`Error while sending game invitation:`, error));
+}
+
+/**
+ * Allows a player to join an existing friendly game by its ID and starts the game if ready.
+ *
+ * @param {RemotePlayer} player - The player attempting to join the friendly game.
+ * @param {string} gameId - The ID of the friendly game the player is trying to join.
+ * @param {Socket} socket - The socket instance of the player, used to join the game room.
+ */
+function joinFriendlyGame(player, gameId, socket) {
+    if (!friendlyGames.has(gameId))
+        return;
+
+    const game = friendlyGames.get(gameId);
+    game.addPlayer(player);
+    socket.join(gameId);
 
     if (startGameIfReady(game))
-        friendlyGames.delete(expectedPlayerId);
+        friendlyGames.delete(gameId);
 }
 
 /**
@@ -330,7 +341,8 @@ function handlePlayerLeave(gameId, userId, socket) {
 
     const gameEngine = activeGames.get(gameId);
     socket.leave(gameId);
-    if (gameEngine.game.type !== GameType.RANKED) {
+    if (gameEngine.game.type !== GameType.RANKED
+        && gameEngine.game.type !== GameType.FRIENDLY) {
         activeGames.delete(gameId);
         return;
     }
@@ -348,7 +360,7 @@ io.on('connection', (gatewaySocket) => {
 
     gatewaySocket.on("joinGame", (gameParams, callback) => {
         try {
-            const {players, gameType, expectedPlayerId = null} = gameParams;
+            const {players, gameType, params} = gameParams;
             validateJoin(players, gameType);
 
             const remotePlayers = [];
@@ -358,8 +370,15 @@ io.on('connection', (gatewaySocket) => {
             });
 
             if (gameType === GameType.FRIENDLY) {
-                joinFriendlyGame(remotePlayers[0], expectedPlayerId, gatewaySocket);
-                return;
+                if (params.friendId) {
+                    createFriendlyGame(remotePlayers[0], params.friendId, gatewaySocket);
+                    return;
+                }
+
+                if (params.gameId) {
+                    joinFriendlyGame(remotePlayers[0], params.gameId, gatewaySocket);
+                    return;
+                }
             }
 
             let game = Array.from(pendingGames.values()).find(gameEngine =>
