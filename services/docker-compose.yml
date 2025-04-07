@@ -172,6 +172,8 @@ services:
       network: host
       target: prod
     restart: always
+    volumes:
+      - storage:/app/storage
     networks:
       - network-services
     expose:
@@ -241,3 +243,4 @@ networks:
 
 volumes:
   mongo-data:
+  storage:
