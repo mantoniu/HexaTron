@@ -27,7 +27,7 @@ export class ResultScreen extends ListenerComponent {
                 break;
             case "results":
                 this.results = JSON.parse(newValue);
-                this.update_results();
+                this.updateResults();
                 break;
         }
     }
@@ -75,7 +75,7 @@ export class ResultScreen extends ListenerComponent {
         this.shadowRoot.replaceChild(element, header);
     }
 
-    update_results() {
+    updateResults() {
         const status = this.shadowRoot.getElementById("status");
         const score = this.shadowRoot.getElementById("score");
 
@@ -83,7 +83,7 @@ export class ResultScreen extends ListenerComponent {
             case GameResult.WIN:
                 status.textContent = GameResult.WIN;
                 status.style.color = "var(--win-green)";
-                score.textContent = `You win against ${this.results.winners[0]}`;
+                score.textContent = `You win against ${this.results.losers[0]}`;
                 break;
             case GameResult.DRAW:
                 status.textContent = GameResult.DRAW;
