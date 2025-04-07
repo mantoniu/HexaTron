@@ -105,7 +105,6 @@ export class UserProfile extends Component {
 
     async _handleLogout() {
         await userService.logout();
-        window.location.href = "/";
     }
 
     _createModalPopup() {

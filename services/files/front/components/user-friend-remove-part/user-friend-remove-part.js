@@ -1,5 +1,6 @@
 import {Component} from "../component/component.js";
 import {chatService} from "../../services/chat-service.js";
+import {SubmitButton} from "../submit-button/submit-button.js";
 
 export class UserFriendRemovePart extends Component {
     static SELECTORS = {
@@ -10,27 +11,38 @@ export class UserFriendRemovePart extends Component {
 
     constructor() {
         super();
-        this._elements = {};
+
+        SubmitButton.register();
     }
 
     async connectedCallback() {
         await super.connectedCallback();
-        this._elements = this.initializeElements(UserFriendRemovePart.SELECTORS);
 
         if (JSON.parse(this.getAttribute("deletion-desactivate"))) {
             this.style.marginTop = "0px";
-            this._elements.DELETE_FRIEND.style.display = "none";
+            this.shadowRoot.getElementById("deleteFriend").style.display = "none";
         }
 
         this._friendId = this.getAttribute("friendId");
 
+        if (JSON.parse(this.getAttribute("icons-only"))) {
+            this.shadowRoot.querySelectorAll("submit-button").forEach(button => button.style.display = "none");
+            this.style.flexDirection = "row";
+        } else
+            this.shadowRoot.querySelectorAll(".iconButton").forEach(button => button.style.display = "none");
         this.setupEventListeners();
     }
 
     setupEventListeners() {
-        this.addAutoCleanListener(this._elements.CHALLENGE, "click", () => this._launchFriendlyGame());
-        this.addAutoCleanListener(this._elements.DELETE_FRIEND, "click", (click) => this.handleFriendDeletion(click));
-        this.addAutoCleanListener(this._elements.MESSAGE, "click", (click) => this.sendMessage(click));
+        this.shadowRoot.querySelectorAll(".sendMessage").forEach(element => {
+            this.addAutoCleanListener(element, "click", (click) => this.sendMessage(click));
+        });
+        this.shadowRoot.querySelectorAll(".challenge").forEach(element => {
+            this.addAutoCleanListener(element, "click", (click) => {
+                this._launchFriendlyGame()
+            });
+        });
+        this.addAutoCleanListener(this.shadowRoot.getElementById("deleteFriend"), "click", (click) => this.handleFriendDeletion(click));
     }
 
     async handleFriendDeletion(click) {

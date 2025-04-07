@@ -308,7 +308,6 @@ class UserService extends EventEmitter {
         await apiClient.request("POST", "api/user/disconnect");
 
         this._reset();
-        this.emit(USER_EVENTS.LOGOUT);
     }
 
     /**
@@ -458,13 +457,15 @@ class UserService extends EventEmitter {
     /**
      * Resets the user service to its initial state.
      *
-     * @private
      */
     _reset() {
         this._user = null;
         this._connected = false;
         this._clearLocalStorage();
         apiClient.clearTokens();
+        socketService.disconnectAll();
+        userService.emit(USER_EVENTS.LOGOUT);
+        window.location.href = "/";
     }
 
     /**

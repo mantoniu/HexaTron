@@ -33,6 +33,7 @@ const servicesConfig = {
         ws: {
             namespace: "/friends",
             requiresAuth: true,
+            publicEvents: []
         },
         auth: ["userId"]
     },
@@ -47,7 +48,8 @@ const servicesConfig = {
         },
         ws: {
             namespace: '/chat',
-            requiresAuth: true
+            requiresAuth: true,
+            publicEvents: []
         },
         auth: ["userId"]
     },
@@ -59,7 +61,8 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: '/game',
-            requiresAuth: false
+            requiresAuth: false,
+            publicEvents: []
         },
         auth: ["userId"]
     },
@@ -70,7 +73,8 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: "/notifications",
-            requiresAuth: true
+            requiresAuth: true,
+            publicEvents: []
         },
         auth: ["userId"]
     }
@@ -114,13 +118,16 @@ function checkAuthentication(req, serviceConfig) {
     }
 
     // Verification based on token type (access or refresh)
-    const isRefreshRoute = req.url.includes('refreshToken');
+    const isRefreshRoute = req.url.includes("refresh-token");
     const secret = isRefreshRoute ? jwtRefreshSecretKey : jwtAccessSecretKey;
 
     try {
         return jwt.verify(token, secret);
     } catch (error) {
-        throw new Error("Invalid token");
+        if (isRefreshRoute)
+            throw new Error("User not connected");
+        else
+            throw new Error("Invalid token");
     }
 }
 
@@ -194,6 +201,8 @@ requestHandler = async (request, response) => {
             } catch (error) {
                 // Handle authentication errors
                 if (error.message === "No token provided")
+                    response.statusCode = 401;
+                else if (error.message === "User not connected")
                     response.statusCode = 407;
                 else response.statusCode = 498;
 
@@ -252,8 +261,13 @@ Object.values(servicesConfig).forEach(service => {
             auth: {userId}
         });
 
-        clientSocket.onAny((eventName, ...args) => socket.emit(eventName, ...args));
-        clientSocket.on("disconnect", () => socket.disconnect());
+        clientSocket.onAny((eventName, ...args) => {
+            socket.emit(eventName, ...args);
+        });
+
+        clientSocket.on("disconnect", () => {
+            socket.disconnect();
+        });
 
         socket.onAny((eventName, ...args) => {
             clientSocket.emit(eventName, ...args);

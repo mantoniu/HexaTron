@@ -1,7 +1,50 @@
 :host {
     margin-top: 20px;
     justify-content: center;
-    flex-direction: row;
-    gap: 10px;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
 }
 
+submit-button {
+    height: 100%;
+    width: 100%;
+    flex: 1 1 0;
+}
+
+#buttonSendMessage {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+}
+
+#buttonChallenge {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+}
+
+p {
+    margin: 5px 0 5px 0;
+}
+
+img {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 12px;
+    margin: auto 0 auto 0;
+}
+
+image-button {
+    position: relative;
+    height: 30px;
+    width: 30px;
+    margin: auto 0 auto 0;
+}

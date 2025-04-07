@@ -1,1 +1,13 @@
+:host {
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
 
+submit-button {
+    width: 100%;
+}
+
+p {
+    margin: 5px 0 5px 0;
+}
