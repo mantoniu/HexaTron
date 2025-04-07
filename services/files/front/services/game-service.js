@@ -275,8 +275,9 @@ class GameService extends EventEmitter {
      * Starts a new game with the specified game type.
      *
      * @param {Number} gameType - The type of game to start.
+     * @param {Object} params - The games parameters
      */
-    startGame(gameType) {
+    startGame(gameType, params = {}) {
         if (this.game?.id)
             return;
 
@@ -294,7 +295,8 @@ class GameService extends EventEmitter {
 
         this.socket.emit("joinGame", {
             gameType,
-            players: players.map(player => ({id: player.id, name: player.name}))
+            players: players.map(player => ({id: player.id, name: player.name})),
+            params
         }, (id) => this.game.id = id);
 
         this.emit(GameStatus.STARTED);

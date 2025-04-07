@@ -60,10 +60,6 @@ export class NotificationsListElement extends Component {
                 this.classList.add("friend");
                 type.textContent = "Friend";
                 break;
-            case NOTIFICATIONS_TYPE.FRIENDLY_GAME:
-                message.textContent = "Friendly game";
-                button.textContent = `Play`;
-                break;
             case NOTIFICATIONS_TYPE.NEW_MESSAGE:
                 //this.notification.objectsId => [conversationId, messageId]
                 message.textContent = `${this.notification.friendName} sent you a message`;
@@ -72,6 +68,13 @@ export class NotificationsListElement extends Component {
                 this.classList.add("message");
                 type.textContent = "Message";
                 break;
+            case NOTIFICATIONS_TYPE.GAME_INVITATION:
+                message.textContent = `${this.notification.friendName} sent you a game invitation`;
+                button.textContent = "Join the game";
+                this.addAutoCleanListener(button, "click", () => this.joinGame());
+                type.textContent = "Game Invitation";
+                this.classList.add("game-invitation");
+                break;
             default:
                 console.warn("Type of notification unknown");
         }
@@ -79,6 +82,33 @@ export class NotificationsListElement extends Component {
         if (!this.notification.isRead) {
             this.classList.add("isNotRead");
         }
+    }
+
+    joinGame() {
+        this.dispatchEvent(new CustomEvent("deleteNotification", {
+            bubbles: true,
+            composed: true,
+            detail: this.notification._id
+        }));
+
+        const gameId = this.notification?.objectsId?.[0];
+
+        if (!gameId) {
+            console.error("Game id not defined");
+            return;
+        }
+
+        this.dispatchEvent(new CustomEvent("closeDrawer", {
+            composed: true,
+            bubbles: true
+        }));
+
+        window.dispatchEvent(new CustomEvent("navigate", {
+            detail: {
+                route: `/friendly`,
+                params: {gameId: gameId}
+            }
+        }));
     }
 
     goToFriendsPortal() {

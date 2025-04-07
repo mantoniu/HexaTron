@@ -54,6 +54,13 @@
     border-bottom: 1px solid var(--primary-blue);
 }
 
+:host(.game-invitation) {
+    background-color: color-mix(in srgb, #FF5733 15%, transparent);
+}
+
+:host(.game-invitation) #type {
+    border-bottom: 1px solid #FF5733;
+}
 
 :host(:not(.isNotRead)) #isNotRead {
     display: none;

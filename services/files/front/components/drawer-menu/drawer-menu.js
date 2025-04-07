@@ -166,6 +166,10 @@ export class DrawerMenu extends ListenerComponent {
             this._alertMessage = createAlertMessage(alertContainer, type, text);
         });
 
+        this.addEventListener("closeDrawer", (event) => {
+            event.stopPropagation();
+            this._nav(this.current);
+        });
 
         this._setupChatServiceListeners();
         this._setupUserServiceListeners();

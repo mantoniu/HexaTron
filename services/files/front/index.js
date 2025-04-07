@@ -14,44 +14,60 @@ GameComponent.register();
 DrawerMenu.register();
 HexagonBackground.register();
 
-const routes = {
-    "/": {
-        template: "<mode-selector></mode-selector>",
+const routes = [
+    {
+        path: "/",
+        template: () => "<mode-selector></mode-selector>",
         authRequired: false,
         onNavigate: () => window.dispatchEvent(new CustomEvent("resetCustomNav"))
     },
-    "/local": {
-        template: `<game-component type='${GameType.LOCAL}'></game-component>`,
+    {
+        path: "/local",
+        template: () => `<game-component type='${GameType.LOCAL}'></game-component>`,
         authRequired: false
     },
-    "/ai": {
-        template: `<game-component type='${GameType.AI}'></game-component>`,
+    {
+        path: "/ai",
+        template: () => `<game-component type='${GameType.AI}'></game-component>`,
         authRequired: false
     },
-    "/ranked": {
-        template: `<game-component type='${GameType.RANKED}'></game-component>`,
+    {
+        path: "/ranked",
+        template: () => `<game-component type='${GameType.RANKED}'></game-component>`,
         authRequired: true
+    },
+    {
+        path: "/friendly",
+        template: (params) => `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`,
+        authRequired: true,
+        validateParams: (params) => params.friendId || params.gameId
     }
-};
+];
 
-const navigateTo = (url) => {
-    const route = routes[url];
+const navigateTo = (url, params = {}) => {
+    const matchedRoute = routes.find(route => route.path === url);
 
-    if (!route) {
+    if (!matchedRoute) {
         redirectTo("/");
         return;
     }
 
-    if (route.authRequired && !userService.isConnected()) {
+    if (matchedRoute.authRequired && !userService.isConnected()) {
+        redirectTo("/");
+        return;
+    }
+
+    if (matchedRoute.validateParams && !matchedRoute.validateParams(params)) {
         redirectTo("/");
         return;
     }
 
     history.pushState({path: url}, "", url);
-    document.getElementById("outlet").innerHTML = route.template;
+    document.getElementById("outlet").innerHTML = matchedRoute.template(params);
+    window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url, params}}));
 
-    if (route.onNavigate)
-        route.onNavigate();
+    if (matchedRoute.onNavigate)
+        matchedRoute.onNavigate();
 
     window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url}}));
 };
@@ -67,8 +83,8 @@ const updateView = () => {
 };
 
 window.addEventListener("navigate", (event) => {
-    const route = event.detail.route;
-    navigateTo(route);
+    const {route, params} = event.detail;
+    navigateTo(route, params);
 });
 
 window.onpopstate = () => {
