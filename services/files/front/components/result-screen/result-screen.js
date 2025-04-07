@@ -1,10 +1,10 @@
-import {Component} from "../component/component.js";
 import {CustomButton} from "../custom-button/custom-button.js";
 import {GameHeader} from "../game-header/game-header.js";
-import {GameResult} from "../../services/game-service.js";
+import {GameResult, gameService, GameStatus} from "../../services/game-service.js";
 import {userService} from "../../services/user-service.js";
+import {ListenerComponent} from "../component/listener-component.js";
 
-export class ResultScreen extends Component {
+export class ResultScreen extends ListenerComponent {
     constructor() {
         super();
 
@@ -35,6 +35,12 @@ export class ResultScreen extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
+        if (gameService.isGameCreated())
+            this._launchAnimation();
+
+        this.addAutomaticEventListener(gameService, GameStatus.CREATED, () =>
+            this._launchAnimation());
+
         const backToMenu = this.shadowRoot.getElementById("back-to-menu");
         this.addAutoCleanListener(backToMenu, "click", () => {
             window.dispatchEvent(new CustomEvent("navigate", {
@@ -45,6 +51,12 @@ export class ResultScreen extends Component {
             this.showResult());
         this.move();
         this.showResult();
+    }
+
+    _launchAnimation() {
+        this.classList.remove("fall-animation");
+        void this.offsetWidth;
+        this.classList.add("fall-animation");
     }
 
     move() {

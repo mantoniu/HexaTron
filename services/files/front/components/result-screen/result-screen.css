@@ -9,9 +9,12 @@
     border-radius: 20px;
     background-color: var(--card-bg);
     box-shadow: 0 2px 8px var(--shadow);
-    animation: fall 2s ease;
     transition: transform 2s ease, max-height 2s ease;
     overflow: hidden;
+}
+
+:host(.fall-animation) {
+    animation: fall 2s ease;
 }
 
 #result {
