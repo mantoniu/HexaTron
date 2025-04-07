@@ -1,4 +1,6 @@
 export class Component extends HTMLElement {
+    static _resourcesCache = new Map();
+
     constructor() {
         super();
 
@@ -37,11 +39,22 @@ export class Component extends HTMLElement {
     }
 
     async loadResources() {
+        const elementName = this.constructor.elementName;
+        const cachedResources = Component._resourcesCache.get(elementName);
+
+        if (cachedResources) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            this.render(cachedResources.html, cachedResources.css);
+            return;
+        }
+
         const [html, css] = await Promise.all([
             this.fetchResource('html'),
             this.fetchResource('css')
         ]);
 
+        Component._resourcesCache.set(elementName, {html, css});
         this.render(html, css);
     }
 

@@ -9,4 +9,4 @@ COPY ./index.js /app/index.js
 COPY ./cors.js /app/cors.js
 
 EXPOSE 8000
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
