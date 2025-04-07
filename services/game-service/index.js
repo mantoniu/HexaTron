@@ -5,7 +5,7 @@ const {GAME_END, CREATED} = require("./game/GameStatus");
 const RemotePlayer = require("./game/RemotePlayer");
 const {GameType} = require("./game/Game");
 const {GAME_SETTINGS} = require("./game/Utils");
-const {NOTIFICATION_TYPE, sendNotification} = require("../utils/controller-utils");
+const {NOTIFICATION_TYPE, sendNotification, deleteNotification} = require("../utils/controller-utils");
 
 const ErrorTypes = Object.freeze({
     GAME_NOT_FOUND: 'GAME_NOT_FOUND',
@@ -284,10 +284,11 @@ function startGameIfReady(gameEngine) {
  * @param {string} expectedPlayerId - The ID of the expected opponent to whom the invitation will be sent.
  * @param {Socket} socket - The socket instance of the player, used to join the new game room.
  */
-function createFriendlyGame(player, expectedPlayerId, socket) {
+function createFriendlyGame(player, expectedPlayerId, socket, callback) {
     const game = createNewGame([player], GameType.FRIENDLY);
     socket.join(game.id);
     friendlyGames.set(game.id, game);
+    callback(game.id);
 
     sendNotification(expectedPlayerId,
         NOTIFICATION_TYPE.GAME_INVITATION,
@@ -315,6 +316,44 @@ function joinFriendlyGame(player, gameId, socket) {
 }
 
 /**
+ * Returns the first game room from a player's list of rooms
+ * that matches a pending, active, or friendly game.
+ *
+ * @param {Set<string>} rooms - The set of room IDs the player is in.
+ * @returns {string | undefined} - The game ID if found, otherwise undefined.
+ */
+function getPlayerGame(rooms) {
+    return Array.from(rooms).find(room =>
+        pendingGames.has(room) ||
+        activeGames.has(room) ||
+        friendlyGames.has(room)
+    );
+}
+
+/**
+ * If the game exists in the given map and has only one player,
+ * deletes it from the map. In all cases, removes the socket from the room.
+ *
+ * @param {Map<string, GameEngine>} map - The map of games (pending or friendly).
+ * @param {string} gameId - The ID of the game to leave.
+ * @param {Socket} socket - The player's socket instance.
+ *
+ * @returns {boolean} - True if the game existed and the player was removed, false otherwise.
+ */
+function deleteIfSinglePlayerGame(map, gameId, socket) {
+    if (map.has(gameId)) {
+        const gameEngine = map.get(gameId);
+        if (gameEngine.game.players.size === 1)
+            map.delete(gameId);
+
+        socket.leave(gameId);
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Handles the event when a player leaves a game.
  * It handles both pending and active games, removing the player from the game
  * and cleaning up if necessary.
@@ -326,13 +365,12 @@ function joinFriendlyGame(player, gameId, socket) {
  * @returns {void}
  */
 function handlePlayerLeave(gameId, userId, socket) {
-    if (pendingGames.has(gameId)) {
-        const gameEngine = pendingGames.get(gameId);
-        if (gameEngine.game.players.size === 1) {
-            pendingGames.delete(gameId);
-        }
+    if (deleteIfSinglePlayerGame(pendingGames, gameId, socket))
+        return;
 
-        socket.leave(gameId);
+    if (deleteIfSinglePlayerGame(friendlyGames, gameId, socket)) {
+        deleteNotification(userId, gameId).catch(error =>
+            console.error("Notification deletion failed:", error));
         return;
     }
 
@@ -349,7 +387,6 @@ function handlePlayerLeave(gameId, userId, socket) {
 
     gameEngine.disconnectPlayer(userId);
 }
-
 
 io.on('connection', (gatewaySocket) => {
     console.log('✅ Gateway socket connected to the Game Service');
@@ -371,7 +408,7 @@ io.on('connection', (gatewaySocket) => {
 
             if (gameType === GameType.FRIENDLY) {
                 if (params.friendId) {
-                    createFriendlyGame(remotePlayers[0], params.friendId, gatewaySocket);
+                    createFriendlyGame(remotePlayers[0], params.friendId, gatewaySocket, callback);
                     return;
                 }
 
@@ -434,8 +471,7 @@ io.on('connection', (gatewaySocket) => {
     });
 
     gatewaySocket.on("disconnecting", () => {
-        const gameId = Array.from(gatewaySocket.rooms).find(room => pendingGames.has(room))
-            ?? Array.from(gatewaySocket.rooms).find(room => activeGames.has(room));
+        const gameId = getPlayerGame(gatewaySocket.rooms);
         if (gameId)
             handlePlayerLeave(gameId, userId, gatewaySocket);
     });
