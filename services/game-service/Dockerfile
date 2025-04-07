@@ -10,4 +10,4 @@ COPY ./index.js /app/index.js
 COPY ./game /app/game
 
 EXPOSE 8002
-CMD ["npm", "start"]
+CMD ["node", "index.js"]

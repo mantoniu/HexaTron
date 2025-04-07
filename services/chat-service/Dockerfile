@@ -12,4 +12,4 @@ RUN cd /app/utils && npm install
 COPY ./chat-service/*.js ./
 
 EXPOSE 8005
-CMD ["npm", "start"]
+CMD ["node", "index.js"]

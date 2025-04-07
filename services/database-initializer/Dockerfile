@@ -7,4 +7,4 @@ RUN npm install
 COPY type-documentation.js /app/type-documentation.js
 COPY index.js /app/index.js
 
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
