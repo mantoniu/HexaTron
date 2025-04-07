@@ -12,4 +12,4 @@ RUN cd /app/utils && npm install
 COPY ./notifications-service/*.js ./
 
 EXPOSE 8007
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
