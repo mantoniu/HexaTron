@@ -283,6 +283,8 @@ function startGameIfReady(gameEngine) {
  * @param {RemotePlayer} player - The player creating the friendly game.
  * @param {string} expectedPlayerId - The ID of the expected opponent to whom the invitation will be sent.
  * @param {Socket} socket - The socket instance of the player, used to join the new game room.
+ * @param {function(string): void} callback - Callback function that receives the newly created game ID.
+ * @returns {void}
  */
 function createFriendlyGame(player, expectedPlayerId, socket, callback) {
     const game = createNewGame([player], GameType.FRIENDLY);

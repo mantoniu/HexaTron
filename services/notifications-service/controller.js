@@ -3,7 +3,6 @@ const {readData} = require("../utils/api-utils");
 const {
     addNotification,
     deleteNotificationsWithUser,
-    deleteNotificationsWithObjectId,
     deleteNotificationWithObjectId
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
