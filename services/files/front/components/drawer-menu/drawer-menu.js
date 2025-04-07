@@ -11,7 +11,7 @@ import {FriendsPortal} from "../friends-portal/friends-portal.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
-import {NOTIFICATIONS_EVENTS, notificationService} from "../../services/notifications-service.js";
+import {NOTIFICATIONS_EVENTS, NOTIFICATIONS_TYPE, notificationService} from "../../services/notifications-service.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -91,8 +91,10 @@ export class DrawerMenu extends ListenerComponent {
                         notificationService.sendUpdateEvent();
                     break;
                 case DRAWER_CONTENT.FRIENDS:
-                    notificationService.removeFriendsNotifications();
-                    break;
+                    if (!NOTIFICATIONS_TYPE.NEW_MESSAGE && !NOTIFICATIONS_TYPE.GAME_INVITATION) {
+                        notificationService.removeFriendsNotifications();
+                        break;
+                    }
                 default:
                     notificationService.sendUpdateEvent();
                     break;
@@ -107,9 +109,9 @@ export class DrawerMenu extends ListenerComponent {
         });
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
-            this._loadContent(event.detail);
-            if (this.current !== event.detail)
+            if (this._loadContent(event.detail) && this.current !== event.detail) {
                 this._nav(event.detail);
+            }
         });
 
         const returnDiv = this.shadowRoot.getElementById("return");
@@ -189,9 +191,11 @@ export class DrawerMenu extends ListenerComponent {
                 break;
             case DRAWER_CONTENT.REGISTER:
                 component = "<register-portal></register-portal>";
+                this._replaceCloseWithBack();
                 break;
             case DRAWER_CONTENT.FORGOT_PASSWORD:
                 component = "<forgotten-password-portal></forgotten-password-portal>";
+                this._replaceCloseWithBack();
                 break;
             case DRAWER_CONTENT.SETTINGS:
                 component = "<settings-portal></settings-portal>";

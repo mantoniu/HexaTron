@@ -19,14 +19,14 @@ export class CustomNav extends ListenerComponent {
 
         this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hideElementsInGame());
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
+        this.addAutomaticEventListener(userService, USER_EVENTS.LOGOUT, () => this._showElementDisconnection());
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED, () => this._numberNotRead());
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, () => this._numberNotRead());
 
         window.addEventListener("resetCustomNav", () =>
             this._showElementsAfterGame());
 
-        if (!userService.isConnected())
-            CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");
+        this._showElementDisconnection();
 
         const navButtons = this.shadowRoot.querySelectorAll(".nav-button");
         navButtons.forEach(button => {
@@ -81,6 +81,11 @@ export class CustomNav extends ListenerComponent {
         CustomNav.HIDE_NOT_CONNECTED.forEach(id => {
             this.shadowRoot.getElementById(id).style.display = "flex";
         });
+    }
+
+    _showElementDisconnection() {
+        if (!userService.isConnected())
+            CustomNav.HIDE_NOT_CONNECTED.forEach(id => this.shadowRoot.getElementById(id).style.display = "none");
     }
 
     _numberNotRead() {
