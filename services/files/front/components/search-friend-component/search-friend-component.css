@@ -21,7 +21,7 @@ label {
 #search-result {
     display: none;
     position: absolute;
-    max-height: 300px;
+    max-height: 40%;
     overflow: auto;
     background-color: white;
     border-top: none;

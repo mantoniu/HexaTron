@@ -1,2 +1,15 @@
-<image-button alt="accept" id="accept" src="/assets/check.svg"></image-button>
-<image-button alt="refuse" id="refuse" src="/assets/cancel.svg"></image-button>
+<submit-button background-color="var(--green)" background-hover-color="rgba(17, 136, 0, 0.9)" border-color="var(--green)" class="accept"
+               color="white">
+    <div id="acceptButton">
+        <p>Accept</p>
+    </div>
+</submit-button>
+<image-button alt="accept" class="accept" src="/assets/check.png"></image-button>
+
+<submit-button background-color="var(--dark-red)" background-hover-color="rgba(192, 57, 43, 0.9)" border-color="var(--dark-red)" class="refuse"
+               color="white">
+    <div id="refuseButton">
+        <p>Refuse</p>
+    </div>
+</submit-button>
+<image-button alt="refuse" class="refuse" src="/assets/cancel.png"></image-button>
