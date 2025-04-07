@@ -240,7 +240,7 @@ function generateToken(userId, access) {
         return jwt.sign(
             {userId},
             access ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET,
-            {expiresIn: access ? "1m" : "2m"}
+            {expiresIn: access ? "15m" : "7d"}
         );
     } catch (error) {
         throw new Error(DATABASE_ERRORS.TOKEN_GENERATION_FAILED);
