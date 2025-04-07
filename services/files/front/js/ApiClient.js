@@ -1,3 +1,6 @@
+import {userService} from "../services/user-service.js";
+import {socketService} from "../services/socket-service.js";
+
 /**
  * Default error messages mapped to HTTP status codes.
  *
@@ -96,8 +99,13 @@ export class ApiClient {
             const response = await fetch(`${window.location.origin}/${endpoint}`, options);
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
-                await this.refreshAccessToken();
-                return this.request(method, endpoint, body, this._accessToken, asJson);
+                const response = await this.refreshAccessToken();
+                if (response.ok)
+                    return this.request(method, endpoint, body, this._accessToken, asJson);
+            } else if (response.status === 407) {
+                await userService._reset();
+                socketService.disconnectAll();
+                return;
             }
 
             if (!response.ok)

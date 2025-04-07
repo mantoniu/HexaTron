@@ -194,7 +194,7 @@ requestHandler = async (request, response) => {
             } catch (error) {
                 // Handle authentication errors
                 if (error.message === "No token provided")
-                    response.statusCode = 401;
+                    response.statusCode = 407;
                 else response.statusCode = 498;
 
                 response.end(JSON.stringify({error: error.message}));
