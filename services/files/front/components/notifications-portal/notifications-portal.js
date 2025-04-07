@@ -19,7 +19,6 @@ export class NotificationsPortal extends ListenerComponent {
         this.addAutoCleanListener(this,
             "deleteNotification",
             (event) => {
-                console.log(event.detail);
                 event.stopPropagation();
                 notificationService.deleteNotification(event.detail);
             }
