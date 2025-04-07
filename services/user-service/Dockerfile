@@ -13,4 +13,4 @@ COPY ./user-service/*.js ./
 COPY ../database-initializer/type-documentation.js /app/database-initializer/
 
 EXPOSE 8003
-CMD ["npm", "start"]
+CMD ["node", "index.js"]

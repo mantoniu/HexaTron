@@ -12,8 +12,7 @@ FROM base AS dev
 COPY ./*.js ./
 
 EXPOSE 8001
-CMD ["npm", "start"]
-
+CMD ["node", "index.js"]
 ################################################
 
 FROM base AS prod
@@ -21,4 +20,4 @@ FROM base AS prod
 COPY ./*.js ./
 COPY ./front ./front
 EXPOSE 8001
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
