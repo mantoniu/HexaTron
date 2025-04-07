@@ -1,10 +1,10 @@
-import {Component} from "../component/component.js";
 import {CustomButton} from "../custom-button/custom-button.js";
 import {GameHeader} from "../game-header/game-header.js";
-import {GameResult} from "../../services/game-service.js";
+import {GameResult, gameService, GameStatus} from "../../services/game-service.js";
 import {userService} from "../../services/user-service.js";
+import {ListenerComponent} from "../component/listener-component.js";
 
-export class ResultScreen extends Component {
+export class ResultScreen extends ListenerComponent {
     constructor() {
         super();
 
@@ -27,13 +27,19 @@ export class ResultScreen extends Component {
                 break;
             case "results":
                 this.results = JSON.parse(newValue);
-                this.update_results();
+                this.updateResults();
                 break;
         }
     }
 
     async connectedCallback() {
         await super.connectedCallback();
+
+        if (gameService.isGameCreated())
+            this._launchAnimation();
+
+        this.addAutomaticEventListener(gameService, GameStatus.CREATED, () =>
+            this._launchAnimation());
 
         const backToMenu = this.shadowRoot.getElementById("back-to-menu");
         this.addAutoCleanListener(backToMenu, "click", () => {
@@ -45,6 +51,12 @@ export class ResultScreen extends Component {
             this.showResult());
         this.move();
         this.showResult();
+    }
+
+    _launchAnimation() {
+        this.classList.remove("fall-animation");
+        void this.offsetWidth;
+        this.classList.add("fall-animation");
     }
 
     move() {
@@ -63,7 +75,7 @@ export class ResultScreen extends Component {
         this.shadowRoot.replaceChild(element, header);
     }
 
-    update_results() {
+    updateResults() {
         const status = this.shadowRoot.getElementById("status");
         const score = this.shadowRoot.getElementById("score");
 
@@ -71,7 +83,7 @@ export class ResultScreen extends Component {
             case GameResult.WIN:
                 status.textContent = GameResult.WIN;
                 status.style.color = "var(--win-green)";
-                score.textContent = `You win against ${this.results.winners[0]}`;
+                score.textContent = `You win against ${this.results.losers[0]}`;
                 break;
             case GameResult.DRAW:
                 status.textContent = GameResult.DRAW;

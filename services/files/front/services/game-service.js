@@ -317,30 +317,43 @@ class GameService extends EventEmitter {
      * @returns { status: string, winners: string[], score: number} - The game result, including the result status, the list of winners' names, and the highest score in the game.
      */
     calculateResult(receivedData) {
-        let resultByPlayer = Object.fromEntries(Object.keys(this.game._players).map(player => [player, 0]));
+        let resultByPlayer = Object.fromEntries(
+            Object.keys(this.game._players)
+                .map(player => [player, 0])
+        );
+
         receivedData.results.forEach(result => {
             if (result.winner)
                 return resultByPlayer[result.winner] += 1;
         });
+
         let results = {};
         let max = 0;
+
         Object.keys(resultByPlayer).forEach(playerId => {
             const roundWon = resultByPlayer[playerId];
-            if (roundWon > max) {
+            if (roundWon > max)
                 max = roundWon;
-            }
             if (!results.hasOwnProperty(roundWon))
                 results[roundWon] = [playerId];
             else
                 results[roundWon].push(playerId);
         });
+
+        const winners = results[max].map(id => this.game._players[id]._name);
+
         if (results[max].includes(userService.user._id)) {
             if (results[max].length > 1)
-                return {status: GameResult.DRAW, winners: results[max].map(id => this.game._players[id]._name), score: max};
-            else
-                return {status: GameResult.WIN, winners: results[max].map(id => this.game._players[id]._name), score: max};
+                return {status: GameResult.DRAW, winners, score: max};
+            else {
+                const losers = Object.values(this.game._players)
+                    .filter(player => !results[max].includes(player._id))
+                    .map(player => player._name);
+
+                return {status: GameResult.WIN, losers, score: max};
+            }
         } else
-            return {status: GameResult.LOOSE, winners: results[max].map(id => this.game._players[id]._name), score: max};
+            return {status: GameResult.LOOSE, winners, score: max};
     }
 
     /**

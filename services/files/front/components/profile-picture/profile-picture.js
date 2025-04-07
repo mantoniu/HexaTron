@@ -4,16 +4,25 @@ const defaultProfilePicture = "../../assets/profile.svg";
 const profilePicturesPath = "/storage/profile-pictures/";
 
 export class ProfilePicture extends Component {
+    static get observedAttributes() {
+        return ["user-id"];
+    }
+
     async connectedCallback() {
         await super.connectedCallback();
 
         this._img = this.shadowRoot.getElementById("profile-img");
-        this._userId = this.getAttribute("user-id");
-
         this.addEventListener("imageUpdate", () => this._update());
-
         this._setDefaultProfilePicture();
+
         this._update();
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this._userId && name === "user-id" && newValue !== null) {
+            this._userId = newValue;
+            this._update();
+        }
     }
 
     _setDefaultProfilePicture() {
