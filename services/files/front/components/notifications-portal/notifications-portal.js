@@ -15,6 +15,15 @@ export class NotificationsPortal extends ListenerComponent {
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, (notificationId) => {
             this.shadowRoot.getElementById("list").delete(notificationId);
         });
+
+        this.addAutoCleanListener(this,
+            "deleteNotification",
+            (event) => {
+                event.stopPropagation();
+                notificationService.deleteNotification(event.detail);
+            }
+        );
+
         this.addAutoCleanListener(this, "notification-deleted", (event) => this._handleDeletion(event));
         this.initialize();
     }
