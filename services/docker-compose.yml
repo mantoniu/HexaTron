@@ -4,6 +4,7 @@ services:
     restart: always
     networks:
       - network-services
+    command: [ "mongod", "--quiet" ]
     ports:
       - "27017:27017"
     environment:
