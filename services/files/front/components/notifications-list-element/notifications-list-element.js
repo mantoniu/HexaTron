@@ -85,6 +85,12 @@ export class NotificationsListElement extends Component {
     }
 
     joinGame() {
+        this.dispatchEvent(new CustomEvent("deleteNotification", {
+            bubbles: true,
+            composed: true,
+            detail: this.notification._id
+        }));
+
         const gameId = this.notification?.objectsId?.[0];
 
         if (!gameId) {
