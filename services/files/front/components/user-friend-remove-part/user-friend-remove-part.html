@@ -1,3 +1,24 @@
-<custom-button id="challenge">Challenge</custom-button>
-<custom-button id="sendMessage">Send Message</custom-button>
-<custom-button id="deleteFriend">Delete Friend</custom-button>
+<submit-button background-color="var(--primary-blue)" background-hover-color="rgba(41, 128, 185, 0.9)" border-color="var(--primary-blue)" class="sendMessage"
+               color="white" id="sendMessage">
+    <div id="buttonSendMessage">
+        <p>Send Message</p>
+        <img alt="messages" id="iconMessageImage" src="../../assets/chat.png">
+    </div>
+</submit-button>
+<image-button alt="messages" class="iconButton sendMessage" src="../../assets/chat.png"></image-button>
+
+<submit-button background-color="var(--green)" background-hover-color="rgba(17, 136, 0, 0.9)" border-color="var(--green)" class="challenge"
+               color="white" id="challenge">
+    <div id="buttonChallenge">
+        <p>Challenge this friend</p>
+        <img alt="messages" id="iconChallengeImage" src="../../assets/vs.png">
+    </div>
+</submit-button>
+<image-button alt="challenge" class="iconButton challenge" src="../../assets/vs.png"></image-button>
+
+<submit-button background-color="var(--red)" background-hover-color="rgba(231, 76, 60, 0.9)" border-color="var(--red)" color="white"
+               id="deleteFriend">
+    <div>
+        <p>Delete Friend</p>
+    </div>
+</submit-button>

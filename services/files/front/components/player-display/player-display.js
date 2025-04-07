@@ -8,10 +8,6 @@ export class PlayerDisplay extends Component {
         ProfilePicture.register();
     }
 
-    static get observedAttributes() {
-        return ["name"];
-    }
-
     async connectedCallback() {
         await super.connectedCallback();
 
@@ -20,15 +16,21 @@ export class PlayerDisplay extends Component {
             this._profilePictureElem.dispatchEvent(new CustomEvent("imageUpdate")));
 
         this._nameElem = this.shadowRoot.getElementById("name");
-        this._userId = this.getAttribute("user-id");
 
         this._update();
+    }
+
+    static get observedAttributes() {
+        return ["user-id", "name"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch (name) {
             case "name":
                 this._name = newValue;
+                break;
+            case "user-id":
+                this._userId = newValue;
                 break;
         }
 

@@ -1,25 +1,27 @@
 import {Component} from "../component/component.js";
 
 export class UserFriendPendingPart extends Component {
-    static SELECTORS = {
-        ACCEPT: "accept",
-        REFUSE: "refuse"
-    };
-
     constructor() {
         super();
-        this._elements = {};
     }
 
     async connectedCallback() {
         await super.connectedCallback();
-        this._elements = this.initializeElements(UserFriendPendingPart.SELECTORS);
         this.setupEventListeners();
+
+        if (JSON.parse(this.getAttribute("icons-only")))
+            this.shadowRoot.querySelectorAll("submit-button").forEach(button => button.style.display = "none");
+        else
+            this.shadowRoot.querySelectorAll("image-button").forEach(imageButton => imageButton.style.display = "none");
     }
 
     setupEventListeners() {
-        this.addAutoCleanListener(this._elements.ACCEPT, "click", (click) => this.handleAcceptFriend(click));
-        this.addAutoCleanListener(this._elements.REFUSE, "click", (click) => this.handleRefuseFriend(click));
+        this.shadowRoot.querySelectorAll(".accept").forEach(element => {
+            this.addAutoCleanListener(element, "click", (click) => this.handleAcceptFriend(click));
+        });
+        this.shadowRoot.querySelectorAll(".refuse").forEach(element => {
+            this.addAutoCleanListener(element, "click", (click) => this.handleRefuseFriend(click));
+        });
     }
 
     async handleAcceptFriend(click) {
