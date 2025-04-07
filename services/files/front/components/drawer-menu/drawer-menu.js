@@ -108,7 +108,8 @@ export class DrawerMenu extends ListenerComponent {
 
         this.addAutoCleanListener(window, "changeContent", (event) => {
             this._loadContent(event.detail);
-            this._nav(event.detail);
+            if (this.current !== event.detail)
+                this._nav(event.detail);
         });
 
         const returnDiv = this.shadowRoot.getElementById("return");
