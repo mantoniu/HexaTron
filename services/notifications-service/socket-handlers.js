@@ -88,6 +88,21 @@ module.exports = (io) => {
     });
 
     /**
+     * Handles the deletion of a notification for a user, triggered by the user-service through the controller.
+     *
+     * @async
+     * @function
+     * @event delete-notification
+     * @param {Object} notification - The notification object
+     */
+    eventBus.on("delete-notification", async (notification) => {
+        const socketUser = await io.in(notification.userId).fetchSockets();
+        if (socketUser)
+            socketUser.forEach(socket =>
+                socket.emit("deleteNotifications", notification._id.toString()));
+    });
+
+    /**
      * Handles the deletion of notifications for specific different users.
      *
      *

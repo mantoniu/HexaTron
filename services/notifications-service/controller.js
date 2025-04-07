@@ -1,8 +1,14 @@
 const {HttpError} = require("../utils/controller-utils");
 const {readData} = require("../utils/api-utils");
-const {addNotification, deleteNotificationsWithUser} = require("./database");
+const {
+    addNotification,
+    deleteNotificationsWithUser,
+    deleteNotificationsWithObjectId,
+    deleteNotificationWithObjectId
+} = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 const eventBus = require("./event-bus");
+const {parse} = require("node:url");
 
 /**
  * Serves the API documentation by reading the data from a specified file.
@@ -65,7 +71,7 @@ exports.addNotification = async (req, res) => {
         eventBus.emit("new-notification", {notification});
 
         res.writeHead(201, {"Content-Type": "application/json"});
-        res.end(JSON.stringify({message: "Notification Successfully created"}));
+        res.end(JSON.stringify({message: "Notification successfully created"}));
     } catch (error) {
         if (error instanceof HttpError)
             throw error;
@@ -73,6 +79,39 @@ exports.addNotification = async (req, res) => {
         if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
             throw new HttpError(400, "Invalid notification data format");
 
+        throw new HttpError(500, error.message);
+    }
+};
+
+/**
+ * Handles the deletion of a notification.
+ *
+ * This function listens for a request to delete a notification identified by the `userId`
+ * and `objectId` passed as query parameters.
+ *
+ * @async
+ * @function
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @event new-notification
+ * @event error - Emitted if an error occurs during notification creation.
+ */
+exports.delete = async (req, res) => {
+    try {
+        const parsedUrl = parse(req.url, true);
+        const query = parsedUrl.query;
+
+        const friendId = query.friendId;
+        const objectId = query.objectId;
+
+        const notification = await deleteNotificationWithObjectId(friendId, objectId);
+
+        if (notification)
+            eventBus.emit("delete-notification", notification);
+
+        res.writeHead(204, {"Content-Type": "application/json"});
+        res.end();
+    } catch (error) {
         throw new HttpError(500, error.message);
     }
 };
@@ -93,7 +132,7 @@ exports.deleteUser = async (req, res) => {
         eventBus.emit("delete-notification-user", {notifications});
 
         res.writeHead(201, {"Content-Type": "application/json"});
-        res.end(JSON.stringify({message: "Notification Successfully created"}));
+        res.end(JSON.stringify({message: "Notification successfully created"}));
     } catch (error) {
         if (error instanceof HttpError)
             throw error;

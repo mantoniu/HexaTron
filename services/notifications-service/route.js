@@ -58,6 +58,11 @@ const routes = [
         method: "DELETE",
         path: ["deleteUser"],
         handler: controller.deleteUser
+    },
+    {
+        method: "DELETE",
+        path: [],
+        handler: controller.delete
     }
 ];
 
