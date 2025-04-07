@@ -127,7 +127,6 @@ exports.documentation = async (req, res) => {
  * @param {ServerResponse} res - The HTTP response object.
  */
 exports.health = async (req, res) => {
-    console.log("test health");
     res.writeHead(204);
     res.end();
 };

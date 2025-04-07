@@ -195,6 +195,7 @@ export class DrawerMenu extends ListenerComponent {
                 break;
             case DRAWER_CONTENT.FORGOT_PASSWORD:
                 component = "<forgotten-password-portal></forgotten-password-portal>";
+                this._replaceCloseWithBack();
                 break;
             case DRAWER_CONTENT.SETTINGS:
                 component = "<settings-portal></settings-portal>";
