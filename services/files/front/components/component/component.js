@@ -43,6 +43,8 @@ export class Component extends HTMLElement {
         const cachedResources = Component._resourcesCache.get(elementName);
 
         if (cachedResources) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+
             this.render(cachedResources.html, cachedResources.css);
             return;
         }
