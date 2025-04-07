@@ -36,10 +36,13 @@ export class ResultScreen extends Component {
         await super.connectedCallback();
 
         const backToMenu = this.shadowRoot.getElementById("back-to-menu");
-        this.addAutoCleanListener(backToMenu, "click", () => window.location.href = "/");
-        this.addAutoCleanListener(this, "transitionend", (event) => {
-            this.showResult();
+        this.addAutoCleanListener(backToMenu, "click", () => {
+            window.dispatchEvent(new CustomEvent("navigate", {
+                detail: {route: `/`}
+            }));
         });
+        this.addAutoCleanListener(this, "transitionend", () =>
+            this.showResult());
         this.move();
         this.showResult();
     }

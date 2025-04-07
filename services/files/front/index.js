@@ -18,7 +18,8 @@ const routes = [
     {
         path: "/",
         template: () => "<mode-selector></mode-selector>",
-        authRequired: false
+        authRequired: false,
+        onNavigate: () => window.dispatchEvent(new CustomEvent("resetCustomNav"))
     },
     {
         path: "/local",
@@ -64,6 +65,12 @@ const navigateTo = (url, params = {}) => {
     history.pushState({path: url}, "", url);
     document.getElementById("outlet").innerHTML = matchedRoute.template(params);
     window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url, params}}));
+    document.getElementById("outlet").innerHTML = route.template;
+
+    if (matchedRoute.onNavigate)
+        matchedRoute.onNavigate();
+
+    window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url}}));
 };
 
 const redirectTo = (path) => {

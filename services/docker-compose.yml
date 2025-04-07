@@ -1,8 +1,10 @@
 services:
   mongodb:
     image: mongo:latest
+    restart: always
     networks:
       - network-services
+    command: [ "mongod", "--quiet" ]
     ports:
       - "27017:27017"
     environment:
@@ -12,12 +14,23 @@ services:
       - mongo-data:/data/db
     expose:
       - "27017"
-    healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      retries: 5
-      start_period: 10s
-      timeout: 5s
+
+  wait-for-mongo:
+    image: busybox
+    depends_on:
+      mongodb:
+        condition: service_started
+    command: >
+      sh -c "
+      for i in $(seq 1 10); do
+        if nc -z mongodb 27017; then
+          echo 'Mongo is up!'; exit 0;
+        fi;
+        echo 'Waiting for Mongo...'; sleep 3;
+      done;
+      echo 'Mongo not available'; exit 1"
+    networks:
+      - network-services
 
   database-initializer:
     build:
@@ -42,14 +55,15 @@ services:
       - MONGO_NOTIFICATIONS_USERNAME=${MONGO_NOTIFICATIONS_USERNAME}
       - MONGO_NOTIFICATIONS_PWD=${MONGO_NOTIFICATIONS_PWD}
     depends_on:
-      mongodb:
-        condition: service_healthy
+      wait-for-mongo:
+        condition: service_completed_successfully
 
   user-service:
     build:
       context: .
       dockerfile: user-service/Dockerfile
       network: host
+    restart: always
     networks:
       - network-services
     environment:
@@ -74,7 +88,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8003/api/user/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -84,6 +98,7 @@ services:
       context: .
       dockerfile: game-service/Dockerfile
       network: host
+    restart: always
     networks:
       - network-services
     expose:
@@ -94,11 +109,11 @@ services:
       - USER_SERVICE_URL=${USER_SERVICE_URL}
       - NOTIFICATIONS_SERVICE_URL=${NOTIFICATIONS_SERVICE_URL}
     depends_on:
-      mongodb:
-        condition: service_healthy
+      wait-for-mongo:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8002/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -108,6 +123,7 @@ services:
       context: .
       dockerfile: chat-service/Dockerfile
       network: host
+    restart: always
     networks:
       - network-services
     expose:
@@ -130,7 +146,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8005/api/user/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -140,6 +156,7 @@ services:
       context: .
       dockerfile: notifications-service/Dockerfile
       network: host
+    restart: always
     networks:
       - network-services
     expose:
@@ -158,7 +175,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8007/api/notifications/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -168,16 +185,19 @@ services:
       context: ./files/
       network: host
       target: prod
+    restart: always
+    volumes:
+      - storage:/app/storage
     networks:
       - network-services
     expose:
       - "8001"
     depends_on:
-      mongodb:
-        condition: service_healthy
+      wait-for-mongo:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8001/health" ]
-      interval: 10s
+      interval: 60s
       retries: 5
       start_period: 20s
       timeout: 5s
@@ -186,6 +206,7 @@ services:
     build:
       context: ./gateway/
       network: host
+    restart: always
     networks:
       - network-services
     ports:
@@ -236,3 +257,4 @@ networks:
 
 volumes:
   mongo-data:
+  storage:

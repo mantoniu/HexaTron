@@ -88,8 +88,7 @@ function createServiceServer(routes, apiOptions = null, documentationPath = null
                     (route.path[0] === "*" ||
                         route.path.every((segment, index) => {
                             return segment.startsWith(":") || segment === path[index];
-                        }) &&
-                        path.length === route.path.length)
+                        }))
             );
 
             if (!route)

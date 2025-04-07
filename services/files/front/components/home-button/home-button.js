@@ -32,8 +32,11 @@ export class HomeButton extends Component {
 
         this.update();
         this.addAutoCleanListener(this, "click", () => {
-            if (window.location.pathname !== "/")
-                window.location.href = "/";
+            if (window.location.pathname !== "/") {
+                window.dispatchEvent(new CustomEvent("navigate", {
+                    detail: {route: `/`}
+                }));
+            }
         });
     }
 

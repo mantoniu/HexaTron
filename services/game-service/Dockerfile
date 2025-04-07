@@ -11,5 +11,5 @@ COPY ../utils/* /app/utils/
 RUN npm install
 RUN cd /app/utils && npm install
 
-EXPOSE 8007
-CMD ["npm", "start"]
+EXPOSE 8002
+CMD ["node", "start"]
