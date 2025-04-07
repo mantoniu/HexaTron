@@ -17,7 +17,8 @@ HexagonBackground.register();
 const routes = {
     "/": {
         template: "<mode-selector></mode-selector>",
-        authRequired: false
+        authRequired: false,
+        onNavigate: () => window.dispatchEvent(new CustomEvent("resetCustomNav"))
     },
     "/local": {
         template: `<game-component type='${GameType.LOCAL}'></game-component>`,
@@ -48,6 +49,9 @@ const navigateTo = (url) => {
 
     history.pushState({path: url}, "", url);
     document.getElementById("outlet").innerHTML = route.template;
+
+    if (route.onNavigate)
+        route.onNavigate();
 
     window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url}}));
 };
