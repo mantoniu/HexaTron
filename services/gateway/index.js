@@ -32,8 +32,7 @@ const servicesConfig = {
         },
         ws: {
             namespace: "/friends",
-            requiresAuth: true,
-            publicEvents: []
+            requiresAuth: true
         },
         auth: ["userId"]
     },
@@ -48,8 +47,7 @@ const servicesConfig = {
         },
         ws: {
             namespace: '/chat',
-            requiresAuth: true,
-            publicEvents: []
+            requiresAuth: true
         },
         auth: ["userId"]
     },
@@ -61,8 +59,7 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: '/game',
-            requiresAuth: false,
-            publicEvents: []
+            requiresAuth: false
         },
         auth: ["userId"]
     },
@@ -73,8 +70,7 @@ const servicesConfig = {
         http: null,
         ws: {
             namespace: "/notifications",
-            requiresAuth: true,
-            publicEvents: []
+            requiresAuth: true
         },
         auth: ["userId"]
     }
