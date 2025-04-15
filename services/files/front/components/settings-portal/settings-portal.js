@@ -67,7 +67,7 @@ export class SettingsPortal extends Component {
         } else {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).newKey(this.currentEventDetail.index, event.key.toLowerCase());
             this.settings.keysPlayers[index][this.currentEventDetail.index] = event.key.toLowerCase();
-            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
+            this.shadowRoot.querySelector("#validationPart").style.display = "flex";
             this.buttonsActive = true;
         }
         this.currentEventDetail = null;
@@ -94,7 +94,7 @@ export class SettingsPortal extends Component {
                 document.removeEventListener("keydown", this.boundKeyListener);
                 if (Object.entries(event.detail).every(([key, value]) => this.currentEventDetail[key] === value)) {
                     this.currentEventDetail = null;
-                    this.shadowRoot.getElementById("message").style.visibility = "hidden";
+                    this.shadowRoot.querySelector("#validationPart").style.display = "flex";
                     return;
                 }
             }
@@ -109,7 +109,7 @@ export class SettingsPortal extends Component {
             } else {
                 this.settings.playersColors[index] = event.detail.color;
                 this.shadowRoot.getElementById(`player${index + 1}`).changeColor(event.detail.color);
-                this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
+                this.shadowRoot.querySelector("#validationPart").style.display = "flex";
                 this.buttonsActive = true;
             }
         }
@@ -119,7 +119,7 @@ export class SettingsPortal extends Component {
         if (this.buttonsActive) {
             const res = await userService.updateUser({parameters: structuredClone(this.settings)});
             this._handleUpdateResponse(res);
-            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+            this.shadowRoot.querySelector("#validationPart").style.display = "none";
             this.buttonsActive = false;
         }
     }
@@ -146,7 +146,7 @@ export class SettingsPortal extends Component {
             this.settings = structuredClone(userService.user.parameters);
             this.resetKeys();
             this.resetColors();
-            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+            this.shadowRoot.querySelector("#validationPart").style.display = "none";
             this.buttonsActive = false;
         }
     }
