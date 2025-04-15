@@ -10,3 +10,8 @@ button {
     color: black;
     background-color: transparent;
 }
+
+:host(.buttons-disable) button {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

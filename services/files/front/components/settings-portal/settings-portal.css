@@ -2,40 +2,57 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    height: 90%;
+    height: 100%;
 }
 
 h1 {
     font-size: 28px;
     margin-bottom: 20px;
-    color: #333333;
 }
 
 #settings {
+    position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
     max-height: 100%;
     overflow-y: auto;
-    padding-right: 10px;
 }
 
 #keys, #colors {
-    margin-bottom: 20px;
     display: flex;
     flex-direction: row;
 }
 
-#validationPart {
-    display: none;
-    flex-direction: row;
-    justify-content: space-around;
-    margin-top: 20px
+#colors {
+    margin-bottom: 15px;
 }
 
-p {
+#keys {
+    margin-top: 15px;
+}
+
+#validationPart {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 20px;
+    width: 100%;
+    gap: 20px
+}
+
+submit-button {
+    flex: 1 1 0;
+}
+
+#message {
+    position: sticky;
+    top: 0;
     visibility: hidden;
     text-align: center;
+    padding: 0 0 20px 0;
+    background-color: var(--card-bg);
+    margin: 0;
 }
 
 p[type="error"] {
@@ -53,4 +70,15 @@ p[type="info"] {
 * {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+@media (max-width: 600px) {
+    #validationPart {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    submit-button {
+        width: 100%;
+    }
 }

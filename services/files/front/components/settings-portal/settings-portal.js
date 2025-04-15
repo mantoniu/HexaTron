@@ -2,10 +2,11 @@ import {userService} from "../../services/user-service.js";
 import {PlayerKeys} from "../player-keys/player-keys.js";
 import {PlayerColor} from "../player-color/player-color.js";
 import {Component} from "../component/component.js";
+import {SubmitButton} from "../submit-button/submit-button.js";
 
 const MESSAGE = Object.freeze({
     KEY_ALREADY_ASSIGNED: {message: "The key is already assigned", type: "error"},
-    COLOR_ALREADY_ASSIGNED: {message: "The color is already assigned", type: "red"},
+    COLOR_ALREADY_ASSIGNED: {message: "The color is already assigned", type: "error"},
     CHOOSE_NEW_KEY: {message: "Choose a new key by pressing it", type: "info"}
 })
 
@@ -15,6 +16,7 @@ export class SettingsPortal extends Component {
 
         PlayerKeys.register();
         PlayerColor.register();
+        SubmitButton.register();
 
         this.settings = structuredClone(userService.user.parameters);
 
@@ -48,24 +50,23 @@ export class SettingsPortal extends Component {
         this.addAutoCleanListener(this.shadowRoot.querySelector("#validate"), "click", async () => await this.validate());
         this.addAutoCleanListener(this.shadowRoot.querySelector("#cancel"), "click", () => this.cancel());
 
-        this.shadowRoot.getElementById("colorMessage").style.visibility = "hidden";
-        this.shadowRoot.getElementById("keyMessage").style.visibility = "hidden";
+        this.shadowRoot.getElementById("message").style.visibility = "hidden";
     }
 
     keyListener(event) {
         const index = this.currentEventDetail.componentID.match(/\d+$/) - 1;
-        this.shadowRoot.getElementById("keyMessage").style.visibility = "hidden";
+        this.shadowRoot.getElementById("message").style.visibility = "hidden";
         if (this.settings.keysPlayers[index][this.currentEventDetail.index] === event.key.toLowerCase()) {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
             this.currentEventDetail = null;
             return;
         } else if (this.settings.keysPlayers.some(row => row.includes(event.key.toLowerCase()))) {
-            this.activeMessage("keyMessage", MESSAGE.KEY_ALREADY_ASSIGNED);
+            this.activeMessage("message", MESSAGE.KEY_ALREADY_ASSIGNED);
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
         } else {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).newKey(this.currentEventDetail.index, event.key.toLowerCase());
             this.settings.keysPlayers[index][this.currentEventDetail.index] = event.key.toLowerCase();
-            this.shadowRoot.getElementById("validationPart").style.display = "flex";
+            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
         }
         this.currentEventDetail = null;
     };
@@ -73,7 +74,7 @@ export class SettingsPortal extends Component {
     cancelModification(event) {
         event.stopImmediatePropagation();
         if (this.currentEventDetail && event.composedPath()[0] && event.composedPath()[0].nodeName !== "polygon") {
-            this.shadowRoot.getElementById("keyMessage").style.visibility = "hidden";
+            this.shadowRoot.getElementById("message").style.visibility = "hidden";
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
             document.removeEventListener("keydown", this.boundKeyListener);
             this.currentEventDetail = null;
@@ -84,13 +85,13 @@ export class SettingsPortal extends Component {
         event.preventDefault();
         event.stopImmediatePropagation();
         if (event.type === "keyModificationAsked") {
-            this.activeMessage("keyMessage", MESSAGE.CHOOSE_NEW_KEY);
+            this.activeMessage("message", MESSAGE.CHOOSE_NEW_KEY);
             if (this.currentEventDetail) {
                 this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
                 document.removeEventListener("keydown", this.boundKeyListener);
                 if (Object.entries(event.detail).every(([key, value]) => this.currentEventDetail[key] === value)) {
                     this.currentEventDetail = null;
-                    this.shadowRoot.getElementById("keyMessage").style.visibility = "hidden";
+                    this.shadowRoot.getElementById("message").style.visibility = "hidden";
                     return;
                 }
             }
@@ -100,26 +101,26 @@ export class SettingsPortal extends Component {
         if (event.type === "colorModificationAsked") {
             const index = event.detail.componentID.match(/\d+$/) - 1;
             if (event.detail.color === this.settings.playersColors[(index + 1) % 2]) {
-                this.activeMessage("colorMessage", MESSAGE.COLOR_ALREADY_ASSIGNED);
+                this.activeMessage("message", MESSAGE.COLOR_ALREADY_ASSIGNED);
                 this.shadowRoot.getElementById(`color${index + 1}`).color = this.settings.playersColors[index];
             } else {
                 this.settings.playersColors[index] = event.detail.color;
                 this.shadowRoot.getElementById(`player${index + 1}`).changeColor(event.detail.color);
-                this.shadowRoot.getElementById("validationPart").style.display = "flex";
+                this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
             }
         }
     }
 
     async validate() {
-        await userService.updateUser({parameters: this.settings});
-        this.shadowRoot.querySelector("#validationPart").style.display = "none";
+        await userService.updateUser({parameters: structuredClone(this.settings)});
+        this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
     }
 
     cancel() {
         this.settings = structuredClone(userService.user.parameters);
         this.resetKeys();
         this.resetColors();
-        this.shadowRoot.querySelector("#validationPart").style.display = "none";
+        this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
     }
 
     disconnectedCallback() {
