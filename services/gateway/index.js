@@ -200,10 +200,8 @@ requestHandler = async (request, response) => {
                 proxy.web(request, response, {target: matchedService.target});
             } catch (error) {
                 // Handle authentication errors
-                if (error.message === "No token provided")
+                if (error.message === "No token provided" || error.message === "User not connected")
                     response.statusCode = 401;
-                else if (error.message === "User not connected")
-                    response.statusCode = 407;
                 else response.statusCode = 498;
 
                 response.end(JSON.stringify({error: error.message}));
@@ -234,29 +232,30 @@ Object.values(servicesConfig).forEach(service => {
         return;
 
     const nameSpace = ioServer.of(service.ws.namespace);
-    nameSpace.on("connection", (clientSocket) => {
-        let userId = null;
 
-        // Check if a token is present and valid
+    nameSpace.use((socket, next) => {
         try {
-            const token = clientSocket.handshake.auth?.token;
+            const token = socket.handshake.auth?.token;
             if (token) {
                 const decoded = jwt.verify(token, jwtAccessSecretKey);
-                userId = decoded?.userId || null;
-                console.log(`[WebSocket] Connexion avec token : userId = ${userId}`);
+                socket.userId = decoded?.userId || null;
             }
         } catch (error) {
             console.warn(`[WebSocket] Invalid token: ${error.message}`);
         }
 
         // Verification according to service configuration
-        if (service.ws.requiresAuth && !userId) {
+        if (service.ws.requiresAuth && !socket.userId) {
             console.warn(`[WebSocket] Connection refused to ${service.ws.namespace} (auth required)`);
-            clientSocket.emit("token_invalid");
-            return clientSocket.disconnect(true);
+            return next(new Error("Invalid token"));
         }
 
-        // Create WebSocket client with `userId` in auth
+        next();
+    });
+
+    nameSpace.on("connection", (clientSocket) => {
+        const userId = clientSocket.userId;
+
         const socket = Client(service.target, {
             auth: {userId}
         });
