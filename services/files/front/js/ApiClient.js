@@ -83,6 +83,7 @@ export class ApiClient {
      * @param {Object|null} body - The request body (if applicable).
      * @param {string|null} token - The authentication token.
      * @param {boolean} [asJson=true] - Whether to send the body as JSON. If false, assumes body is already in the correct format (e.g., FormData).
+     * @param {boolean} [refresh=false] - Used to indicate a refresh token request. If true and the response is 401, the session is reset and all sockets are disconnected.
      * @returns {Promise<Object>} The response object.
      */
     async request(method, endpoint, body = null, token = null, asJson = true, refresh = false) {
