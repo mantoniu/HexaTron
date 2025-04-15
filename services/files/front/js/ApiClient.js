@@ -1,3 +1,6 @@
+import {userService} from "../services/user-service.js";
+import {socketService} from "../services/socket-service.js";
+
 /**
  * Default error messages mapped to HTTP status codes.
  *
@@ -33,6 +36,7 @@ export class ApiClient {
 
         this._accessToken = localStorage.getItem("accessToken") || null;
         this._refreshToken = localStorage.getItem("refreshToken") || null;
+        this._refreshingPromise = null;
 
         ApiClient._instance = this;
     }
@@ -55,12 +59,20 @@ export class ApiClient {
      * @returns {Promise<Object>} A promise that resolves to the new access token or an error.
      */
     async refreshAccessToken() {
-        const response = await this.request("POST", "api/user/refresh-token", null, this._refreshToken);
-        if (response) {
-            this._accessToken = response.data.accessToken;
-            localStorage.setItem("accessToken", this._accessToken);
-        }
-        return response;
+        if (this._refreshingPromise)
+            return this._refreshingPromise;
+
+        this._refreshingPromise = (async () => {
+            const response = await this.request("POST", "api/user/refresh-token", null, this._refreshToken, true, true);
+            if (response?.success) {
+                this._accessToken = response.data.accessToken;
+                localStorage.setItem("accessToken", this._accessToken);
+            }
+            this._refreshingPromise = null;
+            return response;
+        })();
+
+        return this._refreshingPromise;
     }
 
     /**
@@ -73,7 +85,7 @@ export class ApiClient {
      * @param {boolean} [asJson=true] - Whether to send the body as JSON. If false, assumes body is already in the correct format (e.g., FormData).
      * @returns {Promise<Object>} The response object.
      */
-    async request(method, endpoint, body = null, token = null, asJson = true) {
+    async request(method, endpoint, body = null, token = null, asJson = true, refresh = false) {
         token = token ?? this._accessToken;
 
         const headers = {};
@@ -97,9 +109,9 @@ export class ApiClient {
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
                 const response = await this.refreshAccessToken();
-                if (response.ok)
+                if (response.success)
                     return this.request(method, endpoint, body, this._accessToken, asJson);
-            } else if (response.status === 407) {
+            } else if (refresh && response.status === 401) {
                 await userService._reset();
                 socketService.disconnectAll();
                 return;
