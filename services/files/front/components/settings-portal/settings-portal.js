@@ -117,10 +117,28 @@ export class SettingsPortal extends Component {
 
     async validate() {
         if (this.buttonsActive) {
-            await userService.updateUser({parameters: structuredClone(this.settings)});
+            const res = await userService.updateUser({parameters: structuredClone(this.settings)});
+            this._handleUpdateResponse(res);
             this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
             this.buttonsActive = false;
         }
+    }
+
+    _handleUpdateResponse(res) {
+        if (res.success) {
+            this._createAlertMessageEvent("success", "Settings changed successfully");
+            this.settings = structuredClone(userService.user.parameters);
+        } else {
+            this.cancel();
+            this._createAlertMessageEvent("error", res.error);
+        }
+    }
+
+    _createAlertMessageEvent(type, text) {
+        this.dispatchEvent(new CustomEvent("createAlert", {
+            bubbles: true,
+            detail: {type, text}
+        }));
     }
 
     cancel() {
