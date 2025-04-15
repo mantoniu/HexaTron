@@ -452,10 +452,8 @@ io.on('connection', (gatewaySocket) => {
             return;
         }
 
-        if (!activeGames.has(gameId)) {
-            sendError(gatewaySocket, ErrorTypes.GAME_NOT_FOUND, "Game not found");
+        if (!activeGames.has(gameId))
             return;
-        }
 
         const gameEngine = activeGames.get(gameId);
 
