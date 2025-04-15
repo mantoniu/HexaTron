@@ -19,6 +19,7 @@ export class SettingsPortal extends Component {
         SubmitButton.register();
 
         this.settings = structuredClone(userService.user.parameters);
+        this.buttonsActive = false;
 
         this.boundKeyListener = this.keyListener.bind(this);
         this.boundCancelModification = this.cancelModification.bind(this);
@@ -67,6 +68,7 @@ export class SettingsPortal extends Component {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).newKey(this.currentEventDetail.index, event.key.toLowerCase());
             this.settings.keysPlayers[index][this.currentEventDetail.index] = event.key.toLowerCase();
             this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
+            this.buttonsActive = true;
         }
         this.currentEventDetail = null;
     };
@@ -78,6 +80,7 @@ export class SettingsPortal extends Component {
             this.shadowRoot.getElementById(this.currentEventDetail.componentID).resetKey(this.currentEventDetail.index);
             document.removeEventListener("keydown", this.boundKeyListener);
             this.currentEventDetail = null;
+            this.buttonsActive = false;
         }
     }
 
@@ -107,20 +110,27 @@ export class SettingsPortal extends Component {
                 this.settings.playersColors[index] = event.detail.color;
                 this.shadowRoot.getElementById(`player${index + 1}`).changeColor(event.detail.color);
                 this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.remove("buttons-disable"));
+                this.buttonsActive = true;
             }
         }
     }
 
     async validate() {
-        await userService.updateUser({parameters: structuredClone(this.settings)});
-        this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+        if (this.buttonsActive) {
+            await userService.updateUser({parameters: structuredClone(this.settings)});
+            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+            this.buttonsActive = false;
+        }
     }
 
     cancel() {
-        this.settings = structuredClone(userService.user.parameters);
-        this.resetKeys();
-        this.resetColors();
-        this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+        if (this.buttonsActive) {
+            this.settings = structuredClone(userService.user.parameters);
+            this.resetKeys();
+            this.resetColors();
+            this.shadowRoot.querySelectorAll("submit-button").forEach(element => element.classList.add("buttons-disable"));
+            this.buttonsActive = false;
+        }
     }
 
     disconnectedCallback() {
