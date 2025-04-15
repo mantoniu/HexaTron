@@ -5,11 +5,6 @@
     height: 100%;
 }
 
-h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
-}
-
 #settings {
     position: relative;
     width: 100%;
@@ -17,6 +12,7 @@ h1 {
     flex-direction: column;
     max-height: 100%;
     overflow-y: auto;
+    margin-top: 10px;
 }
 
 #keys, #colors {

@@ -1,7 +1,6 @@
 :host {
     width: 100%;
     height: 100%;
-    font-size: 1.3rem;
 }
 
 #leaderboard-container {
@@ -9,12 +8,6 @@
     align-items: center;
     flex-direction: column;
     height: 100%;
-}
-
-h1 {
-    font-size: 28px;
-    margin-bottom: 20px;
-    color: #333333;
 }
 
 #league-selector {
@@ -39,6 +32,7 @@ select {
     background-color: var(--background);
     padding: 0 20px 0 20px;
     border-radius: 12px;
+    margin-top: 10px;
 }
 
 img {
