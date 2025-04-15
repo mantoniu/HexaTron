@@ -72,9 +72,11 @@ export class CustomNav extends ListenerComponent {
     }
 
     _showElementsAfterGame() {
-        CustomNav.HIDE_IN_GAME.forEach(element => {
-            this.shadowRoot.getElementById(element).style.display = "flex";
-        });
+        CustomNav.HIDE_IN_GAME
+            .filter(element =>
+                userService.isConnected() || !CustomNav.HIDE_NOT_CONNECTED.includes(element))
+            .forEach(element =>
+                this.shadowRoot.getElementById(element).style.display = "flex");
     }
 
     _showElementOnConnection() {

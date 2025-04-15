@@ -149,19 +149,21 @@ class SocketService {
             console.warn(`[${capitalizedType}Socket] Disconnected: ${reason}`);
         });
 
-        socket.on('connect_error', (error) => {
+        socket.on('connect_error', async (error) => {
             console.error(`[${capitalizedType}Socket] Connection error: ${error.message}`);
-        });
 
-        socket.on('token_invalid', async () => {
-            console.log(`[${capitalizedType}Socket] Token expired, attempting to refresh...`);
-            if (await apiClient.refreshAccessToken()) {
-                Object.keys(this._sockets).forEach(namespace => {
-                    this._connectSocket(namespace);
-                });
-            } else {
-                console.error(`[${capitalizedType}Socket] Token refresh failed, disconnecting...`);
-                socket.disconnect();
+            if (error.message === "Invalid token" || error.message === "Authentication required") {
+                console.log(`[${capitalizedType}Socket] Token expired, attempting to refresh...`);
+
+                if (await apiClient.refreshAccessToken()) {
+                    // Reconnect all namespaces after refreshing token
+                    Object.keys(this._sockets).forEach(namespace => {
+                        this._connectSocket(namespace);
+                    });
+                } else {
+                    console.error(`[${capitalizedType}Socket] Token refresh failed, disconnecting...`);
+                    socket.disconnect();
+                }
             }
         });
 
