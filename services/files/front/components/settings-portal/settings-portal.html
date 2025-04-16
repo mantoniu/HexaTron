@@ -1,13 +1,15 @@
 <h1>Settings</h1>
 <div id="settings">
-    <p id="keyMessage">EMPTY</p>
-    <div id="keys">
-    </div>
-    <p id="colorMessage">EMPTY</p>
+    <p id="message"></p>
     <div id="colors">
     </div>
-    <div id="validationPart">
-        <image-button alt="validate" id="validate" src="/assets/check.png"></image-button>
-        <image-button alt="cancel" id="cancel" src="/assets/cancel.svg"></image-button>
+    <div id="keys">
     </div>
+</div>
+
+<div id="validationPart">
+    <submit-button alt="cancel" background-color="var(--card-bg)" background-hover-color="color-mix(in srgb, var(--card-bg) 90%, black)"
+                   border-color="var(--primary-blue)" color="var(--text-color)" id="cancel">Discard changes
+    </submit-button>
+    <submit-button alt="validate" id="validate">Validate</submit-button>
 </div>
