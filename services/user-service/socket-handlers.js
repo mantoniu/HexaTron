@@ -90,7 +90,7 @@ module.exports = (io) => {
      * @event delete-user - Emitted to all the client connected to the service
      */
     eventBus.on("delete-user", async (userId) => {
-        await fetch("http://chat-service:8005/api/chat/deleteUser", {
+        await fetch("http://chat-service:8005/api/chat/delete-user", {
             method: "DELETE",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({userId: userId})

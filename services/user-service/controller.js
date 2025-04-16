@@ -330,7 +330,7 @@ exports.delete = async (req, res) => {
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully deleted."}));
         eventBus.emit("delete-user", userId);
-        await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/deleteUser", {
+        await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/delete-user", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json"

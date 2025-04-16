@@ -51,12 +51,12 @@ const routes = [
     },
     {
         method: "POST",
-        path: ["addNotification"],
+        path: ["add-notification"],
         handler: controller.addNotification
     },
     {
         method: "DELETE",
-        path: ["deleteUser"],
+        path: ["delete-user"],
         handler: controller.deleteUser
     },
     {

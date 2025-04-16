@@ -67,7 +67,7 @@ async function sendNotification(userId, type, friendId, objectsId = null) {
             friendId: friendId
         });
 
-    await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/addNotification", {
+    await fetch(process.env.NOTIFICATIONS_SERVICE_URL + "/api/notifications/add-notification", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
