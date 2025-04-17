@@ -22,13 +22,12 @@ export class ModalComponent extends Component {
         for (let i = 0; i < this.totalSlide; i++) {
             const indicator = document.createElement("div");
             indicator.classList.add("indicator");
-            if (i === this.actualSlide) indicator.classList.add("active");
-            indicator.dataset.index = i;
             this.addAutoCleanListener(indicator, "click", () => this.goToSlide(i));
             if (indicator) {
                 indicators.appendChild(indicator);
             }
         }
+        this.goToSlide(this.actualSlide);
         const next = shadowRoot.getElementById("next");
         if (next)
             this.addAutoCleanListener(next, "click", () => this.goToSlide(this.actualSlide + 1));
@@ -41,9 +40,17 @@ export class ModalComponent extends Component {
     }
 
     goToSlide(i) {
-        console.log(i);
         this.actualSlide = i;
         const indicators = this.shadowRoot.getElementById("indicators").childNodes;
         Array.from(indicators).forEach(((element, k) => i === k ? element.classList.add("active") : element.classList.remove("active")));
+
+        const next = this.shadowRoot.getElementById("next");
+        const previous = this.shadowRoot.getElementById("previous");
+        next.style.visibility = "visible";
+        previous.style.visibility = "visible";
+        if (i === this.totalSlide - 1)
+            next.style.visibility = "hidden";
+        else if (i === 0)
+            previous.style.visibility = "hidden";
     }
 }
