@@ -13,6 +13,7 @@
     --dark-gray: #d0d0d0;
     --shadow: rgba(0, 0, 0, 0.1);
     --sidebar-width: 80px;
+    --button-image-size: 24px;
 }
 
 * {
