@@ -1,5 +1,6 @@
 import {Component} from "../component/component.js";
 import {ImageButton} from "../image-button/image-button.js";
+import {ModalComponent} from "../modal-component/modal-component.js";
 
 const BUTON_TYPE = {
     HOME: "home",
@@ -11,24 +12,29 @@ export class HomePageButton extends Component {
         super();
 
         ImageButton.register();
+        ModalComponent.register();
     }
 
     async connectedCallback() {
         await super.connectedCallback();
 
+        let listener;
         switch (this.getAttribute("type")) {
             case BUTON_TYPE.INFOS:
+                listener = this._createModalComponent;
                 break;
             case BUTON_TYPE.HOME:
             default:
-                this.addAutoCleanListener(this, "click", () => {
+                listener = () => {
                     if (window.location.pathname !== "/") {
                         window.dispatchEvent(new CustomEvent("navigate", {
                             detail: {route: `/`}
                         }));
                     }
-                });
+                }
         }
+
+        this.addAutoCleanListener(this, "click", listener);
 
         const imageButton = this.shadowRoot.querySelector("image-button");
         imageButton.setAttribute("alt", this.getAttribute("alt"));
@@ -46,5 +52,10 @@ export class HomePageButton extends Component {
         if (this.hasAttribute("right"))
             this.style.right = this.getAttribute("right");
 
+    }
+
+    _createModalComponent() {
+        const modalComponent = document.createElement("modal-component");
+        document.body.appendChild(modalComponent);
     }
 }
