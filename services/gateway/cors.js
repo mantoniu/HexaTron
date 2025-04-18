@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = [
  * @param {IncomingMessage} request - The incoming HTTP request.
  * @param {ServerResponse} response - The HTTP response to be sent.
  */
-function openedCors(request, response) {
+function addCors(request, response) {
     const origin = request.headers.origin;
 
     // If the origin is in the list of allowed origins, set the appropriate CORS headers.
@@ -28,7 +28,7 @@ function openedCors(request, response) {
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
     // Specify which headers are allowed in requests.
-    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,authorization');
 }
 
-exports.addCors = openedCors;
+exports.addCors = addCors;
