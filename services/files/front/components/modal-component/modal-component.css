@@ -70,11 +70,39 @@ image-button {
 .modal-body {
     height: 100%;
     width: 100%;
-    text-align: center;
 }
 
 :host(.modal-content) {
     transform: translateY(0);
+}
+
+.page {
+    display: grid;
+    grid-template-rows: 1fr 10fr;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+}
+
+.content {
+    height: 100%;
+    overflow: auto;
+    align-content: center;
+}
+
+#controls {
+    min-height: 150px;
+    display: flex;
+    max-height: 50%;
+}
+
+img {
+    min-height: 150px;
+    max-height: 65%;
+    max-width: 50%;
 }
 
 .close-btn {
