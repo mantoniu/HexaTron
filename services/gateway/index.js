@@ -173,7 +173,7 @@ function setupRedirectionToHttps() {
  * @param {http.ServerResponse} response - The response object to send data back to the client.
  */
 requestHandler = async (request, response) => {
-    addCors(response);
+    addCors(request, response);
     try {
         // Find the matching service or use the files service as default
         const matchedService = Object.values(servicesConfig).find(
