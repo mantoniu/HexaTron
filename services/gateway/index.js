@@ -100,9 +100,8 @@ const proxy = httpProxy.createProxyServer();
  * @throws {Error} Throws an error if authentication fails
  */
 function checkAuthentication(req, serviceConfig) {
-    // If authentication is not required or if it's an OPTIONS request or a public route
+    // If authentication is not required or if it's a public route
     if (!serviceConfig.http.requiresAuth ||
-        req.method === 'OPTIONS' ||
         serviceConfig.http.publicRoutes?.some(route => req.url.includes(route))) {
         return {userId: ""};
     }
@@ -173,7 +172,14 @@ function setupRedirectionToHttps() {
  * @param {http.ServerResponse} response - The response object to send data back to the client.
  */
 requestHandler = async (request, response) => {
-    addCors(response);
+    addCors(request, response);
+
+    if (request.method === 'OPTIONS') {
+        response.writeHead(200);
+        response.end();
+        return;
+    }
+
     try {
         // Find the matching service or use the files service as default
         const matchedService = Object.values(servicesConfig).find(

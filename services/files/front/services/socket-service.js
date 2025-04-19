@@ -1,4 +1,5 @@
 import {apiClient} from "../js/ApiClient.js";
+import {API_HOST} from "../js/config.js";
 
 /**
  * Service for managing Socket.IO connections.
@@ -39,7 +40,7 @@ class SocketService {
         if (SocketService._instance)
             return SocketService._instance;
 
-        this.baseUrl = window.location.origin;
+        this.baseUrl = API_HOST;
         SocketService._instance = this;
     }
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HexaTron</string>
+    <string name="title_activity_main">HexaTron</string>
+    <string name="package_name">ps8.hexatron.app</string>
+    <string name="custom_url_scheme">ps8.hexatron.app</string>
+</resources>

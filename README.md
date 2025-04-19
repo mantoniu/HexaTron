@@ -44,7 +44,7 @@ To launch in production mode, run the following command:
 ## Implemented features
 
 The various features we have implemented fall into several main categories: `Game related features`,
-`User related feature`, `Chat related features`, and finally `Notifications related features`. Here, we present the
+`User related features`, `Chat related features`, and finally `Notifications related features`. Here, we present the
 various functionalities we have implemented for them.
 
 ### Game related features
@@ -111,8 +111,7 @@ On their profile, a user can update the following:
 - their **password**
 - their **profile picture**
 
-To change their password, the user must first enter their **current password**, then create a **new one** and **confirm
-** it.
+To change their password, the user must first enter their **current password**, then create a **new one** and **confirm it**.
 
 When uploading a new **profile picture**, a **loading spinner** is displayed during the upload process to avoid leaving
 the user without feedback.  
@@ -191,3 +190,60 @@ When a new notification arrives:
 - It is added to the **notification panel**
 - It appears with a **distinct visual indicator** if it has not yet been read
 - The panel displays for each notification the **type of event** and its **content**.
+
+## Back-end composition
+
+The back-end is composed of the following elements:
+
+- [Gateway](./services/gateway/README.md)
+- Initializer:
+  - [Database initializer](./services/database-initializer/README.md)
+  - [Api initializer](./services/documentation-api/README.md)
+- Services:
+  - [File service](./services/files/README.md)
+  - [Game service](./services/game-service/README.md)
+  - [User service](./services/user-service/README.md)
+  - [Notifications service](./services/notifications-service/README.md)
+  - [Chat service](./services/chat-service/README.md)
+
+The two initialization scripts are launched by Docker Compose, execute their tasks, and then terminate.
+
+Each service is assigned a specific area of responsibility to prevent the creation of monolithic services and to ensure a more flexible and scalable backend
+architecture. With this approach, there is a single entry point, the **[Gateway](./services/gateway/README.md)**, which eliminates the need to secure each service individually.
+
+All services that expose HTTP endpoints are built on the same foundation, which follows a 3-tier architecture pattern:
+
+- **Route layer**: Defines the available HTTP routes and links each route to its corresponding controller function. (Note: this layer is not used by the file
+  service.)
+- **Controller layer**: Contains the logic to be executed for each route. It processes incoming requests, applies business rules, and delegates data-related
+  operations to the database layer if needed.
+- **Database layer**: Encapsulates all operations performed on the underlying database, such as queries, inserts, updates, and deletions.
+
+In addition, each of these services (except the file service) includes an **options file** used to generate the API documentation.
+
+This architectural consistency ensures clear separation of concerns, improves maintainability, and allows for easier testing and scalability across services.
+
+To avoid duplication of code and ensure consistent management of **HTTP** requests between the different services, the routing logic is centralised in a common
+utility file, `routing-utils.js`. This file is integrated into each service when the container is built. It is used to declare routes using a simple dictionary,
+specifying only the method, path and associated controller function. In addition to this declaration, `routing-utils.js` also encapsulates all the processing
+associated with **HTTP** requests: extraction of URL segments, conditional parsing of the body (when in JSON format), dynamic route resolution and standardised
+error handling. Thanks to this structure, each service benefits from consistent behaviour in the face of malformed requests, non-existent routes or internal
+errors, while considerably simplifying the code required to expose new routes. This approach enhances the readability, maintainability and robustness of the
+back-end architecture as a whole.
+
+### Communication
+
+In this project, WebSockets (managed with Socket.IO) are used by several services: the **game**, **chat**, **user** and **notification** services. We chose to
+use **WebSockets** in these services because, unlike the **HTTP** protocol, which operates on a request/response model, they enable a persistent connection to
+be established between the client and the server. This makes it possible to exchange data bidirectionally and in real time, without having to restart a request
+each time an update is made. This continuous communication is essential, for example, for transmitting players' movements in real time, detecting a user's
+disconnection, or enabling instant chat between users.
+
+For everything that does not require a stateful connection, we use **HTTP**, following the **REST** architecture as far as possible. **HTTP** is well suited to
+stateless operations, where each request contains all the information needed to be processed independently. This includes tasks such as deleting a user,
+retrieving a list of a user's conversations or managing inter-service communication within the backend. These operations do not require real-time updates or
+persistent connections, making **REST** over **HTTP** a natural and efficient choice.
+
+All communications, whether over **HTTP** or **WebSocket**, are secured using authentication tokens (access token and refresh token). The way these tokens are
+validated and propagated throughout the system (especially in the context of real-time communication) will be covered in more detail in the section dedicated to
+the **[Gateway](./services/gateway/README.md)**.
