@@ -1,6 +1,6 @@
 import {Component} from "../component/component.js";
 import {ImageButton} from "../image-button/image-button.js";
-import {ModalComponent} from "../modal-component/modal-component.js";
+import {InformationComponent} from "../information-component/information-component.js";
 
 const BUTON_TYPE = {
     HOME: "home",
@@ -12,7 +12,7 @@ export class HomePageButton extends Component {
         super();
 
         ImageButton.register();
-        ModalComponent.register();
+        InformationComponent.register();
     }
 
     async connectedCallback() {
@@ -55,7 +55,7 @@ export class HomePageButton extends Component {
     }
 
     _createModalComponent() {
-        const modalComponent = document.createElement("modal-component");
+        const modalComponent = document.createElement("information-component");
         document.body.appendChild(modalComponent);
     }
 }

@@ -2,13 +2,17 @@ import {Component} from "../component/component.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 import {PlayerKeys} from "../player-keys/player-keys.js";
 import {userService} from "../../services/user-service.js";
+import {GameTypesPresentationComponent} from "../game-types-presentation-component/game-types-presentation-component.js";
+import {InformationsPageComponent} from "../informations-page-component/informations-page-component.js";
 
-export class ModalComponent extends Component {
+export class InformationComponent extends Component {
     constructor() {
         super();
 
         SubmitButton.register();
         PlayerKeys.register();
+        GameTypesPresentationComponent.register();
+        InformationsPageComponent.register();
     }
 
     async connectedCallback() {
@@ -42,27 +46,21 @@ export class ModalComponent extends Component {
         if (closeButton)
             closeButton.addEventListener("click", () => this.remove());
 
-        const controls = shadowRoot.getElementById("controls");
-        const parameters = userService.user.parameters;
-        const controlPlayer1 = document.createElement("player-keys");
-        controlPlayer1.setAttribute("id", "player1");
-        controlPlayer1.data = parameters.keysPlayers[0];
-        controlPlayer1.color = parameters.playersColors[0];
-        controls.appendChild(controlPlayer1);
-
-        const controlPlayer2 = document.createElement("player-keys");
-        controlPlayer2.setAttribute("id", "player2");
-        controlPlayer2.data = parameters.keysPlayers[1];
-        controlPlayer2.color = parameters.playersColors[1];
-        controls.appendChild(controlPlayer2);
+        for (let i = 0; i < 2; i++) {
+            const controls = shadowRoot.getElementById("controls");
+            const parameters = userService.user.parameters;
+            const controlPlayer = document.createElement("player-keys");
+            controlPlayer.setAttribute("id", `player${i + 1}`);
+            controlPlayer.setAttribute("activated", false);
+            controlPlayer.data = parameters.keysPlayers[i];
+            controlPlayer.color = parameters.playersColors[i];
+            controls.appendChild(controlPlayer);
+        }
     }
 
     goToSlide(i) {
         this.actualSlide = i;
         const shadowRoot = this.shadowRoot;
-        const indicators = shadowRoot.querySelectorAll(".indicator");
-        Array.from(indicators).forEach(((element, k) => i === k ? element.classList.add("active") : element.classList.remove("active")));
-
         const next = this.shadowRoot.getElementById("next");
         const previous = this.shadowRoot.getElementById("previous");
         next.style.visibility = "visible";
@@ -72,7 +70,9 @@ export class ModalComponent extends Component {
         else if (i === 0)
             previous.style.visibility = "hidden";
 
+        const indicators = shadowRoot.querySelectorAll(".indicator");
         const pages = shadowRoot.querySelectorAll(".page");
         Array.from(pages).forEach(((page, k) => i === k ? page.style.display = "grid" : page.style.display = "none"));
+        Array.from(indicators).forEach(((element, k) => i === k ? element.classList.add("active") : element.classList.remove("active")));
     }
 }

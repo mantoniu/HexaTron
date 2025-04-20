@@ -12,21 +12,18 @@
     align-content: center;
 }
 
-.modal-content {
-    margin: auto;
-    background-color: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    width: 80%;
-    height: 80%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-20px);
-    transition: all 0.3s;
-
+.information-content {
     display: grid;
     grid-template-columns: 1fr 80% 1fr;
     grid-template-rows: 90% 1fr;
     align-items: center;
+    width: 80%;
+    height: 80%;
+    margin: auto;
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     gap: 10px;
 }
 
@@ -38,19 +35,23 @@ image-button {
     background-color: var(--primary-blue-dark);
 }
 
+.information-pages {
+    height: 100%;
+    width: 100%;
+}
+
 #next {
     justify-self: end;
 }
 
 #indicators {
+    display: flex;
+    justify-content: center;
     grid-column: 1 / span 3;
     grid-row: 2;
     align-items: center;
     height: 100%;
     width: 100%;
-
-    display: flex;
-    justify-content: center;
     gap: 10px;
 }
 
@@ -67,35 +68,9 @@ image-button {
     background-color: var(--primary-blue-dark);
 }
 
-.modal-body {
-    height: 100%;
-    width: 100%;
-}
-
-:host(.modal-content) {
-    transform: translateY(0);
-}
-
-.page {
-    display: grid;
-    grid-template-rows: 1fr 10fr;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    height: 100%;
-    width: 100%;
-}
-
-.content {
-    height: 100%;
-    overflow: auto;
-    align-content: center;
-}
-
 #controls {
-    min-height: 150px;
     display: flex;
+    min-height: 150px;
     max-height: 50%;
 }
 
@@ -103,6 +78,10 @@ img {
     min-height: 150px;
     max-height: 65%;
     max-width: 50%;
+}
+
+p {
+    margin: 0;
 }
 
 .close-btn {
@@ -122,4 +101,12 @@ img {
     background-color: var(--red);
     font-weight: bold;
     color: var(--card-bg);
+}
+
+#game-types {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    height: fit-content;
+    gap: 10px;
 }
