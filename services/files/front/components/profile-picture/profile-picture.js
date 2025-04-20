@@ -1,7 +1,10 @@
 import {Component} from "../component/component.js";
 
 const defaultProfilePicture = "../../assets/profile.svg";
-const profilePicturesPath = "/storage/profile-pictures/";
+
+const profilePicturesPath = Capacitor.getPlatform() === "web"
+    ? "/storage/profile-pictures/"
+    : "https://hexatron.ps8.pns.academy/storage/profile-pictures/";
 
 export class ProfilePicture extends Component {
     static get observedAttributes() {

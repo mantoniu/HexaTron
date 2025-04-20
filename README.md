@@ -5,7 +5,7 @@
 - Antoine-Marie Michelozzi
 - Jilian Lubrat
 
-## Run
+## Run Backend
 
 To run the project, you need to have Docker and Docker Compose installed.
 
@@ -24,27 +24,97 @@ This setup is achieved by merging two Docker Compose files: the main ```docker-c
 
 To launch in development mode, run the following command:
 
- ``` 
+ ```bash
  docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file Variables.env up -d --build 
  ```
 
+In development mode, the backend is only accessible over **HTTP**, with a limited range of allowed origins due to the CORS policy. It is intended for local
+access only.
 ### 2. Production mode
 
 The production is the default mode. The ```front``` directory of the ```files-service``` is copied in the container.
 
 To launch in production mode, run the following command:
 
- ``` 
+ ```bash
  docker-compose --env-file Variables.env up -d --build 
  ```
 
- 
+In production mode, the backend is only accessible over **HTTPS**, and if you try to access it via **HTTP**, you are redirected. The CORS policy limits the
+range of allowed origins, just like in development mode.
+
+## Website
+
+To access the web version of our app, you have two options:
+
+- **Local access (development mode):**  
+  If you run the backend locally in development mode, you can access the website at [http://localhost:8000](http://localhost:8000). This requires the backend to
+  be running on your machine. Refer to the earlier section for instructions on how to launch the backend in development mode.
+
+- **Online access (production mode):**  
+  If you do not run the backend locally, you can access the app in production mode at [https://hexatron.ps8.pns.academy](https://hexatron.ps8.pns.academy). This
+  version connects to the production backend, which is hosted and configured for deployment.
+
+## Android App
+
+You can run the mobile app in two modes:
+
+- Development mode
+- Production mode
+
+### Development Mode
+
+In development mode, the app connects to a locally running backend. Similar to the website, the app will use **HTTP** for communication in this mode. This is
+useful for development and debugging, but requires some setup:
+
+#### Requirements:
+
+1. Both the mobile device and the computer hosting the backend must be connected to the same local network (Wi-Fi).
+2. You must allow incoming connections on port 8000 from the mobile device. You can do this by running the following command in PowerShell (as administrator):
+
+```bash
+netsh advfirewall firewall add rule name="HexaTron Dev Mode" protocol=TCP dir=in localport=8000 action=allow enable=yes
+```
+
+#### Synchronising for Development:
+
+To configure the mobile app to use your local backend, open a terminal in the `services/file` folder and run:
+
+```bash
+npm run sync:dev
+```
+
+If your Wi-Fi IP address starts with `192.168.1.XXX`, it will be detected automatically.  
+Otherwise, you can specify the IP manually like this:
+
+```bash
+npm run sync:dev -- XXX.XXX.XXX.XXX
+```
+
+*Make sure to use the **Wi-Fi interface IP** of your computer, not another one.*
+
+In both case it will automatically trigger `npx cap sync` to synchronise the app.
+
+### Production Mode
+
+In production mode, the app connects via **HTTPS** to the deployed backend server for all operations such as login, account management, and gameplay. This mode
+requires no special configuration and uses the existing deployed endpoint.
+
+To configure the mobile app for production mode, open a terminal in the `services/file` folder and run:
+
+```bash
+npm run sync:prod
+```
+
+This will automatically trigger `npx cap sync` to synchronise the app.
+
+
 ---
 
 ## Implemented features
 
 The various features we have implemented fall into several main categories: `Game related features`,
-`User related feature`, `Chat related features`, and finally `Notifications related features`. Here, we present the
+`User related features`, `Chat related features`, and finally `Notifications related features`. Here, we present the
 various functionalities we have implemented for them.
 
 ### Game related features
@@ -111,8 +181,7 @@ On their profile, a user can update the following:
 - their **password**
 - their **profile picture**
 
-To change their password, the user must first enter their **current password**, then create a **new one** and **confirm
-** it.
+To change their password, the user must first enter their **current password**, then create a **new one** and **confirm it**.
 
 When uploading a new **profile picture**, a **loading spinner** is displayed during the upload process to avoid leaving
 the user without feedback.  
@@ -191,3 +260,60 @@ When a new notification arrives:
 - It is added to the **notification panel**
 - It appears with a **distinct visual indicator** if it has not yet been read
 - The panel displays for each notification the **type of event** and its **content**.
+
+## Back-end composition
+
+The back-end is composed of the following elements:
+
+- [Gateway](./services/gateway/README.md)
+- Initializer:
+  - [Database initializer](./services/database-initializer/README.md)
+  - [Api initializer](./services/documentation-api/README.md)
+- Services:
+  - [File service](./services/files/README.md)
+  - [Game service](./services/game-service/README.md)
+  - [User service](./services/user-service/README.md)
+  - [Notifications service](./services/notifications-service/README.md)
+  - [Chat service](./services/chat-service/README.md)
+
+The two initialization scripts are launched by Docker Compose, execute their tasks, and then terminate.
+
+Each service is assigned a specific area of responsibility to prevent the creation of monolithic services and to ensure a more flexible and scalable backend
+architecture. With this approach, there is a single entry point, the **[Gateway](./services/gateway/README.md)**, which eliminates the need to secure each service individually.
+
+All services that expose HTTP endpoints are built on the same foundation, which follows a 3-tier architecture pattern:
+
+- **Route layer**: Defines the available HTTP routes and links each route to its corresponding controller function. (Note: this layer is not used by the file
+  service.)
+- **Controller layer**: Contains the logic to be executed for each route. It processes incoming requests, applies business rules, and delegates data-related
+  operations to the database layer if needed.
+- **Database layer**: Encapsulates all operations performed on the underlying database, such as queries, inserts, updates, and deletions.
+
+In addition, each of these services (except the file service) includes an **options file** used to generate the API documentation.
+
+This architectural consistency ensures clear separation of concerns, improves maintainability, and allows for easier testing and scalability across services.
+
+To avoid duplication of code and ensure consistent management of **HTTP** requests between the different services, the routing logic is centralised in a common
+utility file, `routing-utils.js`. This file is integrated into each service when the container is built. It is used to declare routes using a simple dictionary,
+specifying only the method, path and associated controller function. In addition to this declaration, `routing-utils.js` also encapsulates all the processing
+associated with **HTTP** requests: extraction of URL segments, conditional parsing of the body (when in JSON format), dynamic route resolution and standardised
+error handling. Thanks to this structure, each service benefits from consistent behaviour in the face of malformed requests, non-existent routes or internal
+errors, while considerably simplifying the code required to expose new routes. This approach enhances the readability, maintainability and robustness of the
+back-end architecture as a whole.
+
+### Communication
+
+In this project, WebSockets (managed with Socket.IO) are used by several services: the **game**, **chat**, **user** and **notification** services. We chose to
+use **WebSockets** in these services because, unlike the **HTTP** protocol, which operates on a request/response model, they enable a persistent connection to
+be established between the client and the server. This makes it possible to exchange data bidirectionally and in real time, without having to restart a request
+each time an update is made. This continuous communication is essential, for example, for transmitting players' movements in real time, detecting a user's
+disconnection, or enabling instant chat between users.
+
+For everything that does not require a stateful connection, we use **HTTP**, following the **REST** architecture as far as possible. **HTTP** is well suited to
+stateless operations, where each request contains all the information needed to be processed independently. This includes tasks such as deleting a user,
+retrieving a list of a user's conversations or managing inter-service communication within the backend. These operations do not require real-time updates or
+persistent connections, making **REST** over **HTTP** a natural and efficient choice.
+
+All communications, whether over **HTTP** or **WebSocket**, are secured using authentication tokens (access token and refresh token). The way these tokens are
+validated and propagated throughout the system (especially in the context of real-time communication) will be covered in more detail in the section dedicated to
+the **[Gateway](./services/gateway/README.md)**.

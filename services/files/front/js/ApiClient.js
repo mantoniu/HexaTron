@@ -1,5 +1,6 @@
 import {userService} from "../services/user-service.js";
 import {socketService} from "../services/socket-service.js";
+import {API_HOST} from "./config.js";
 
 /**
  * Default error messages mapped to HTTP status codes.
@@ -25,14 +26,14 @@ export const DEFAULT_ERROR_MESSAGES = Object.freeze({
  */
 export class ApiClient {
     static _instance = null;
-
     /**
      * Private constructor (singleton pattern).
      *
      * @private
      */
     constructor() {
-        if (ApiClient._instance) return ApiClient._instance;
+        if (ApiClient._instance)
+            return ApiClient._instance;
 
         this._accessToken = localStorage.getItem("accessToken") || null;
         this._refreshToken = localStorage.getItem("refreshToken") || null;
@@ -106,7 +107,7 @@ export class ApiClient {
         };
 
         try {
-            const response = await fetch(`${window.location.origin}/${endpoint}`, options);
+            const response = await fetch(`${API_HOST}/${endpoint}`, options);
             const data = await response.json().catch(() => null);
             if (response.status === 498) {
                 const response = await this.refreshAccessToken();

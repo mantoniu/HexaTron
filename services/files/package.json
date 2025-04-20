@@ -5,13 +5,20 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./index.js"
+    "start": "node ./index.js",
+    "sync:dev": "node capacitor-config-sync.js dev",
+    "sync:prod": "node capacitor-config-sync.js prod"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
     "sharp": "^0.34.0",
     "swagger-ui-dist": "^5.19.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.2.0"
   }
 }
