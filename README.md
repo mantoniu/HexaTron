@@ -5,7 +5,7 @@
 - Antoine-Marie Michelozzi
 - Jilian Lubrat
 
-## Run
+## Run Backend
 
 To run the project, you need to have Docker and Docker Compose installed.
 
@@ -24,21 +24,91 @@ This setup is achieved by merging two Docker Compose files: the main ```docker-c
 
 To launch in development mode, run the following command:
 
- ``` 
+ ```bash
  docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file Variables.env up -d --build 
  ```
 
+In development mode, the backend is only accessible over **HTTP**, with a limited range of allowed origins due to the CORS policy. It is intended for local
+access only.
 ### 2. Production mode
 
 The production is the default mode. The ```front``` directory of the ```files-service``` is copied in the container.
 
 To launch in production mode, run the following command:
 
- ``` 
+ ```bash
  docker-compose --env-file Variables.env up -d --build 
  ```
 
- 
+In production mode, the backend is only accessible over **HTTPS**, and if you try to access it via **HTTP**, you are redirected. The CORS policy limits the
+range of allowed origins, just like in development mode.
+
+## Website
+
+To access the web version of our app, you have two options:
+
+- **Local access (development mode):**  
+  If you run the backend locally in development mode, you can access the website at [http://localhost:8000](http://localhost:8000). This requires the backend to
+  be running on your machine. Refer to the earlier section for instructions on how to launch the backend in development mode.
+
+- **Online access (production mode):**  
+  If you do not run the backend locally, you can access the app in production mode at [https://hexatron.ps8.pns.academy](https://hexatron.ps8.pns.academy). This
+  version connects to the production backend, which is hosted and configured for deployment.
+
+## Android App
+
+You can run the mobile app in two modes:
+
+- Development mode
+- Production mode
+
+### Development Mode
+
+In development mode, the app connects to a locally running backend. Similar to the website, the app will use **HTTP** for communication in this mode. This is
+useful for development and debugging, but requires some setup:
+
+#### Requirements:
+
+1. Both the mobile device and the computer hosting the backend must be connected to the same local network (Wi-Fi).
+2. You must allow incoming connections on port 8000 from the mobile device. You can do this by running the following command in PowerShell (as administrator):
+
+```bash
+netsh advfirewall firewall add rule name="HexaTron Dev Mode" protocol=TCP dir=in localport=8000 action=allow enable=yes
+```
+
+#### Synchronising for Development:
+
+To configure the mobile app to use your local backend, open a terminal in the `services/file` folder and run:
+
+```bash
+npm run sync:dev
+```
+
+If your Wi-Fi IP address starts with `192.168.1.XXX`, it will be detected automatically.  
+Otherwise, you can specify the IP manually like this:
+
+```bash
+npm run sync:dev -- XXX.XXX.XXX.XXX
+```
+
+*Make sure to use the **Wi-Fi interface IP** of your computer, not another one.*
+
+In both case it will automatically trigger `npx cap sync` to synchronise the app.
+
+### Production Mode
+
+In production mode, the app connects via **HTTPS** to the deployed backend server for all operations such as login, account management, and gameplay. This mode
+requires no special configuration and uses the existing deployed endpoint.
+
+To configure the mobile app for production mode, open a terminal in the `services/file` folder and run:
+
+```bash
+npm run sync:prod
+```
+
+This will automatically trigger `npx cap sync` to synchronise the app.
+
+
 ---
 
 ## Implemented features
