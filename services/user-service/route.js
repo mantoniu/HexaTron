@@ -112,7 +112,7 @@ const routes = [
          *     summary: Upload and update user profile picture
          *     description: Uploads a new profile picture for the authenticated user and updates the user record.
          *     tags:
-         *       - User Service
+         *       - User service
          *     parameters:
          *       - $ref: '#/components/parameters/AuthorizationHeader'
          *     requestBody:

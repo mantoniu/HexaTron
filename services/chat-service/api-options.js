@@ -1,3 +1,5 @@
+const {conversationJson} = require("../database-initializer/type-documentation");
+
 exports.options = {
     definition: {
         openapi: "3.0.0",
@@ -23,7 +25,38 @@ exports.options = {
                     }
                 }
             },
-            schemas: {}
+            schemas: {
+                conversation: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string",
+                            example: "Conversation retrieved successfully."
+                        },
+                        conversation: {
+                            type: "object",
+                            properties: conversationJson
+                        }
+                    }
+                },
+                conversations: {
+                    type: "object",
+                    properties: {
+                        message: {
+                            type: "string",
+                            example: "User conversations retrieved successfully."
+                        },
+                        conversations: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: conversationJson
+                            }
+                        }
+                    }
+
+                }
+            }
         }
     },
     apis: ["./route.js"]
