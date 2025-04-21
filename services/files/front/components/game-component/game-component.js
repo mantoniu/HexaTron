@@ -5,6 +5,8 @@ import {GameWaiting} from "../game-waiting/game-waiting.js";
 import {ListenerComponent} from "../component/listener-component.js";
 import {ResultScreen} from "../result-screen/result-screen.js";
 import {userService} from "../../services/user-service.js";
+import {GameJoystick} from "../game-joystick/game-joystick.js";
+import {GameType} from "../../js/game/Game.js";
 
 export class GameComponent extends ListenerComponent {
     constructor() {
@@ -14,6 +16,7 @@ export class GameComponent extends ListenerComponent {
         GameHeader.register();
         GameWaiting.register();
         ResultScreen.register();
+        GameJoystick.register();
     }
 
     showResultScreen(results) {
@@ -45,17 +48,20 @@ export class GameComponent extends ListenerComponent {
 
         gameService.startGame(gameType, params);
 
-        const gameDiv = this.shadowRoot.getElementById("game");
+        this._gameDiv = this.shadowRoot.getElementById("game");
         this.hideLoader = () => {
             if (this._loader)
                 this._loader.style.display = "none";
-            if (gameDiv) {
-                gameDiv.style.visibility = "visible";
-                gameDiv.style.opacity = "1";
-                gameDiv.style.transition = "opacity 0.5s ease-in-out";
-                gameDiv.querySelector("result-screen").setAttribute("end", "false");
+            if (this._gameDiv) {
+                this._gameDiv.style.visibility = "visible";
+                this._gameDiv.style.opacity = "1";
+                this._gameDiv.style.transition = "opacity 0.5s ease-in-out";
+                this._gameDiv.querySelector("result-screen").setAttribute("end", "false");
             }
         };
+
+        if (Capacitor.isNativePlatform())
+            this._addJoySticks();
 
         if (gameService.isGameCreated())
             this.hideLoader();
@@ -65,6 +71,32 @@ export class GameComponent extends ListenerComponent {
 
         this.addAutomaticEventListener(gameService, GameStatus.GAME_END,
             (event) => this.showResultScreen(event));
+    }
+
+    _addJoySticks() {
+        if (gameService.game.type !== GameType.LOCAL) {
+            this._addJoystickForPlayer(userService.user._id);
+            return;
+        }
+
+        const localPlayers = Object.values(gameService.game.players);
+        localPlayers.forEach(player => {
+            this._addJoystickForPlayer(player.id);
+        });
+    }
+
+    _addJoystickForPlayer(playerId) {
+        const joystick = document.createElement("game-joystick");
+
+        joystick.setAttribute("position",
+            (playerId === userService.user._id) ? "left" : "right");
+
+        joystick.addEventListener("joystickMove", (event) => {
+            const direction = event.detail;
+            gameService.nextMove(playerId, direction);
+        });
+
+        this._gameDiv.appendChild(joystick);
     }
 
     disconnectedCallback() {
