@@ -445,9 +445,9 @@ io.on('connection', (gatewaySocket) => {
     });
 
     gatewaySocket.on("nextMove", (data) => {
-        const {gameId, playerId, move} = data;
+        const {gameId, playerId, displacement} = data;
 
-        if (!gameId || !playerId || move === undefined) {
+        if (!gameId || !playerId || displacement === undefined) {
             sendError(gatewaySocket, ErrorTypes.INVALID_INPUT, "Missing required move parameters");
             return;
         }
@@ -463,7 +463,7 @@ io.on('connection', (gatewaySocket) => {
             return;
         }
 
-        player.resolveMove(move);
+        player.resolveDisplacement(displacement);
     });
 
     gatewaySocket.on("leaveGame", (gameId) => {

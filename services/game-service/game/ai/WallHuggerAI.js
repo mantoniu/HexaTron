@@ -1,5 +1,6 @@
 const AI = require("AI");
 const {DISPLACEMENT_FUNCTIONS, neighbour} = require("AIUtils");
+const {DISPLACEMENT_TYPES} = require("../GameUtils");
 
 class WallHuggerAI extends AI {
     constructor(id, name) {
@@ -35,8 +36,8 @@ class WallHuggerAI extends AI {
         }
     }
 
-    getNextMove() {
-        return this.getMoveFromPosition(this.maxWallsHeuristic());
+    getNextDisplacement() {
+        return this.getDisplacementFromPosition(this.maxWallsHeuristic());
     }
 
     setup(playersState) {
@@ -48,11 +49,11 @@ class WallHuggerAI extends AI {
         });
     }
 
-    nextMove(playersState) {
+    nextDisplacement(playersState) {
         return new Promise((resolve) => {
             this.updatePlayerState(playersState);
-            let nextMove = this.getNextMove();
-            resolve(nextMove);
+            let nextDisplacement = this.getNextDisplacement();
+            resolve({type: DISPLACEMENT_TYPES.RELATIVE, value: nextDisplacement});
         });
     }
 }

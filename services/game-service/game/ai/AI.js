@@ -63,7 +63,7 @@ class AI extends Player {
         this.board[this._opponentPosition[0]][this._opponentPosition[1]] = 2;
     }
 
-    getMoveFromPosition(nextPosition) {
+    getDisplacementFromPosition(nextPosition) {
         let deltaPositions = [nextPosition[0] - this._botPosition[0], nextPosition[1] - this._botPosition[1]];
         let moveInActualConfiguration = (3 * deltaPositions[0] + deltaPositions[1]) + 3 + ((deltaPositions[0] !== 0 && this._botPosition[0] % 2 !== 0) ? 1 : 0);
         let indexMoveInDefaultConfiguration = ((this.dictMovesIndex[moveInActualConfiguration] + (this.init - this.previous)) + 6) % 6;

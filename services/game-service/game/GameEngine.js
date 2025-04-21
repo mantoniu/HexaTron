@@ -1,5 +1,8 @@
 const {GameType, Game} = require("./Game");
-const {defaultMovementsMapping, Directions, MovementTypes, DISPLACEMENT_FUNCTIONS} = require("./GameUtils");
+const {
+    defaultMovementsMapping, absoluteDisplacementToPosition, DISPLACEMENT_TYPES, RELATIVE_DISPLACEMENTS,
+    ABSOLUTE_DISPLACEMENTS
+} = require("./GameUtils");
 const PlayerState = require("./PlayerState");
 const {PlayerType} = require("./Player");
 const {ROUND_END, POSITIONS_UPDATED, GAME_END} = require("./GameStatus");
@@ -114,10 +117,10 @@ class GameEngine {
 
             const playerColumn = Number(this._game.getPlayerPosition(playerId).column);
             const defaultDirection = playerColumn === 1
-                ? Directions.RIGHT
-                : Directions.LEFT;
+                ? ABSOLUTE_DISPLACEMENTS.RIGHT
+                : ABSOLUTE_DISPLACEMENTS.LEFT;
 
-            const rotationDiff = Directions.RIGHT - defaultDirection;
+            const rotationDiff = ABSOLUTE_DISPLACEMENTS.RIGHT - defaultDirection;
 
             this.remapMovements(playerId, rotationDiff);
         }
@@ -201,11 +204,10 @@ class GameEngine {
      * Updates the movement mapping for a player.
      *
      * @param {string} playerId - The player ID.
-     * @param {string} direction - The movement direction.
+     * @param {string} newDirection - The movement direction.
      */
-    updateDirectionMapping(playerId, direction) {
-        const newDirection = this._playersMovements[playerId][direction];
-        const diff = newDirection - this._playersMovements[playerId][MovementTypes.KEEP_GOING];
+    updateDirectionMapping(playerId, newDirection) {
+        const diff = newDirection - this._playersMovements[playerId][RELATIVE_DISPLACEMENTS.KEEP_GOING];
 
         this.remapMovements(playerId, diff);
     }
@@ -218,22 +220,32 @@ class GameEngine {
     async computeNewPositions() {
         const movePromises = Object.values(this._remainingPlayers).map(player =>
             this.wrapWithTimeout(
-                player.nextMove(this.getPlayerState(player)),
+                player.nextDisplacement(this.getPlayerState(player)),
                 this._choiceTimeout,
-                MovementTypes.KEEP_GOING
+                {
+                    type: DISPLACEMENT_TYPES.RELATIVE,
+                    value: RELATIVE_DISPLACEMENTS.KEEP_GOING
+                }
             )
         );
 
-        const movements = await Promise.all(movePromises);
+        const displacements = await Promise.all(movePromises);
         const newPositions = {};
 
-        movements.forEach((movement, i) => {
+        displacements.forEach((displacement, i) => {
             const player = Object.values(this._remainingPlayers)[i];
-            const direction = this._playersMovements[player.id][movement];
+            let direction;
 
-            this.updateDirectionMapping(player.id, movement);
+            if (displacement.type === DISPLACEMENT_TYPES.ABSOLUTE) {
+                direction = displacement.value;
+                this._playersMovements[player.id][RELATIVE_DISPLACEMENTS.KEEP_GOING] = direction;
+            } else {
+                const movement = displacement.value;
+                direction = this._playersMovements[player.id][movement];
+                this.updateDirectionMapping(player.id, direction);
+            }
 
-            const pos = DISPLACEMENT_FUNCTIONS[direction](
+            const pos = absoluteDisplacementToPosition[direction](
                 this._game.getPlayerPosition(player.id)
             );
 
