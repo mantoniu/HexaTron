@@ -7,7 +7,7 @@ export class GameJoystick extends Component {
         await super.connectedCallback();
 
         this._position = this.getAttribute("position");
-        this.joyStickHandle = this.shadowRoot.querySelector(".joystick-handle");
+        this._joyStickHandle = this.shadowRoot.querySelector(".joystick-handle");
         this._handleJoystickStart = this._handleJoystickStart.bind(this);
         this._handleJoystickMove = this._handleJoystickMove.bind(this);
         this._handleJoystickEnd = this._handleJoystickEnd.bind(this);
@@ -29,7 +29,8 @@ export class GameJoystick extends Component {
 
     _handleJoystickMove(event) {
         const touch = Array.from(event.touches).find(t => t.identifier === this._touchId);
-        if (!touch) return;
+        if (!touch)
+            return;
 
         const screenWidth = window.innerWidth;
         if ((this._position === "left" && touch.clientX > screenWidth / 2) ||
@@ -51,7 +52,7 @@ export class GameJoystick extends Component {
         const x = distance * Math.cos(angle);
         const y = distance * Math.sin(angle);
 
-        this.joyStickHandle.style.transform = `translate(${x}px, ${y}px)`;
+        this._joyStickHandle.style.transform = `translate(${x}px, ${y}px)`;
 
         this._emitNewDirection(angle * 180 / Math.PI);
     }
@@ -74,8 +75,7 @@ export class GameJoystick extends Component {
 
         if (direction == null)
             return;
-        //TODO add _ convention on every private fields
-        this._lastDirection = direction;
+
         this.dispatchEvent(new CustomEvent("joystickMove", {
             detail: new AbsoluteDisplacement(direction)
         }));
@@ -86,7 +86,7 @@ export class GameJoystick extends Component {
         if (!touch)
             return;
 
-        this.joyStickHandle.style.transform = `translate(0px, 0px)`;
+        this._joyStickHandle.style.transform = `translate(0px, 0px)`;
         this._touchId = null;
 
         document.removeEventListener("touchmove", this._handleJoystickMove);
