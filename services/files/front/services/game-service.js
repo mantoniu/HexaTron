@@ -1,7 +1,6 @@
 import {Game, GameType} from "../js/game/Game.js";
 import {LocalPlayer} from "../js/game/LocalPlayer.js";
 import {USER_EVENTS, userService} from "./user-service.js";
-import {MovementTypes} from "../js/game/GameUtils.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {socketService} from "./socket-service.js";
 
@@ -357,33 +356,19 @@ class GameService extends EventEmitter {
     }
 
     /**
-     * Inverts a move
-     *
-     * @private
-     * @param {string} move - The move to invert.
-     * @returns {string} The inverted move.
-     */
-    _invertMove(move) {
-        const movements = Object.values(MovementTypes);
-        const index = movements.indexOf(move);
-        if (index === -1)
-            return move;
-
-        const mirroredIndex = movements.length - 1 - index;
-        return movements[mirroredIndex];
-    }
-
-    /**
      * Sends the player's next move to the server.
      *
      * @param {string} playerId - The ID of the player making the move.
-     * @param {string} move - The move to make.
+     * @param {Displacement} displacement - The move to make.
      */
-    nextMove(playerId, move) {
+    nextMove(playerId, displacement) {
         if (this._shouldInvertPositions)
-            move = this._invertMove(move);
+            displacement = displacement.invert();
 
-        this.socket.emit("nextMove", {gameId: this.game.id, playerId, move});
+        if (!this.game?.id || !playerId)
+            return;
+
+        this.socket.emit("nextMove", {gameId: this.game.id, playerId, displacement: displacement.toJSON()});
     }
 
     /**

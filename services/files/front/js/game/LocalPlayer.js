@@ -1,6 +1,7 @@
 import {Player} from "./Player.js";
 import {defaultMovementsConfiguration} from "./GameUtils.js";
 import {gameService} from "../../services/game-service.js";
+import {RelativeDisplacement} from "./RelativeDisplacement.js";
 
 export class LocalPlayer extends Player {
     constructor(id, name, keyConfiguration) {
@@ -17,7 +18,7 @@ export class LocalPlayer extends Player {
             const key = event.key.toLowerCase();
             if (this._keys.includes(key) && gameService.isGameCreated()) {
                 const move = this._movementsMapping[key];
-                gameService.nextMove(this.id, move);
+                gameService.nextMove(this.id, new RelativeDisplacement(move));
             }
         });
     }
