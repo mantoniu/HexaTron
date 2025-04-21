@@ -1,4 +1,4 @@
-import {Directions} from "./GameUtils.js";
+import {ABSOLUTE_DISPLACEMENTS} from "./GameUtils.js";
 
 export const Status = {
     WALL: -1,
@@ -35,12 +35,12 @@ export class Tile {
         context.translate(posX, posY + size);
 
         const rotationAngles = {
-            [Directions.UPPER_LEFT]: -Math.PI / 6,
-            [Directions.UPPER_RIGHT]: Math.PI / 6,
-            [Directions.RIGHT]: Math.PI / 2,
-            [Directions.LOWER_RIGHT]: Math.PI - Math.PI / 6,
-            [Directions.LOWER_LEFT]: -Math.PI + Math.PI / 6,
-            [Directions.LEFT]: -Math.PI / 2
+            [ABSOLUTE_DISPLACEMENTS.UPPER_LEFT]: -Math.PI / 6,
+            [ABSOLUTE_DISPLACEMENTS.UPPER_RIGHT]: Math.PI / 6,
+            [ABSOLUTE_DISPLACEMENTS.RIGHT]: Math.PI / 2,
+            [ABSOLUTE_DISPLACEMENTS.LOWER_RIGHT]: Math.PI - Math.PI / 6,
+            [ABSOLUTE_DISPLACEMENTS.LOWER_LEFT]: -Math.PI + Math.PI / 6,
+            [ABSOLUTE_DISPLACEMENTS.LEFT]: -Math.PI / 2
         };
 
         context.rotate(rotationAngles[direction]);

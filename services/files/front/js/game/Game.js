@@ -1,6 +1,6 @@
 import {Board} from "./Board.js";
 import {Position} from "./Position.js";
-import {Directions, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
+import {ABSOLUTE_DISPLACEMENTS, DISPLACEMENT_FUNCTIONS} from "./GameUtils.js";
 import {userService} from "../../services/user-service.js";
 
 export const GameType = Object.freeze({
@@ -59,8 +59,8 @@ export class Game {
     obtainDirection(prevPosition, newPosition) {
         if (!prevPosition || prevPosition.equals(newPosition))
             return newPosition.column === 1
-                ? Directions.RIGHT
-                : Directions.LEFT;
+                ? ABSOLUTE_DISPLACEMENTS.RIGHT
+                : ABSOLUTE_DISPLACEMENTS.LEFT;
 
         const displacementResults = DISPLACEMENT_FUNCTIONS.map((fun, index) => ({
             result: fun(prevPosition),
@@ -92,11 +92,6 @@ export class Game {
 
     getPlayerPosition(playerId) {
         return this._playersPositions[playerId];
-    }
-
-    setPlayerPosition(playerId, position) {
-        this._playersPositions[playerId] = position;
-        this.board.fillTile(position, "black", Directions.UPPER_RIGHT, this._context, false);
     }
 
     get board() {
