@@ -231,6 +231,7 @@ class UserService extends EventEmitter {
         } else {
             Object.entries(newData).forEach(([key, value]) => this._user[key] = value);
             localStorage.setItem("user", JSON.stringify(this._user));
+            return {success: true, ...newData};
         }
     }
 
