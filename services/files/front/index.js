@@ -19,26 +19,41 @@ const routes = [
         path: "/",
         template: () => "<mode-selector></mode-selector>",
         authRequired: false,
-        onNavigate: () => window.dispatchEvent(new CustomEvent("resetCustomNav"))
+        onNavigate: () => {
+            document.getElementById("infos").style.display = "flex";
+            window.dispatchEvent(new CustomEvent("resetCustomNav"));
+        }
     },
     {
         path: "/local",
-        template: () => `<game-component type='${GameType.LOCAL}'></game-component>`,
+        template: () => {
+            document.getElementById("infos").style.display = "none";
+            return `<game-component type='${GameType.LOCAL}'></game-component>`;
+        },
         authRequired: false
     },
     {
         path: "/ai",
-        template: () => `<game-component type='${GameType.AI}'></game-component>`,
+        template: () => {
+            document.getElementById("infos").style.display = "none";
+            return `<game-component type='${GameType.AI}'></game-component>`;
+        },
         authRequired: false
     },
     {
         path: "/ranked",
-        template: () => `<game-component type='${GameType.RANKED}'></game-component>`,
+        template: () => {
+            document.getElementById("infos").style.display = "none";
+            return `<game-component type='${GameType.RANKED}'></game-component>`;
+        },
         authRequired: true
     },
     {
         path: "/friendly",
-        template: (params) => `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`,
+        template: (params) => {
+            document.getElementById("infos").style.display = "none";
+            return `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`;
+        },
         authRequired: true,
         validateParams: (params) => params.friendId || params.gameId
     }
@@ -91,7 +106,15 @@ window.onpopstate = () => {
     updateView();
 };
 
+document.getElementById("home").addEventListener("click", () => navigateTo("/"));
+document.getElementById("infos").addEventListener("click", _createModalComponent);
+
 if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', updateView);
 else
     updateView();
+
+function _createModalComponent() {
+    const modalComponent = document.createElement("information-component");
+    document.body.appendChild(modalComponent);
+}
