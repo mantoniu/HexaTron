@@ -289,7 +289,9 @@ All services that expose HTTP endpoints are built on the same foundation, which 
   operations to the database layer if needed.
 - **Database layer**: Encapsulates all operations performed on the underlying database, such as queries, inserts, updates, and deletions.
 
-In addition, each of these services (except the file service) includes an **options file** used to generate the API documentation.
+In addition, each of these services (except the file service) includes an options file used to generate its own API documentation.
+The API documentation from all services is then merged to produce a global API documentation, which is hosted by the file service.
+This unified documentation presents all the HTTP endpoints of all services and is accessible via a Swagger UI at https://hexatron.ps8.pns.academy/api/doc.
 
 This architectural consistency ensures clear separation of concerns, improves maintainability, and allows for easier testing and scalability across services.
 

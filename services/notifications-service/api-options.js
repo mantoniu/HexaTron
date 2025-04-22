@@ -1,3 +1,12 @@
+const {notificationJSON} = require("../database-initializer/type-documentation");
+
+const notificationExample = {
+    userId: "151vqdv445v1v21d",
+    type: "friendRequest",
+    friendId: "354scaf887v1v47d",
+    objectId: ["789fdgd796t7a59b"]
+};
+
 exports.options = {
     definition: {
         openapi: "3.0.0",
@@ -23,7 +32,14 @@ exports.options = {
                     }
                 }
             },
-            schemas: {}
+            schemas: {
+                notification: {
+                    type: "object",
+                    required: ["userId", "type", "friendId"],
+                    properties: notificationJSON,
+                    example: notificationExample
+                }
+            }
         }
     },
     apis: ["./route.js"]
