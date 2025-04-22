@@ -15,7 +15,6 @@ image-button {
     backdrop-filter: blur(5px);
     box-shadow: -2px 0 10px var(--shadow);
     padding-top: calc(20px - 0.5rem);
-    transform: translateX(100%);
     opacity: 0;
     pointer-events: none;
 }
