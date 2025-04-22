@@ -215,10 +215,24 @@ function convertBsonToSwagger(schema) {
 }
 
 /* JSON */
-let userJson = convertBsonToSwagger(User.properties);
-userJson["_id"] = {"type": "string"};
-
+const userJson = convertBsonToSwagger(User.properties);
 const refreshTokenJson = convertBsonToSwagger(RefreshToken);
+let conversationJson = convertBsonToSwagger(Conversation.properties);
+const messageJson = convertBsonToSwagger(Message.properties);
+messageJson["senderName"] = {type: "string"};
+delete messageJson.conversationId;
+conversationJson["messages"] = {
+    type: "object",
+    properties: {
+        message_id: {
+            type: "object",
+            properties: messageJson
+        }
+    }
+};
+const notificationJSON = convertBsonToSwagger(Notifications.properties);
+delete notificationJSON._id;
+delete notificationJSON.isRead;
 
 /* EXPORTS */
-module.exports = {User, Conversation, Message, Parameters, RefreshToken, Notifications, userJson, refreshTokenJson};
+module.exports = {User, Conversation, Message, Parameters, RefreshToken, Notifications, userJson, refreshTokenJson, conversationJson, notificationJSON};

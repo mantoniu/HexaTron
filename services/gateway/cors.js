@@ -1,5 +1,6 @@
 // List of allowed origins that can access your server.
 const ALLOWED_ORIGINS = [
+    "http://localhost",
     'capacitor://localhost', // Capacitor (mobile)
     'https://localhost',     // Local development (browser)
     process.env.WEBSITE_URL  // Production

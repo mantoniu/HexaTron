@@ -50,16 +50,119 @@ const routes = [
         handler: controller.documentation
     },
     {
+        /**
+         * @swagger
+         * /api/notifications/add-notification:
+         *   post:
+         *     summary: Add a new notification
+         *     description: Creates a new notification and stores it in the database. This route is used by the user, chat and game service.
+         *     tags:
+         *       - Notifications service
+         *     requestBody:
+         *       description: Notification data to be stored
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             $ref: '#/components/schemas/notification'
+         *     responses:
+         *       201:
+         *         description: Notification successfully created
+         *       400:
+         *         description: Invalid notification data format
+         *       500:
+         *         description: Internal server error while adding a notification.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
         method: "POST",
         path: ["add-notification"],
         handler: controller.addNotification
     },
     {
+        /**
+         * @swagger
+         * /api/notifications/delete-user:
+         *   delete:
+         *     summary: Delete all data related to a removed user
+         *     description: Receives the ID of a deleted user and removes all related data from the conversations and messages collections. This route is used by the user service.
+         *     tags:
+         *      - Notifications service
+         *     requestBody:
+         *       description: ID of the deleted user
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             type: object
+         *             properties:
+         *               userId:
+         *                 type: string
+         *                 example: 151vqdv445v1v21d
+         *     responses:
+         *       200:
+         *         description: Deletion completed successfully.
+         *       500:
+         *         description: Internal server error while deleting elements linked to the user.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
         method: "DELETE",
         path: ["delete-user"],
         handler: controller.deleteUser
     },
     {
+        /**
+         * @swagger
+         * /api/notifications:
+         *   delete:
+         *     summary: Delete a notification using friendId and objectId
+         *     description: Deletes a specific notification based on the provided friendId and objectId. This route is used by the game service.
+         *     tags:
+         *       - Notifications service
+         *     parameters:
+         *       - in: query
+         *         name: friendId
+         *         required: true
+         *         schema:
+         *           type: string
+         *           example: 151vqdv445v1v21d
+         *         description: ID of the friend related to the notification
+         *       - in: query
+         *         name: objectId
+         *         required: true
+         *         schema:
+         *           type: array
+         *           items:
+         *              type: string
+         *           example: [823afls932a5a9h5]
+         *         description: ID of the objects associated with the notification
+         *     responses:
+         *       204:
+         *         description: Deletion completed successfully.
+         *       500:
+         *         description: Internal server error while deleting the notification.
+         *         content:
+         *           application/json:
+         *             schema:
+         *               type: object
+         *               properties:
+         *                 error:
+         *                   type: string
+         *                   example: Error message
+         */
         method: "DELETE",
         path: [],
         handler: controller.delete
