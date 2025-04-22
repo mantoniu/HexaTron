@@ -4,6 +4,8 @@ import {PlayerKeys} from "../player-keys/player-keys.js";
 import {userService} from "../../services/user-service.js";
 import {GameTypesPresentationComponent} from "../game-types-presentation-component/game-types-presentation-component.js";
 import {InformationsPageComponent} from "../informations-page-component/informations-page-component.js";
+import {mobile} from "../../js/config.js";
+import {GameJoystick} from "../game-joystick/game-joystick.js";
 
 export class InformationComponent extends Component {
     constructor() {
@@ -13,10 +15,13 @@ export class InformationComponent extends Component {
         PlayerKeys.register();
         GameTypesPresentationComponent.register();
         InformationsPageComponent.register();
+        GameJoystick.register();
     }
 
     async connectedCallback() {
         await super.connectedCallback();
+
+        this.addAutoCleanListener(window, "resize", () => this.flexOrientation());
 
         this._initialize();
     }
@@ -56,6 +61,13 @@ export class InformationComponent extends Component {
             controlPlayer.color = parameters.playersColors[i];
             controls.appendChild(controlPlayer);
         }
+
+        if (mobile)
+            shadowRoot.getElementById("mobile").style.display = "block";
+        else
+            shadowRoot.getElementById("computer").style.display = "block";
+
+        this.flexOrientation();
     }
 
     goToSlide(i) {
@@ -74,5 +86,15 @@ export class InformationComponent extends Component {
         const pages = shadowRoot.querySelectorAll(".page");
         Array.from(pages).forEach(((page, k) => i === k ? page.style.display = "grid" : page.style.display = "none"));
         Array.from(indicators).forEach(((element, k) => i === k ? element.classList.add("active") : element.classList.remove("active")));
+    }
+
+    flexOrientation() {
+        const height = window.innerHeight;
+        const el = this.shadowRoot.getElementById("1");
+        if (height < 440) {
+            el.style.setProperty("--flex-direction", "row");
+        } else {
+            el.style.setProperty("--flex-direction", "column");
+        }
     }
 }

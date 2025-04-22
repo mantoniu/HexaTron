@@ -3,11 +3,9 @@
     <div class="information-pages">
         <informations-page-component class="page" id="0" title="Welcome to HexaTron">
             <p>
-                Step into the digital arena of HexaTron, a thrilling strategy game inspired by the classic light-cycle battles of Tron but with a
-                hexagonal twist. Unlike the traditional grid-based gameplay, HexaTron takes place on a hexagonal grid that creates more movement
-                possibilities and strategic depth.
-            </p>
-
+                Step into the digital arena of HexaTron, a game inspired by the classic light-cycle battles of Tron but with a
+                hexagonal twist. </p>
+            <p> You can choose between four different ways to play: </p>
             <div id="game-types">
                 <game-types-presentation-component icon="../../assets/friends.png" title="Local">Challenge your friends on the same device
                 </game-types-presentation-component>
@@ -18,29 +16,31 @@
                 <game-types-presentation-component icon="../../assets/vs.png" title="Friendly">Compete against online friends
                 </game-types-presentation-component>
             </div>
-            <p>Whether you're looking for casual fun with friends or competitive ranked matches to test your skills, HexaTron offers multiple ways
-                to enjoy the hexagonal battlefield. Master the unique movement patterns, develop advanced strategies, and claim your place among
-                the elite HexaTron players.</p>
         </informations-page-component>
         <informations-page-component class="page" id="1" title="Gameplay">
             <img alt="Presentation of the gameplay by image" src="../../assets/gameplayCapture.png">
-            <p>No matter which game mode you choose, each match is played in 3 rounds. <br>
-                Your objective is simple: be the last one standing at each round and win more rounds than your opponent. <br>
-                The rules are simple: to win a round, avoid falling out of the arena, crashing into your opponent’s trail, or running into your own.
-                <br>
-                Master the arena, outsmart your opponent, and claim victory!</p>
+            <p>In any game mode, each match is played in 3 rounds where your goal is to outlast your opponent by avoiding crashes, staying in the
+                arena, and winning more rounds to claim victory.</p>
         </informations-page-component>
         <informations-page-component class="page" id="2" title="Game's controls">
-            <p>Here you have a presentation of the game’s control system. <br>
-                Player 1, is the main character you will control in every game mode. Player 2, are controls only used during local game by the other
-                player.</p>
-            <div id="controls"></div>
-            <p>
-                On the diagram, each colored hexagon represents a player’s trail. <br>
-                You control your ship using four keys, but the controls rotate with your ship. <br>
-                This means the keys always move you based on your ship’s current orientation on the hexagonal grid. <br>
-                Tips: if the default keys don’t feel quite right, you can fully customize them in the settings menu to match your preferred style of
-                play.</p>
+            <p>Here you have a presentation of the game’s control system.</p>
+            <div id="computer">
+                <p> Player 1, is the main character you will control in every game mode. Player 2, are controls only used during local game by the
+                    other
+                    player.</p>
+                <div id="controls"></div>
+                <p>
+                    Each colored hexagon on the diagram represents a player’s trail, and since controls rotate with your ship’s orientation on the hex
+                    grid, you can customize the keys in the settings to suit your play style.</p>
+            </div>
+            <div id="mobile">
+                <p>
+                    You will control your ship using a joystick in the bottom left corner. If you're playing locally, a second joystick will be
+                    available for the second player.</p>
+                <div id="joystick">
+                    <game-joystick></game-joystick>
+                </div>
+            </div>
         </informations-page-component>
     </div>
     <image-button alt="next" id="next" src="../../assets/next.svg"></image-button>
