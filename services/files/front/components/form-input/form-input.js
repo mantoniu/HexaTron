@@ -11,7 +11,7 @@ export class FormInput extends Component {
         return [
             'id', 'label', 'type', 'placeholder', 'required',
             'errormessage', 'error', 'maxlength', 'minlength',
-            'value', 'pattern'
+            'value', 'pattern', 'autocomplete'
         ];
     }
 
@@ -70,6 +70,7 @@ export class FormInput extends Component {
             maxlength: this.maxLength,
             minlength: this.minLength,
             pattern: this.pattern,
+            autocomplete: this.autocomplete,
             required: this.required ? '' : null,
             value: this.value
         };

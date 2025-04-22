@@ -1,8 +1,9 @@
 <h1>Login</h1>
 <form class="login-form">
     <form-input id="name" label="Username" placeholder="Enter your username"
-                required type="text"></form-input>
-    <form-input id="password" label="Password" placeholder="Enter your password" required type="password"></form-input>
+                autocomplete="username" required type="text"></form-input>
+    <form-input autocomplete="current-password" id="password" label="Password"
+                placeholder="Enter your password" required type="password"></form-input>
 
     <submit-button>Login</submit-button>
 </form>
