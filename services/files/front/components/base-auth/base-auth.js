@@ -51,20 +51,4 @@ export class BaseAuth extends Component {
     getFormData() {
         return getInputsData(this.getFormInputs());
     }
-
-    checkInputs(divId) {
-        return checkInputsValidity(this.getInputs(`#${divId} form-input`));
-    }
-
-    getInputs(selector) {
-        return this.shadowRoot.querySelectorAll(selector);
-    }
-
-    showElement(element) {
-        if (element) element.style.display = "block";
-    }
-
-    hideElement(element) {
-        if (element) element.style.display = "none";
-    }
 }
