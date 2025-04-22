@@ -14,20 +14,22 @@ GameComponent.register();
 DrawerMenu.register();
 HexagonBackground.register();
 
+const infos = document.getElementById("infos");
+
 const routes = [
     {
         path: "/",
         template: () => "<mode-selector></mode-selector>",
         authRequired: false,
         onNavigate: () => {
-            document.getElementById("infos").style.display = "flex";
+            infos.style.display = "flex";
             window.dispatchEvent(new CustomEvent("resetCustomNav"));
         }
     },
     {
         path: "/local",
         template: () => {
-            document.getElementById("infos").style.display = "none";
+            infos.style.display = "none";
             return `<game-component type='${GameType.LOCAL}'></game-component>`;
         },
         authRequired: false
@@ -35,7 +37,7 @@ const routes = [
     {
         path: "/ai",
         template: () => {
-            document.getElementById("infos").style.display = "none";
+            infos.style.display = "none";
             return `<game-component type='${GameType.AI}'></game-component>`;
         },
         authRequired: false
@@ -43,7 +45,7 @@ const routes = [
     {
         path: "/ranked",
         template: () => {
-            document.getElementById("infos").style.display = "none";
+            infos.style.display = "none";
             return `<game-component type='${GameType.RANKED}'></game-component>`;
         },
         authRequired: true
@@ -51,7 +53,7 @@ const routes = [
     {
         path: "/friendly",
         template: (params) => {
-            document.getElementById("infos").style.display = "none";
+            infos.style.display = "none";
             return `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`;
         },
         authRequired: true,
@@ -107,7 +109,7 @@ window.onpopstate = () => {
 };
 
 document.getElementById("home").addEventListener("click", () => navigateTo("/"));
-document.getElementById("infos").addEventListener("click", _createModalComponent);
+infos.addEventListener("click", _createModalComponent);
 
 if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', updateView);
