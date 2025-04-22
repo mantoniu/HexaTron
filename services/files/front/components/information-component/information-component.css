@@ -1,0 +1,123 @@
+:host {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
+
+.information-content {
+    display: grid;
+    grid-template-columns: 1fr 80% 1fr;
+    grid-template-rows: 90% 1fr;
+    align-items: center;
+    width: 80%;
+    height: 80%;
+    margin: auto;
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    gap: 10px;
+    position: relative;
+}
+
+image-button {
+    padding: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 34px;
+    background-color: var(--primary-blue-dark);
+}
+
+image-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.information-pages {
+    height: 100%;
+    width: 100%;
+}
+
+#next {
+    justify-self: end;
+}
+
+#indicators {
+    display: flex;
+    justify-content: center;
+    grid-column: 1 / span 3;
+    grid-row: 2;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    gap: 10px;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--shadow);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.active {
+    background-color: var(--primary-blue-dark);
+}
+
+#controls {
+    display: flex;
+    min-height: 150px;
+    max-height: 50%;
+}
+
+img {
+    min-height: 150px;
+    max-height: 65%;
+    max-width: 50%;
+}
+
+p {
+    margin: 0;
+}
+
+.close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 20px;
+    background-color: var(--red);
+    font-weight: bold;
+    color: var(--card-bg);
+}
+
+.close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+#game-types {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    height: fit-content;
+    gap: 10px;
+}

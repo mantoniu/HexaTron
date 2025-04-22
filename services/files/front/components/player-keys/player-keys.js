@@ -20,7 +20,8 @@ export class PlayerKeys extends Component {
         await super.connectedCallback();
 
         this.shadowRoot.querySelector("p").textContent += " " + this.getAttribute("id").match(/\d+$/);
-        this.generateGrid();
+        const activated = this.hasAttribute("activated") ? JSON.parse(this.getAttribute("activated")) : true;
+        this.generateGrid(activated);
     }
 
     modifyKey(index) {
@@ -32,7 +33,7 @@ export class PlayerKeys extends Component {
         }));
     }
 
-    generateGrid() {
+    generateGrid(activated) {
         let grid = this.shadowRoot.querySelector("#grid>g");
         let size = 50;
         let verticalSpacing = (3 / 2) * size;
@@ -57,7 +58,8 @@ export class PlayerKeys extends Component {
                     }
 
                     if (i % 2 !== 0) {
-                        hex.setAttribute("class", "editable");
+                        if (activated)
+                            hex.setAttribute("class", "editable");
 
                         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                         text.textContent = this._data[keyIndex];
@@ -65,7 +67,8 @@ export class PlayerKeys extends Component {
                         text.setAttribute("id", keyIndex);
 
                         gElement.appendChild(text);
-                        this.addAutoCleanListener(gElement, "click", this.modifyKey.bind(this, keyIndex));
+                        if (activated)
+                            this.addAutoCleanListener(gElement, "click", this.modifyKey.bind(this, keyIndex));
 
                         keyIndex++;
                     }

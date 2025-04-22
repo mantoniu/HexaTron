@@ -48,7 +48,7 @@ async function mergeDocs(serviceUrls) {
                 Object.assign(mergedDoc.paths, doc.paths);
             }
             for (let componentKey of Object.keys(doc.components)) {
-                if (!Object.hasOwnProperty(mergedDoc.components[componentKey])) {
+                if (!mergedDoc.components.hasOwnProperty([componentKey])) {
                     mergedDoc.components[componentKey] = {};
                 }
                 for (let [key, value] of Object.entries(doc.components[componentKey])) {

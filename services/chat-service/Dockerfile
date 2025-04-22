@@ -11,6 +11,7 @@ RUN npm install
 RUN cd /app/utils && npm install
 
 COPY ./chat-service/*.js ./
+COPY ../database-initializer/type-documentation.js /app/database-initializer/
 
 EXPOSE 8005
 CMD ["node", "index.js"]
