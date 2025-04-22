@@ -1,0 +1,16 @@
+<svg width="800px" height="800px" viewBox="0 0 77 60" xmlns="http://www.w3.org/2000/svg">
+    <!-- Corps de la flèche -->
+    <path d="M7,30 Q80,30 70,30 T40,30 L5,30"
+          stroke="white"
+          stroke-width="10"
+          fill="none"
+          stroke-linecap="round"/>
+
+    <!-- Tête de la flèche -->
+    <path d="M5,30 L25,10 M5,30 L25,50"
+          stroke="white"
+          stroke-width="10"
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+</svg>

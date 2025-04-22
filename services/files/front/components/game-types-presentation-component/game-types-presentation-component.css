@@ -1,0 +1,22 @@
+:host {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px var(--shadow);
+    border-radius: 12px;
+    border: 2px solid var(--primary-blue);
+    box-sizing: border-box;
+    padding: 10px;
+    gap: 10px;
+}
+
+img {
+    height: 24px;
+    width: 24px;
+}
+
+p, h2 {
+    margin: 0;
+}

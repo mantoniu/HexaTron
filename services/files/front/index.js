@@ -1,6 +1,6 @@
 import {ModeSelector} from "./components/mode-selector/mode-selector.js";
 import {CustomNav} from "./components/custom-nav/custom-nav.js";
-import {HomeButton} from "./components/home-button/home-button.js";
+import {HomePageButton} from "./components/home-page-button/home-page-button.js";
 import {GameComponent} from "./components/game-component/game-component.js";
 import {DrawerMenu} from "./components/drawer-menu/drawer-menu.js";
 import {HexagonBackground} from "./components/hexagon-background/hexagon-background.js";
@@ -9,36 +9,53 @@ import {GameType} from "./js/game/Game.js";
 
 ModeSelector.register();
 CustomNav.register();
-HomeButton.register();
+HomePageButton.register();
 GameComponent.register();
 DrawerMenu.register();
 HexagonBackground.register();
+
+const infos = document.getElementById("infos");
 
 const routes = [
     {
         path: "/",
         template: () => "<mode-selector></mode-selector>",
         authRequired: false,
-        onNavigate: () => window.dispatchEvent(new CustomEvent("resetCustomNav"))
+        onNavigate: () => {
+            infos.style.display = "flex";
+            window.dispatchEvent(new CustomEvent("resetCustomNav"));
+        }
     },
     {
         path: "/local",
-        template: () => `<game-component type='${GameType.LOCAL}'></game-component>`,
+        template: () => {
+            infos.style.display = "none";
+            return `<game-component type='${GameType.LOCAL}'></game-component>`;
+        },
         authRequired: false
     },
     {
         path: "/ai",
-        template: () => `<game-component type='${GameType.AI}'></game-component>`,
+        template: () => {
+            infos.style.display = "none";
+            return `<game-component type='${GameType.AI}'></game-component>`;
+        },
         authRequired: false
     },
     {
         path: "/ranked",
-        template: () => `<game-component type='${GameType.RANKED}'></game-component>`,
+        template: () => {
+            infos.style.display = "none";
+            return `<game-component type='${GameType.RANKED}'></game-component>`;
+        },
         authRequired: true
     },
     {
         path: "/friendly",
-        template: (params) => `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`,
+        template: (params) => {
+            infos.style.display = "none";
+            return `<game-component type='${GameType.FRIENDLY}' params='${JSON.stringify(params)}'></game-component>`;
+        },
         authRequired: true,
         validateParams: (params) => params.friendId || params.gameId
     }
@@ -91,7 +108,15 @@ window.onpopstate = () => {
     updateView();
 };
 
+document.getElementById("home").addEventListener("click", () => navigateTo("/"));
+infos.addEventListener("click", _createModalComponent);
+
 if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', updateView);
 else
     updateView();
+
+function _createModalComponent() {
+    const modalComponent = document.createElement("information-component");
+    document.body.appendChild(modalComponent);
+}
