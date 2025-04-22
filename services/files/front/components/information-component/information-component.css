@@ -25,6 +25,7 @@
     padding: 1.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     gap: 10px;
+    position: relative;
 }
 
 image-button {
@@ -33,6 +34,11 @@ image-button {
     height: 24px;
     border-radius: 34px;
     background-color: var(--primary-blue-dark);
+}
+
+image-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
 }
 
 .information-pages {
@@ -101,6 +107,11 @@ p {
     background-color: var(--red);
     font-weight: bold;
     color: var(--card-bg);
+}
+
+.close-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
 }
 
 #game-types {
