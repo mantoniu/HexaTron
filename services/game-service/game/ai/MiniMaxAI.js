@@ -1,5 +1,6 @@
 const AI = require("./AI");
 const {DISPLACEMENT_FUNCTIONS} = require("./AIUtils");
+const {DISPLACEMENT_TYPES} = require("../GameUtils");
 
 class MiniMaxAI extends AI {
     constructor(id, name) {
@@ -178,11 +179,11 @@ class MiniMaxAI extends AI {
         super.updatePlayerState(playersState);
     }
 
-    getNextMove() {
+    getNextDisplacement() {
         let resMinimax = this.miniMax(5);
         let nextPosition = this.graphToTabPos(resMinimax[0]);
 
-        return this.getMoveFromPosition(nextPosition);
+        return this.getDisplacementFromPosition(nextPosition);
     }
 
     setup(playersState) {
@@ -196,12 +197,12 @@ class MiniMaxAI extends AI {
         });
     }
 
-    nextMove(playersState) {
+    nextDisplacement(playersState) {
         return new Promise((resolve) => {
             this.round++;
             this.updatePlayerState(playersState);
-            let nextMove = this.getNextMove();
-            resolve(nextMove);
+            let nextDisplacement = this.getNextDisplacement();
+            resolve({type: DISPLACEMENT_TYPES.RELATIVE, value: nextDisplacement});
         });
     }
 }

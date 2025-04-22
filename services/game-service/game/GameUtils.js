@@ -1,37 +1,64 @@
 const Position = require("./Position.js");
 
 /**
- * Enum for hexagonal grid movement directions
- * @enum {number}
+ * Enum for the types of displacements in the hexagonal grid system.
+ *
+ * - ABSOLUTE: Uses a fixed, grid-based direction (e.g., UPPER_LEFT).
+ * - RELATIVE: Depends on current orientation and path-following logic (e.g., KEEP_GOING, HEAVY_LEFT).
+ *
  * @readonly
+ * @enum {string}
  */
-const Directions = {
+const DISPLACEMENT_TYPES = Object.freeze({
+    ABSOLUTE: "ABSOLUTE",
+    RELATIVE: "RELATIVE"
+});
+
+/**
+ * Enum for absolute displacements on a hexagonal grid.
+ * These represent fixed directions regardless of current orientation.
+ *
+ * @readonly
+ * @enum {number}
+ */
+const ABSOLUTE_DISPLACEMENTS = Object.freeze({
     UPPER_LEFT: 0,
     UPPER_RIGHT: 1,
     RIGHT: 2,
     LOWER_RIGHT: 3,
     LOWER_LEFT: 4,
     LEFT: 5
-};
+});
 
 /**
- * Hexagonal grid movement type descriptors
- * @enum {string}
+ * Enum for relative displacements, used when displacement is based
+ * on the previous direction.
+ *
+ * - HEAVY_LEFT: Turn two steps to the left.
+ * - LIGHT_LEFT: Turn one step to the left.
+ * - KEEP_GOING: Continue in the same direction.
+ * - LIGHT_RIGHT: Turn one step to the right.
+ * - HEAVY_RIGHT: Turn two steps to the right.
+ *
  * @readonly
+ * @enum {string}
  */
-const MovementTypes = {
+const RELATIVE_DISPLACEMENTS = Object.freeze({
     HEAVY_LEFT: "HEAVY_LEFT",
     LIGHT_LEFT: "LIGHT_LEFT",
     KEEP_GOING: "KEEP_GOING",
     LIGHT_RIGHT: "LIGHT_RIGHT",
     HEAVY_RIGHT: "HEAVY_RIGHT"
-};
+});
 
 /**
- * Array of position calculation functions for each direction
+ * Array of functions to compute the next position from an absolute displacement
+ * on a hexagonal grid. Each function corresponds to one of the six possible
+ * displacement defined in ABSOLUTE_DISPLACEMENTS.
+ *
  * @type {Array<(position: Position) => Position>}
  */
-const DISPLACEMENT_FUNCTIONS = [
+const absoluteDisplacementToPosition = [
     getUpperLeftPosition,
     getUpperRightPosition,
     getRightPosition,
@@ -40,24 +67,12 @@ const DISPLACEMENT_FUNCTIONS = [
     getLeftPosition
 ];
 
-/**
- * Creates default key-to-direction mapping configuration
- * @param {string[]} keys - Array of keyboard keys for directions
- * @returns {Object.<string, MovementTypes>} Mapping of keys to directions
- */
-const defaultMovementsConfiguration = (keys) => ({
-    [keys[0]]: MovementTypes.LIGHT_LEFT,
-    [keys[1]]: MovementTypes.HEAVY_LEFT,
-    [keys[2]]: MovementTypes.LIGHT_RIGHT,
-    [keys[3]]: MovementTypes.HEAVY_RIGHT
-});
-
 const defaultMovementsMapping = {
-    [MovementTypes.HEAVY_LEFT]: Directions.UPPER_LEFT,
-    [MovementTypes.LIGHT_LEFT]: Directions.UPPER_RIGHT,
-    [MovementTypes.KEEP_GOING]: Directions.RIGHT,
-    [MovementTypes.LIGHT_RIGHT]: Directions.LOWER_RIGHT,
-    [MovementTypes.HEAVY_RIGHT]: Directions.LOWER_LEFT
+    [RELATIVE_DISPLACEMENTS.HEAVY_LEFT]: ABSOLUTE_DISPLACEMENTS.UPPER_LEFT,
+    [RELATIVE_DISPLACEMENTS.LIGHT_LEFT]: ABSOLUTE_DISPLACEMENTS.UPPER_RIGHT,
+    [RELATIVE_DISPLACEMENTS.KEEP_GOING]: ABSOLUTE_DISPLACEMENTS.RIGHT,
+    [RELATIVE_DISPLACEMENTS.LIGHT_RIGHT]: ABSOLUTE_DISPLACEMENTS.LOWER_RIGHT,
+    [RELATIVE_DISPLACEMENTS.HEAVY_RIGHT]: ABSOLUTE_DISPLACEMENTS.LOWER_LEFT
 };
 
 /**
@@ -133,9 +148,9 @@ function getLowerRightPosition(position) {
 }
 
 module.exports = {
-    Directions,
-    MovementTypes,
-    DISPLACEMENT_FUNCTIONS,
-    defaultMovementsMapping,
-    defaultMovementsConfiguration
+    ABSOLUTE_DISPLACEMENTS,
+    RELATIVE_DISPLACEMENTS,
+    DISPLACEMENT_TYPES,
+    absoluteDisplacementToPosition,
+    defaultMovementsMapping
 };

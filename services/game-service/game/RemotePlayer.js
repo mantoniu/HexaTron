@@ -24,22 +24,22 @@ class RemotePlayer extends Player {
     }
 
     /**
-     * Initiates the player's next move as a promise.
+     * Initiates the player's next displacement as a promise.
      *
-     * @returns {Promise<string>} A promise that resolves with the player's move.
+     * @returns {Promise<{type: string, value: string|number}>} A promise that resolves with the player's displacement.
      */
-    nextMove() {
+    nextDisplacement() {
         return new Promise(resolve => {
             this._currentResolve = resolve;
         });
     }
 
     /**
-     * Resolves the player's move.
+     * Resolves the player's displacement.
      *
-     * @param {string} move - The move that the player has decided to make.
+     * @param {{type: string, value: string|number}} move - The displacement that the player has decided to make.
      */
-    resolveMove(move) {
+    resolveDisplacement(move) {
         if (this._currentResolve) {
             this._currentResolve(move);
             this._currentResolve = null;

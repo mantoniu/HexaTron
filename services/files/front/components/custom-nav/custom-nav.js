@@ -5,7 +5,6 @@ import {USER_EVENTS, userService} from "../../services/user-service.js";
 import {NOTIFICATIONS_EVENTS, notificationService} from "../../services/notifications-service.js";
 
 export class CustomNav extends ListenerComponent {
-    static HIDE_IN_GAME = ["leaderboard", "friends"];
     static HIDE_NOT_CONNECTED = ["friends", "chat", "notifications"];
 
     constructor() {
@@ -17,14 +16,15 @@ export class CustomNav extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hideElementsInGame());
+        this._show();
+        this.addAutomaticEventListener(gameService, GameStatus.STARTED, () => this._hide());
         this.addAutomaticEventListener(userService, USER_EVENTS.CONNECTION, () => this._showElementOnConnection());
         this.addAutomaticEventListener(userService, USER_EVENTS.LOGOUT, () => this._showElementDisconnection());
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_UPDATED, () => this._numberNotRead());
         this.addAutomaticEventListener(notificationService, NOTIFICATIONS_EVENTS.NOTIFICATIONS_DELETED, () => this._numberNotRead());
 
         window.addEventListener("resetCustomNav", () =>
-            this._showElementsAfterGame());
+            this._show());
 
         this._showElementDisconnection();
 
@@ -65,18 +65,22 @@ export class CustomNav extends ListenerComponent {
         );
     }
 
-    _hideElementsInGame() {
-        CustomNav.HIDE_IN_GAME.forEach(element => {
-            this.shadowRoot.getElementById(element).style.display = "none";
+    _show() {
+        this.classList.remove("hidden");
+        this.style.display = "block";
+        requestAnimationFrame(() => {
+            this.classList.add("visible");
         });
     }
 
-    _showElementsAfterGame() {
-        CustomNav.HIDE_IN_GAME
-            .filter(element =>
-                userService.isConnected() || !CustomNav.HIDE_NOT_CONNECTED.includes(element))
-            .forEach(element =>
-                this.shadowRoot.getElementById(element).style.display = "flex");
+    _hide() {
+        this.classList.remove("visible");
+        this.classList.add("hidden");
+
+        this.addEventListener("animationend", () => {
+            this.style.display = "none";
+            this.classList.remove("hidden");
+        }, {once: true});
     }
 
     _showElementOnConnection() {
