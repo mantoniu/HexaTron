@@ -14,6 +14,7 @@
     --shadow: rgba(0, 0, 0, 0.1);
     --sidebar-width: 80px;
     --button-image-size: 24px;
+    font-size: 1.2rem;
 }
 
 @font-face {
