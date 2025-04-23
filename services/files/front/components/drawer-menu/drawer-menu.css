@@ -92,16 +92,6 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-@media screen and (max-height: 450px) {
-    #drawer {
-        padding-top: 15px;
-    }
-
-    #drawer a {
-        font-size: 18px;
-    }
-}
-
 #content {
     box-sizing: border-box;
     padding: 70px;
@@ -147,4 +137,24 @@
 :host(.open) #drawer #close-btn {
     display: block;
     z-index: 2;
+}
+
+@media screen and (max-height: 600px) {
+    #drawer {
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    #content {
+        padding: 0 60px 25px 60px;
+    }
+
+    #drawer a {
+        font-size: 18px;
+    }
+
+    #close-btn {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+    }
 }
