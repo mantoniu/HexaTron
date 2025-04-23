@@ -47,4 +47,11 @@ image-button {
     height: 30px;
     width: 30px;
     margin: auto 0 auto 0;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+image-button:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
 }
