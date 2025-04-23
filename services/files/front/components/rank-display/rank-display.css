@@ -12,3 +12,9 @@
     width: 24px;
     margin-right: 8px;
 }
+
+@media screen and (max-height: 600px) {
+    #rank-badge {
+        margin-top: 0;
+    }
+}

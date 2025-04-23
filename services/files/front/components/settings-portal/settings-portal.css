@@ -70,7 +70,7 @@ p[type="info"] {
     scrollbar-width: none;
 }
 
-@media (max-width: 600px) {
+@media screen and (max-height: 600px) {
     #validationPart {
         flex-direction: column;
         align-items: center;

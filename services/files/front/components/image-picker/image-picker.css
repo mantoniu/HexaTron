@@ -6,8 +6,6 @@
 }
 
 #profile-picture {
-    width: 9rem;
-    height: 9rem;
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: opacity 0.3s;
@@ -48,4 +46,11 @@ custom-spinner {
 
 .loading custom-spinner {
     display: block;
+}
+
+@media screen and (max-height: 600px) {
+    #profile-container {
+        width: 115px;
+        height: 115px;
+    }
 }

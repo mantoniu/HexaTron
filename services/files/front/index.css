@@ -16,7 +16,7 @@
     --button-image-size: 24px;
 }
 
-@media (max-height: 600px) {
+@media screen and (max-height: 600px) {
     :root {
         font-size: 0.9rem;
         --sidebar-width: 70px;

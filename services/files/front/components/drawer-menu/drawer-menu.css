@@ -51,12 +51,6 @@
     width: 100%;
 }
 
-@media screen and (max-width: 750px) {
-    #drawer {
-        width: calc(100% - var(--sidebar-width));
-    }
-}
-
 #drawer a {
     text-decoration: none;
     font-size: 25px;
@@ -102,6 +96,16 @@
     opacity: 0;
     transform: translateY(-20px);
     width: 100%;
+}
+
+#content > * {
+    max-width: 400px;
+    width: 100%;
+}
+
+#content > chat-portal,
+#content > friends-portal {
+    max-width: 100%;
 }
 
 #content.animate {

@@ -54,9 +54,3 @@ leaderboard-element:hover {
 leaderboard-element:not(:nth-last-child(2), #actualRank) {
     border-bottom: 1px solid color-mix(in srgb, var(--primary-blue) 30%, transparent);
 }
-
-@media screen and (max-height: 600px) {
-    :host {
-        width: 70%;
-    }
-}

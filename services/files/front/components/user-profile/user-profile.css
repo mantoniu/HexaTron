@@ -6,10 +6,22 @@
 }
 
 #content {
+    display: flex;
+    justify-content: center;
     height: 100%;
     width: 100%;
 }
 
 user-friend-part {
     margin: 20px;
+}
+
+@media screen and (max-height: 600px) {
+    account-information {
+        display: none;
+    }
+
+    user-friend-part {
+        margin: 20px 0 0 0;
+    }
 }
