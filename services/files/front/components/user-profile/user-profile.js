@@ -16,7 +16,7 @@ export class UserProfile extends Component {
     }
 
     static get observedAttributes() {
-        return ["user", "part"];
+        return ["user"];
     }
 
     async connectedCallback() {
@@ -39,15 +39,17 @@ export class UserProfile extends Component {
     _loadContent(isOtherUser) {
         this._content.innerHTML = "";
 
-        if (isOtherUser) {
-            const friendPart = document.createElement("user-friend-part");
-            friendPart.setAttribute("friend-id", this.user._id);
-            this._content.appendChild(friendPart);
-        } else {
-            const accountInfo = document.createElement("account-information");
-            accountInfo.user = this.user;
-            this._content.appendChild(accountInfo);
-            this._setupListeners(accountInfo);
+        if (userService.isConnected()) {
+            if (isOtherUser) {
+                const friendPart = document.createElement("user-friend-part");
+                friendPart.setAttribute("friend-id", this.user._id);
+                this._content.appendChild(friendPart);
+            } else {
+                const accountInfo = document.createElement("account-information");
+                accountInfo.user = this.user;
+                this._content.appendChild(accountInfo);
+                this._setupListeners(accountInfo);
+            }
         }
     }
 
