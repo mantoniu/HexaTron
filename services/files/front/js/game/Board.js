@@ -61,7 +61,7 @@ export class Board {
 
     calculateUtils(context) {
         context.lineCap = "round";
-        context.lineWidth = 8;
+        context.lineWidth = 20;
 
         let width = context.canvas.width - 2 * context.lineWidth;
         let height = context.canvas.height - 2 * context.lineWidth;
