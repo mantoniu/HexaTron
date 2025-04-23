@@ -13,8 +13,8 @@ export class GameBoard extends Component {
         this._canvas = this.shadowRoot.getElementById("board");
         gameService.context = this._canvas.getContext("2d");
 
-        this._canvas.width = window.screen.width;
-        this._canvas.height = window.screen.height;
+        this._canvas.width = 3840;
+        this._canvas.height = 2160;
 
         gameService.draw();
     }
