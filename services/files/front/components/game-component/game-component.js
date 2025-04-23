@@ -24,6 +24,8 @@ export class GameComponent extends ListenerComponent {
         if (gameBoard)
             gameBoard.style.display = "none";
 
+        this.shadowRoot.querySelectorAll("game-joystick")?.forEach(joystick => joystick.style.display = "none");
+
         const result_screen = this.shadowRoot.getElementById("game").querySelector("result-screen");
         if (result_screen) {
             result_screen.setAttribute("end", "true");
