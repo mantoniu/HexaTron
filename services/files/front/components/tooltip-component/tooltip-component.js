@@ -1,4 +1,5 @@
 import {Component} from "../component/component.js";
+import {POSITION} from "./tooltip-positions.js";
 
 export class TooltipComponent extends Component {
     constructor() {
@@ -49,7 +50,6 @@ export class TooltipComponent extends Component {
     }
 
     updatePosition() {
-        const position = this.getAttribute("position") || "top";
         let target;
         if (this.assignedSlot) {
             target = this.parentNode;
@@ -71,49 +71,23 @@ export class TooltipComponent extends Component {
         this._tooltip.style.right = "";
         this._tooltip.style.bottom = "";
 
-        switch (position) {
-            case "top-left":
-                this._tooltip.style.bottom = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.right = `calc(50% + ${spacing}px)`;
-
-                break;
-            case "top-right":
-                this._tooltip.style.bottom = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.left = `calc(50% + ${spacing}px)`;
-
-                break;
-            case "bottom-left":
-                this._tooltip.style.top = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.right = `calc(50% + ${spacing}px)`;
-
-                break;
-            case "bottom-right":
-                this._tooltip.style.top = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.left = `calc(50% + ${spacing}px)`;
-
-                break;
-            case "top":
-                this._tooltip.style.bottom = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.left = `50%`;
-                this._tooltip.style.transform = `translateX(-50%)`;
-                break;
-            case "bottom":
-                this._tooltip.style.top = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.left = `50%`;
-                this._tooltip.style.transform = `translateX(-50%)`;
-                break;
-            case "left":
-                this._tooltip.style.bottom = `50%`;
-                this._tooltip.style.right = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.transform = `translateY( -50%)`;
-                break;
-            case "right":
-            default:
-                this._tooltip.style.bottom = `50%`;
-                this._tooltip.style.left = `calc(100% + ${spacing}px)`;
-                this._tooltip.style.transform = `translateY(-50%)`;
-                break;
-        }
+        const position = this.getAttribute("position") || "top";
+        const data = POSITION[position];
+        Array.from(this.shadowRoot.styleSheets[0].cssRules).forEach((rule, index) => {
+            if (data.hasOwnProperty(rule.selectorText)) {
+                let text = rule.cssText.slice(0, -2);
+                Object.entries(data[rule.selectorText]).forEach(([key, value]) => {
+                    text = text.concat(key);
+                    text += ":";
+                    const res = value(spacing);
+                    text = text.concat(res);
+                    text += ";";
+                });
+                text += " }";
+                this.shadowRoot.styleSheets[0].deleteRule(index);
+                this.shadowRoot.styleSheets[0].insertRule(text, index);
+            }
+        });
     }
 
     showTooltip() {
