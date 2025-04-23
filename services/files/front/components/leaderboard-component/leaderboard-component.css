@@ -10,9 +10,9 @@
     box-shadow: 0 2px 8px var(--shadow);
 }
 
-
 #league-container:not(.empty) {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -53,4 +53,10 @@ leaderboard-element:hover {
 
 leaderboard-element:not(:nth-last-child(2), #actualRank) {
     border-bottom: 1px solid color-mix(in srgb, var(--primary-blue) 30%, transparent);
+}
+
+@media screen and (max-height: 600px) {
+    :host {
+        width: 70%;
+    }
 }
