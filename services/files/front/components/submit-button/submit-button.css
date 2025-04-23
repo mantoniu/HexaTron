@@ -9,4 +9,5 @@ button {
     transition: all 0.3s;
     color: black;
     background-color: transparent;
+    font-family: var(--font-family);
 }

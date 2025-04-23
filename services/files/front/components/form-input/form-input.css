@@ -19,6 +19,7 @@ input {
     border: 1px solid #cccccc;
     border-radius: 5px;
     transition: border-color 0.3s ease;
+    font-family: var(--font-family);
 }
 
 input:focus {

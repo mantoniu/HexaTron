@@ -16,8 +16,14 @@
     --button-image-size: 24px;
 }
 
+@font-face {
+    font-family: Teko;
+    src: url(font/Teko/Teko-VariableFont_wght.ttf);
+}
+
 * {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: Teko, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family: Teko, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 #outlet {

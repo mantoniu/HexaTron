@@ -22,6 +22,7 @@
 }
 
 select {
+    font-family: var(--font-family);
     font-size: 1.3rem;
     color: var(--text-color);
 }
