@@ -388,7 +388,10 @@ function handlePlayerLeave(gameId, userId, socket) {
         return;
     }
 
-    gameEngine.disconnectPlayer(userId);
+    if (gameEngine.disconnectPlayer(userId)) {
+        [...gameEngine._disconnectedPlayers].forEach(player => usersInRankedGames.delete(player));
+        activeGames.delete(gameId);
+    }
 }
 
 io.on('connection', (gatewaySocket) => {
