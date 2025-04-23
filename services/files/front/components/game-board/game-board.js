@@ -16,8 +16,6 @@ export class GameBoard extends Component {
         this._canvas.width = 3840;
         this._canvas.height = 2160;
 
-        console.log("screen", this._canvas.width, this._canvas.height);
-
         gameService.draw();
     }
 }
