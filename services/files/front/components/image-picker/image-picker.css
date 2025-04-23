@@ -1,8 +1,8 @@
 #profile-container {
     position: relative;
     display: inline-block;
-    width: 9rem;
-    height: 9rem;
+    width: 144px;
+    height: 144px;
 }
 
 #profile-picture {
