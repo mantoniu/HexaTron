@@ -1,8 +1,4 @@
 :host {
-    width: 100%;
-}
-
-#tab-container {
     display: flex;
     margin-bottom: 15px;
     width: 100%;

@@ -15,7 +15,6 @@ export class ToggleGroup extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this._tabContainer = this.shadowRoot.getElementById("tab-container");
         this._update();
     }
 
@@ -33,10 +32,7 @@ export class ToggleGroup extends Component {
     }
 
     _update() {
-        if (!this._tabContainer)
-            return;
-
-        const existingTabs = Array.from(this._tabContainer.children);
+        const existingTabs = Array.from(this.shadowRoot.querySelectorAll(".tab"));
 
         if (existingTabs.length === this._options.length)
             this._updateTabs(existingTabs);
@@ -55,7 +51,6 @@ export class ToggleGroup extends Component {
     }
 
     _createTabs() {
-        this._tabContainer.innerHTML = "";
         this._options.forEach(option => {
             const tab = document.createElement("div");
             tab.classList.add("tab");
@@ -67,7 +62,7 @@ export class ToggleGroup extends Component {
 
             tab.addEventListener("click", () => this._select(option.value));
 
-            this._tabContainer.appendChild(tab);
+            this.shadowRoot.appendChild(tab);
         });
     }
 
