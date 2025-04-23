@@ -259,6 +259,7 @@ function startGameIfReady(gameEngine) {
         });
 
         gameEngine.start().then().catch(({type, _}) => {
+            gameEngine.game.players.forEach((_, key) => usersInRankedGames.delete(key));
             io.to(gameEngine.id).emit("error", {
                 type: type || ErrorTypes.GAME_ERROR,
                 message: "An error has been encountered during the game.",
