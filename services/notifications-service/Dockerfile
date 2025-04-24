@@ -12,6 +12,7 @@ RUN cd /app/utils && npm install
 
 COPY ./notifications-service/*.js ./
 COPY ../database-initializer/type-documentation.js /app/database-initializer/
+COPY ./notifications-service/firebase-key.json ./firebase-key.json
 
 EXPOSE 8007
 CMD ["node", "index.js"]
