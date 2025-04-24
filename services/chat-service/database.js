@@ -423,6 +423,28 @@ async function getConversationIdIfExists(userId1, userId2) {
     );
 }
 
+/**
+ * Retrieves only the participants of a given conversation.
+ *
+ * @param {ObjectId} conversationId - The ID of the conversation.
+ * @returns {Promise<string[]|null>} A promise that resolves to an array of participant IDs (as strings), or null if not found.
+ */
+async function getParticipants(conversationId) {
+    const result = await mongoOperation(() =>
+        db.collection(conversationCollection)
+            .findOne(
+                {_id: conversationId},
+                {projection: {participants: 1, _id: 0}}
+            )
+    );
+
+    if (!result || !result.participants)
+        return null;
+
+    return result.participants.map(id => id.toString());
+}
+
+
 module.exports = {
     createGlobalConversation,
     deleteMessageWithOwner,
@@ -432,5 +454,6 @@ module.exports = {
     saveMessage,
     markMessagesAsRead,
     getConversationIdIfExists,
-    deleteUser
+    deleteUser,
+    getParticipants
 };
