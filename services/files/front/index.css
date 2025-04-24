@@ -16,6 +16,13 @@
     --button-image-size: 24px;
 }
 
+@media screen and (max-height: 600px) {
+    :root {
+        font-size: 0.9rem;
+        --sidebar-width: 70px;
+    }
+}
+
 * {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -26,6 +33,7 @@
 }
 
 body {
+    -webkit-tap-highlight-color: transparent;
     background-color: var(--background);
     color: var(--text-color);
     overflow: hidden;

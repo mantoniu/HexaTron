@@ -145,7 +145,6 @@ function handleEvent(gameId, eventName, eventData) {
         if (!gameEngine)
             return;
 
-
         if (activeGames.get(gameId).game.type === GameType.RANKED) {
             gameEngine.game.players.forEach((_, playerId) => {
                 usersInRankedGames.delete(playerId);
