@@ -120,6 +120,7 @@ p {
     grid-template-columns: 1fr 1fr 1fr 1fr;
     width: 100%;
     gap: 10px;
+    margin-top: 10px;
 }
 
 #computer {
