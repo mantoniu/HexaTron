@@ -139,7 +139,6 @@ export class DrawerMenu extends ListenerComponent {
                 this._loadContent(DRAWER_CONTENT.PROFILE);
             } else {
                 this.current = DRAWER_CONTENT.VOID;
-                this.current = DRAWER_CONTENT.PROFILE;
                 this._content.innerHTML = `<user-profile 
                                    user='${JSON.stringify(event.detail.player)}'>
                                </user-profile>`;
@@ -252,7 +251,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _setInitialState(type) {
-        this._closeBtn.innerHTML = `&times;`;
+        this._closeBtn.src = `../../assets/cancel.svg`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {
                 bubbles: true,
@@ -265,7 +264,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _replaceCloseWithBack() {
-        this._closeBtn.innerHTML = `&larr;`;
+        this._closeBtn.src = `../../assets/back.svg`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {
                 bubbles: true,
@@ -287,5 +286,13 @@ export class DrawerMenu extends ListenerComponent {
                 element.setAttribute("user", JSON.stringify(user));
             }
         }
+    }
+
+    get open() {
+        return this._opened;
+    }
+
+    get closeButton() {
+        return this._closeBtn;
     }
 }

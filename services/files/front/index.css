@@ -12,11 +12,11 @@
     --gray: #e0e0e0;
     --dark-gray: #d0d0d0;
     --shadow: rgba(0, 0, 0, 0.1);
-    --tooltip-color: black;
     --sidebar-width: 80px;
     --button-image-size: 24px;
 
-    -webkit-tap-highlight-color: transparent;
+    --tooltip-color: black;
+    font-size: 1.2rem;
 }
 
 @media screen and (max-height: 600px) {
@@ -26,10 +26,15 @@
     }
 }
 
-* {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+@font-face {
+    font-family: Teko;
+    src: url(font/Teko/Teko-VariableFont_wght.ttf);
 }
 
+* {
+    font-family: Teko, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family: Teko, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 #outlet {
     width: 100%;
     height: 100%;

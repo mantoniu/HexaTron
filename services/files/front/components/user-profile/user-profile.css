@@ -12,7 +12,7 @@
 }
 
 user-friend-part {
-    margin: 20px;
+    margin: 20px 0 20px 0;
 }
 
 @media screen and (max-height: 600px) {

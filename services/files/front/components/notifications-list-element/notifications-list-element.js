@@ -2,13 +2,13 @@ import {Component} from "../component/component.js";
 import {UserFriendPart} from "../user-friend-part/user-friend-part.js";
 import {NOTIFICATIONS_TYPE} from "../../services/notifications-service.js";
 import {DRAWER_CONTENT} from "../drawer-menu/drawer-menu.js";
+import {mobile} from "../../js/config.js";
 
 export class NotificationsListElement extends Component {
     constructor() {
         super();
 
         UserFriendPart.register();
-        NotificationsListElement.register();
 
         this.notification = null;
     }
@@ -82,6 +82,9 @@ export class NotificationsListElement extends Component {
         if (!this.notification.isRead) {
             this.classList.add("isNotRead");
         }
+
+        if (mobile)
+            this.classList.add("delete-activate");
     }
 
     joinGame() {

@@ -246,7 +246,8 @@ class GameService extends EventEmitter {
     handleRoundEnd(data) {
         if (data.status === "tie" || data.winner !== userService.user._id)
             hapticImpact().then(() => this.nextRound(data));
-        this.nextRound(data);
+        else
+            this.nextRound(data);
     }
 
     /**

@@ -14,11 +14,13 @@ export let hapticVibration = async () => {
 export const mobile = Capacitor.isNativePlatform();
 
 if (mobile) {
-    const {EnvPlugin, Haptics, PushNotifications} = Capacitor.Plugins;
+    const {EnvPlugin, Haptics, App, PushNotifications} = Capacitor.Plugins;
+
     if (EnvPlugin) {
         const {apiUrl} = await EnvPlugin.getApiUrl();
         url = apiUrl;
     }
+
     if (Haptics) {
         // When playing a game is found
         hapticVibration = async () => {
@@ -34,6 +36,23 @@ if (mobile) {
         hapticImpact = async () => {
             await Haptics.impact();
         };
+    }
+
+    if (App) {
+        App.addListener("backButton", ({canGoBack}) => {
+            const drawerMenu = document.querySelector("drawer-menu");
+            if (document.querySelector("game-component")) {
+                window.history.back();
+            } else if (drawerMenu.open) {
+                drawerMenu.closeButton().click();
+            } else {
+                const confirmExit = window.confirm("Quitter l’application ?");
+                if (confirmExit) {
+                    App.exitApp();
+                }
+            }
+        });
+
     }
 
     if (PushNotifications) {

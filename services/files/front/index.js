@@ -124,6 +124,9 @@ if (document.readyState === 'loading')
 else
     updateView();
 
+if (userService.isConnected())
+    document.getElementsByTagName("tooltip-component")[0].classList.add("tooltip-disabled");
+
 function _createModalComponent() {
     const modalComponent = document.createElement("information-component");
     document.body.appendChild(modalComponent);

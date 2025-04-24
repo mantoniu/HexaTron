@@ -99,10 +99,11 @@ image-button {
     background-color: var(--red);
     color: white;
     border-radius: 20px;
-    height: 1.5rem;
-    width: 1.5rem;
+    height: 20px;
+    width: 20px;
     font-size: 1rem;
     text-align: center;
+    line-height: 22px;
 }
 
 .bounce-animation {
@@ -123,11 +124,13 @@ image-button {
 
 @media screen and (max-height: 600px) {
     :host {
-        padding-top: 0.5rem;
+        padding-top: 0;
     }
 
     .nav-links {
         gap: 5px;
+        justify-content: center;
+        height: 100%;
     }
 
     .nav-button {
@@ -140,11 +143,5 @@ image-button {
     image-button {
         width: 20px;
         height: 20px;
-    }
-
-    #numberNotRead {
-        height: 1.2rem;
-        width: 1.2rem;
-        font-size: 0.8rem;
     }
 }

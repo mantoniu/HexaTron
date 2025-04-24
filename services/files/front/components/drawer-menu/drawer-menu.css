@@ -51,11 +51,8 @@
     width: 100%;
 }
 
-#drawer a {
-    text-decoration: none;
-    font-size: 25px;
-    color: #818181;
-    transition: 0.3s;
+.back {
+    line-height: 55px;
 }
 
 #drawer a:hover {
@@ -65,11 +62,9 @@
 #close-btn {
     margin: 15px 0 0 15px;
     position: fixed;
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
+    width: 30px;
+    height: 30px;
     text-align: center;
-    font-size: 30px;
     border-radius: 50%;
     background-color: var(--card-bg);
     color: black;
@@ -104,8 +99,7 @@
 }
 
 #content > leaderboard-portal,
-#content > notifications-portal,
-#content > settings-portal {
+#content > notifications-portal {
     max-width: 400px;
 }
 
@@ -144,6 +138,10 @@
     z-index: 2;
 }
 
+.back-computer {
+    line-height: 53px;
+}
+
 @media screen and (max-height: 600px) {
     #drawer {
         width: calc(100% - var(--sidebar-width));
@@ -151,15 +149,5 @@
 
     #content {
         padding: 0 60px 25px 60px;
-    }
-
-    #drawer a {
-        font-size: 18px;
-    }
-
-    #close-btn {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
     }
 }
