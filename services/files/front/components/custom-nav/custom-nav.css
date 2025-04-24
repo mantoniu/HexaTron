@@ -129,6 +129,8 @@ image-button {
 
     .nav-links {
         gap: 5px;
+        justify-content: center;
+        height: 100%;
     }
 
     .nav-button {
