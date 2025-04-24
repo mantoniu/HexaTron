@@ -18,7 +18,6 @@ export class InformationComponent extends Component {
         this._touchStartX = 0;
         this._touchEndX = 0;
         this._actualSlide = 0;
-
     }
 
     async connectedCallback() {
