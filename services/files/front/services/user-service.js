@@ -102,6 +102,7 @@ class UserService extends EventEmitter {
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
+        this._notificationToken = localStorage.getItem("notificationToken");
 
         if (!this._connected)
             localStorage.setItem("user", JSON.stringify(this._user));
@@ -242,11 +243,14 @@ class UserService extends EventEmitter {
      * @return {Promise<void>} - Resolves when the update is complete.
      */
     async updateNotificationToken(notificationToken) {
-        if (!this.isConnected() || !notificationToken)
+        console.log("antoniu", notificationToken);
+        if (!this.isConnected() || !notificationToken || this._notificationToken === notificationToken)
             return;
 
         this._notificationToken = notificationToken;
-        const response = await apiClient.request("PATCH", `api/user/me/notification-tokens`, notificationToken);
+        localStorage.setItem("notificationToken", notificationToken);
+        const response = await apiClient.request("PATCH", `api/user/me/notification-tokens`, {notificationToken});
+        console.log("antoniu => ", response);
 
         if (!response.success)
             console.error("Error while updating the notification token");
@@ -323,7 +327,7 @@ class UserService extends EventEmitter {
      * Logs out the current user.
      */
     async logout() {
-        await apiClient.request("POST", "api/user/disconnect", this._notificationToken);
+        await apiClient.request("POST", "api/user/disconnect", {notificationToken: this._notificationToken});
 
         this._reset();
     }

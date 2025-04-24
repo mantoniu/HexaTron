@@ -39,6 +39,9 @@ if (mobile) {
     if (PushNotifications) {
         PushNotifications.requestPermissions().then(result => {
             if (result.receive === 'granted') {
+                if (userService.isConnected())
+                    PushNotifications.register();
+
                 userService.on(USER_EVENTS.CONNECTION, async () =>
                     PushNotifications.register());
 
@@ -49,7 +52,7 @@ if (mobile) {
 
         // On success, we should be able to receive notifications
         PushNotifications.addListener('registration', async (token) =>
-            await userService.updateNotificationToken({notificationToken: token.value}));
+            await userService.updateNotificationToken(token.value));
 
         // Some issue with our setup and push will not work
         PushNotifications.addListener('registrationError',
