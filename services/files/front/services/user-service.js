@@ -236,6 +236,23 @@ class UserService extends EventEmitter {
     }
 
     /**
+     * Updates the user's notification token on the server if the user is connected and a valid token is provided.
+     *
+     * @param {string} notificationToken - The notification token to be sent to the server.
+     * @return {Promise<void>} - Resolves when the update is complete.
+     */
+    async updateNotificationToken(notificationToken) {
+        if (!this.isConnected() || !notificationToken)
+            return;
+
+        this._notificationToken = notificationToken;
+        const response = await apiClient.request("PATCH", `api/user/me/notification-tokens`, notificationToken);
+
+        if (!response.success)
+            console.error("Error while updating the notification token");
+    }
+
+    /**
      * Updates the user's profile picture.
      * Sends the new profile picture file to the backend for processing, and updates the user's profile with the new image.
      *
@@ -306,7 +323,7 @@ class UserService extends EventEmitter {
      * Logs out the current user.
      */
     async logout() {
-        await apiClient.request("POST", "api/user/disconnect");
+        await apiClient.request("POST", "api/user/disconnect", this._notificationToken);
 
         this._reset();
     }
