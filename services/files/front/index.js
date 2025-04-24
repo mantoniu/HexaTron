@@ -79,6 +79,10 @@ const navigateTo = (url, params = {}) => {
         return;
     }
 
+    if (url === "/") {
+        if (!JSON.parse(localStorage.getItem("information")))
+            document.getElementsByTagName("tooltip-component")[0].classList.add("tooltip-disabled");
+    }
     history.pushState({path: url}, "", url);
     document.getElementById("outlet").innerHTML = matchedRoute.template(params);
     window.dispatchEvent(new CustomEvent("routeChanged", {detail: {route: url, params}}));
@@ -90,6 +94,10 @@ const navigateTo = (url, params = {}) => {
 };
 
 const redirectTo = (path) => {
+    if (path === "/") {
+        if (!JSON.parse(localStorage.getItem("information")))
+            document.getElementsByTagName("tooltip-component")[0].classList.add("tooltip-disabled");
+    }
     history.pushState({path}, "", path);
     updateView();
 };
@@ -119,4 +127,7 @@ else
 function _createModalComponent() {
     const modalComponent = document.createElement("information-component");
     document.body.appendChild(modalComponent);
+    localStorage.setItem("information", false);
+    if (!JSON.parse(localStorage.getItem("information")))
+        document.getElementsByTagName("tooltip-component")[0].classList.add("tooltip-disabled");
 }

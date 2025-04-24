@@ -21,8 +21,8 @@ export class AccountInformation extends Component {
 
         this._deleteButton = this.shadowRoot.getElementById("delete");
         this._logoutButton = this.shadowRoot.getElementById("logout");
-        this.setupEventListeners();
 
+        this.setupEventListeners();
         this.shadowRoot.querySelector("information-update").user = this._user;
     }
 

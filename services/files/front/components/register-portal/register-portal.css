@@ -20,3 +20,10 @@ h2 {
     font-size: 20px;
     margin-bottom: 20px;
 }
+
+@media screen and (max-height: 600px) {
+    form {
+        margin-top: 0;
+        padding-bottom: 25px;
+    }
+}

@@ -1,0 +1,21 @@
+:host {
+    --tooltip-arrow-content: "";
+}
+
+#tooltip {
+    position: absolute;
+    background-color: var(--tooltip-color);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+#tooltip::before {
+    content: var(--tooltip-arrow-content);
+    position: absolute;
+}

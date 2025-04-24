@@ -1,6 +1,5 @@
 import {ListenerComponent} from "../component/listener-component.js";
 
-
 export class InformationsPageComponent extends ListenerComponent {
     constructor() {
         super();

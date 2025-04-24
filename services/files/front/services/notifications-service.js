@@ -2,6 +2,7 @@ import {socketService} from "./socket-service.js";
 import {USER_EVENTS, userService} from "./user-service.js";
 import {notificationStore} from "../js/NotificationsStore.js";
 import {EventEmitter} from "../js/EventEmitter.js";
+import {hapticNotification} from "../js/config.js";
 
 /**
  *  Defines the notifications events
@@ -180,8 +181,10 @@ class NotificationsService extends EventEmitter {
         });
 
         this.socket.on("new-notification", (data) => {
-            this._notificationsStore.addNotification(data.notification);
-            this.emit(NOTIFICATIONS_EVENTS.MENU_OPEN, data.notification);
+            hapticNotification().then(() => {
+                this._notificationsStore.addNotification(data.notification);
+                this.emit(NOTIFICATIONS_EVENTS.MENU_OPEN, data.notification);
+            });
         });
 
         this.socket.on("deleteNotifications", (data) => {

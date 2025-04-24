@@ -3,6 +3,7 @@ import {LocalPlayer} from "../js/game/LocalPlayer.js";
 import {USER_EVENTS, userService} from "./user-service.js";
 import {EventEmitter} from "../js/EventEmitter.js";
 import {socketService} from "./socket-service.js";
+import {hapticImpact} from "../js/config.js";
 
 /**
  * Enum representing the possible errors
@@ -243,6 +244,17 @@ class GameService extends EventEmitter {
      * @param {Object} data - The round end data.
      */
     handleRoundEnd(data) {
+        if (data.status === "tie" || data.winner !== userService.user._id)
+            hapticImpact().then(() => this.nextRound(data));
+        this.nextRound(data);
+    }
+
+    /**
+     * Handles the end of a round and start the next round.
+     *
+     * @param {Object} data - The round end data.
+     */
+    nextRound(data) {
         this.emit(GameStatus.ROUND_END, data);
         this.game.resetBoard(this._context);
         this.game.playersPositions = [];
@@ -277,6 +289,8 @@ class GameService extends EventEmitter {
      * @param {Object} params - The games parameters
      */
     startGame(gameType, params = {}) {
+        localStorage.setItem("information", false);
+
         if (this.game?.id)
             return;
 
@@ -378,8 +392,8 @@ class GameService extends EventEmitter {
         if (!this.game?.id)
             return;
 
-        this.emit(GameStatus.LEAVED);
         this.socket.emit("leaveGame", this.game.id);
+        this.emit(GameStatus.LEAVED);
         this._clear();
     }
 

@@ -91,13 +91,13 @@ export class DrawerMenu extends ListenerComponent {
                         notificationService.sendUpdateEvent();
                     break;
                 case DRAWER_CONTENT.FRIENDS:
-                    if (!NOTIFICATIONS_TYPE.NEW_MESSAGE && !NOTIFICATIONS_TYPE.GAME_INVITATION) {
+                    if (!NOTIFICATIONS_TYPE.NEW_MESSAGE && !NOTIFICATIONS_TYPE.GAME_INVITATION)
                         notificationService.removeFriendsNotifications();
-                        break;
-                    }
+                    else
+                        notificationService.sendUpdateEvent();
+                    break;
                 default:
                     notificationService.sendUpdateEvent();
-                    break;
             }
         });
     }
@@ -156,6 +156,11 @@ export class DrawerMenu extends ListenerComponent {
                 chatPortal._openChatBox(await chatService.getConversation(conversationId.detail));
                 notificationService.removeConversationNotifications(conversationId.detail);
             });
+        });
+
+        this.addAutoCleanListener(this, "setReturnOnSameContent", () => {
+            this._replaceCloseWithBack();
+            this.current = DRAWER_CONTENT.VOID;
         });
 
         this._drawer.addEventListener("scroll", () => {

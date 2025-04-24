@@ -3,6 +3,7 @@ import {PlayerKeys} from "../player-keys/player-keys.js";
 import {PlayerColor} from "../player-color/player-color.js";
 import {Component} from "../component/component.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
+import {mobile} from "../../js/config.js";
 
 const MESSAGE = Object.freeze({
     KEY_ALREADY_ASSIGNED: {message: "The key is already assigned", type: "error"},
@@ -33,13 +34,16 @@ export class SettingsPortal extends Component {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.settings.keysPlayers.forEach((value, i) => {
-            const playerKeys = document.createElement("player-keys");
-            playerKeys.setAttribute("id", `player${i + 1}`);
-            playerKeys.data = value;
-            playerKeys.color = this.settings.playersColors[i];
-            this.shadowRoot.getElementById("keys").appendChild(playerKeys);
-        });
+        if (!mobile) {
+            this.settings.keysPlayers.forEach((value, i) => {
+                const playerKeys = document.createElement("player-keys");
+                playerKeys.setAttribute("id", `player${i + 1}`);
+                playerKeys.data = value;
+                playerKeys.color = this.settings.playersColors[i];
+                this.shadowRoot.getElementById("keys").appendChild(playerKeys);
+            });
+        }
+
 
         this.settings.playersColors.forEach((color, i) => {
             const playerColor = document.createElement("player-color");
@@ -108,7 +112,7 @@ export class SettingsPortal extends Component {
                 this.shadowRoot.getElementById(`color${index + 1}`).color = this.settings.playersColors[index];
             } else {
                 this.settings.playersColors[index] = event.detail.color;
-                this.shadowRoot.getElementById(`player${index + 1}`).changeColor(event.detail.color);
+                this.shadowRoot.getElementById(`player${index + 1}`)?.changeColor(event.detail.color);
                 this.shadowRoot.querySelector("#validationPart").style.display = "flex";
                 this.buttonsActive = true;
             }
@@ -144,7 +148,6 @@ export class SettingsPortal extends Component {
     cancel() {
         if (this.buttonsActive) {
             this.settings = structuredClone(userService.user.parameters);
-            this.resetKeys();
             this.resetColors();
             this.shadowRoot.querySelector("#validationPart").style.display = "none";
             this.buttonsActive = false;
@@ -165,7 +168,7 @@ export class SettingsPortal extends Component {
         this.settings.playersColors.forEach(
             (color, index) => {
                 this.shadowRoot.getElementById(`color${index + 1}`).color = color;
-                this.shadowRoot.getElementById(`player${index + 1}`).changeColor(color);
+                this.shadowRoot.getElementById(`player${index + 1}`)?.changeColor(color);
             });
     }
 

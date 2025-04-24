@@ -145,7 +145,6 @@ function handleEvent(gameId, eventName, eventData) {
         if (!gameEngine)
             return;
 
-
         if (activeGames.get(gameId).game.type === GameType.RANKED) {
             gameEngine.game.players.forEach((_, playerId) => {
                 usersInRankedGames.delete(playerId);
@@ -259,6 +258,7 @@ function startGameIfReady(gameEngine) {
         });
 
         gameEngine.start().then().catch(({type, _}) => {
+            gameEngine.game.players.forEach((_, key) => usersInRankedGames.delete(key));
             io.to(gameEngine.id).emit("error", {
                 type: type || ErrorTypes.GAME_ERROR,
                 message: "An error has been encountered during the game.",
@@ -387,7 +387,10 @@ function handlePlayerLeave(gameId, userId, socket) {
         return;
     }
 
-    gameEngine.disconnectPlayer(userId);
+    if (gameEngine.disconnectPlayer(userId)) {
+        [...gameEngine._disconnectedPlayers].forEach(player => usersInRankedGames.delete(player));
+        activeGames.delete(gameId);
+    }
 }
 
 io.on('connection', (gatewaySocket) => {

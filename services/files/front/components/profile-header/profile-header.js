@@ -22,13 +22,25 @@ export class ProfileHeader extends Component {
         this._profilePictureElem = this.shadowRoot.querySelector("image-picker");
         this._rankDisplay = this.shadowRoot.getElementById("rank-display");
         this._usernameElem = this.shadowRoot.getElementById("username");
+
+        this._settingsButton = this.shadowRoot.getElementById("settings-btn");
+        this._logoutButton = this.shadowRoot.getElementById("logout");
+
         this._userId = this.getAttribute("user-id");
+
+        this._settingsButton.addEventListener("click", () =>
+            this.dispatchEvent(new CustomEvent("open-settings")));
+
+        this._logoutButton.addEventListener("click", () =>
+            this.dispatchEvent(new CustomEvent("logout")));
 
         this.addEventListener("imageUpdate", () =>
             this._updateProfilePicture());
 
         if (this._otherUser)
             this._profilePictureElem.setAttribute("disabled", "");
+
+        this.classList.add(this._otherUser ? "other" : "current");
 
         this._update();
     }

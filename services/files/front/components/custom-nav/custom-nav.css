@@ -1,6 +1,6 @@
 image-button {
-    height: 24px;
-    width: 24px;
+    height: 34px;
+    width: 34px;
 }
 
 :host {
@@ -50,27 +50,28 @@ image-button {
     animation: slideOut 0.4s ease forwards;
 }
 
+.nav-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 19px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-button:hover {
+    background-color: color-mix(in srgb, var(--primary-blue) 10%, transparent);
+    transform: translateY(-2px);
+}
+
 .nav-links {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
     align-items: center;
-}
-
-.nav-button {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--text-color);
-    cursor: pointer;
-    padding: 0.5rem;
-    transition: all 0.3s;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 20px;
 }
 
 .nav-button:hover {
@@ -80,18 +81,6 @@ image-button {
 
 .nav-button.active {
     background-color: color-mix(in srgb, var(--primary-blue) 30%, transparent);
-}
-
-@media (max-width: 768px) {
-    :root {
-        --sidebar-width: 60px;
-    }
-
-    .nav-button {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
-    }
 }
 
 .hidden {
@@ -129,5 +118,33 @@ image-button {
     }
     100% {
         transform: translateY(0);
+    }
+}
+
+@media screen and (max-height: 600px) {
+    :host {
+        padding-top: 0.5rem;
+    }
+
+    .nav-links {
+        gap: 5px;
+    }
+
+    .nav-button {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+        padding: 10px;
+    }
+
+    image-button {
+        width: 20px;
+        height: 20px;
+    }
+
+    #numberNotRead {
+        height: 1.2rem;
+        width: 1.2rem;
+        font-size: 0.8rem;
     }
 }

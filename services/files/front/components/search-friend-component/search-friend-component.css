@@ -31,6 +31,16 @@ label {
     z-index: 2;
 }
 
+.no-results {
+    padding-left: 7px;
+}
+
 friend-list-element {
     border-bottom: 1px solid #eee;
+}
+
+@media screen and (max-height: 600px) {
+    :host {
+        width: 60%;
+    }
 }

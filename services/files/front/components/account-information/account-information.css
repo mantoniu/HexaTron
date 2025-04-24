@@ -1,6 +1,5 @@
 :host {
     width: 100%;
-    flex-direction: column;
 }
 
 #buttons {
@@ -12,6 +11,25 @@
     gap: 10px;
 }
 
+#account-settings {
+    display: none;
+    text-align: center;
+}
+
 submit-button {
     flex: 1
+}
+
+@media screen and (max-height: 600px) {
+    #account-settings {
+        display: block;
+    }
+
+    #buttons {
+        padding: 20px 0 25px 0;
+    }
+
+    #logout {
+        display: none;
+    }
 }
