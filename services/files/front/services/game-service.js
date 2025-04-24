@@ -390,8 +390,8 @@ class GameService extends EventEmitter {
         if (!this.game?.id)
             return;
 
-        this.emit(GameStatus.LEAVED);
         this.socket.emit("leaveGame", this.game.id);
+        this.emit(GameStatus.LEAVED);
         this._clear();
     }
 
