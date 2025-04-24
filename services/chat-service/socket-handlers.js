@@ -110,12 +110,8 @@ module.exports = (io) => {
                     timestamp: new Date(),
                     isRead: false
                 };
-                let socketFriend = await io.in(conversationId).fetchSockets();
-                if (socketFriend) {
-                    socketFriend = socketFriend.map(socket => socket.handshake.auth.userId).filter(id => id !== senderId);
-                }
 
-                const messageId = await saveMessage(message, senderId, socketFriend);
+                const messageId = await saveMessage(message, senderId);
                 const newMessage = {_id: messageId, ...message, senderName: senderName};
 
                 if (callback)
