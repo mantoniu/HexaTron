@@ -1,6 +1,6 @@
 image-button {
-    height: 24px;
-    width: 24px;
+    height: 30px;
+    width: 30px;
 }
 
 :host {
@@ -21,4 +21,16 @@ image-button {
 :host(:hover) {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px var(--shadow);
+}
+
+@media screen and (max-height: 600px) {
+    :host {
+        width: 40px;
+        height: 40px;
+    }
+
+    image-button {
+        height: 25px;
+        width: 25px;
+    }
 }

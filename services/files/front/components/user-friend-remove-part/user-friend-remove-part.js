@@ -3,12 +3,6 @@ import {chatService} from "../../services/chat-service.js";
 import {SubmitButton} from "../submit-button/submit-button.js";
 
 export class UserFriendRemovePart extends Component {
-    static SELECTORS = {
-        MESSAGE: "sendMessage",
-        DELETE_FRIEND: "deleteFriend",
-        CHALLENGE: "challenge"
-    };
-
     constructor() {
         super();
 
@@ -38,9 +32,8 @@ export class UserFriendRemovePart extends Component {
             this.addAutoCleanListener(element, "click", (click) => this.sendMessage(click));
         });
         this.shadowRoot.querySelectorAll(".challenge").forEach(element => {
-            this.addAutoCleanListener(element, "click", (click) => {
-                this._launchFriendlyGame()
-            });
+            this.addAutoCleanListener(element, "click", () =>
+                this._launchFriendlyGame());
         });
         this.addAutoCleanListener(this.shadowRoot.getElementById("deleteFriend"), "click", (click) => this.handleFriendDeletion(click));
     }

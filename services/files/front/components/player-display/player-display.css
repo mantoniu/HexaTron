@@ -1,6 +1,5 @@
 :host {
     justify-self: center;
-    margin: 0 20px 0 20px;
     display: flex;
     align-items: center;
 }
@@ -12,6 +11,13 @@ profile-picture {
 
 p {
     margin: 0 0 0 15px;
-    font-size: 1.5rem;
+    font-size: 1em;
     text-wrap: nowrap;
+}
+
+@media screen and (max-height: 600px) {
+    profile-picture {
+        width: 30px;
+        height: 30px;
+    }
 }

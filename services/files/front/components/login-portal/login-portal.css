@@ -33,3 +33,14 @@ h1 {
     font-size: 28px;
     margin-bottom: 20px;
 }
+
+@media screen and (max-height: 600px) {
+    form {
+        margin-top: 0;
+        margin-bottom: 5px;
+    }
+
+    .register-text {
+        margin-bottom: 2px;
+    }
+}

@@ -1,4 +1,5 @@
 import {AlertMessage} from "../components/alert-message/alert-message.js";
+import {hapticNotification} from "./config.js";
 
 export function convertRemToPixels(rem) {
     return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -89,6 +90,6 @@ export function createAlertMessage(container, type, text, timer = 4000) {
     alert.setAttribute("timer", timer.toString());
     alert.innerText = text;
 
-    container.appendChild(alert);
+    hapticNotification().then(() => container.appendChild(alert));
     return alert;
 }

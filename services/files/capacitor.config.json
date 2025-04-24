@@ -3,7 +3,11 @@
   "appName": "HexaTron",
   "webDir": "front",
   "plugins": {
-    "EnvPlugin": {}
+    "EnvPlugin": {},
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true
+    }
   },
   "server": {}
 }

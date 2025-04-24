@@ -16,7 +16,7 @@ export class UserProfile extends Component {
     }
 
     static get observedAttributes() {
-        return ["user", "part"];
+        return ["user"];
     }
 
     async connectedCallback() {
@@ -32,6 +32,12 @@ export class UserProfile extends Component {
         } else
             this.user = userService.user;
 
+        this._profileHeader.addEventListener("open-settings",
+            () => this._openSettings());
+
+        this._profileHeader.addEventListener("logout",
+            () => this._handleLogout());
+
         this._updateProfileHeader(isOtherUser);
         this._loadContent(isOtherUser);
     }
@@ -39,15 +45,17 @@ export class UserProfile extends Component {
     _loadContent(isOtherUser) {
         this._content.innerHTML = "";
 
-        if (isOtherUser) {
-            const friendPart = document.createElement("user-friend-part");
-            friendPart.setAttribute("friend-id", this.user._id);
-            this._content.appendChild(friendPart);
-        } else {
-            const accountInfo = document.createElement("account-information");
-            accountInfo.user = this.user;
-            this._content.appendChild(accountInfo);
-            this._setupListeners(accountInfo);
+        if (userService.isConnected()) {
+            if (isOtherUser) {
+                const friendPart = document.createElement("user-friend-part");
+                friendPart.setAttribute("friend-id", this.user._id);
+                this._content.appendChild(friendPart);
+            } else {
+                const accountInfo = document.createElement("account-information");
+                accountInfo.user = this.user;
+                this._content.appendChild(accountInfo);
+                this._setupListeners(accountInfo);
+            }
         }
     }
 
@@ -103,6 +111,16 @@ export class UserProfile extends Component {
 
     async _handleLogout() {
         await userService.logout();
+    }
+
+    _openSettings() {
+        this._profileHeader.style.display = "none";
+        this.shadowRoot.querySelector("account-information").style.display = "block";
+
+        this.dispatchEvent(new CustomEvent("setReturnOnSameContent", {
+            bubbles: true,
+            composed: true
+        }));
     }
 
     _createModalPopup() {

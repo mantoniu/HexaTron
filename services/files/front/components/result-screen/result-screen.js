@@ -62,7 +62,7 @@ export class ResultScreen extends ListenerComponent {
     move() {
         if (this.end) {
             this.style.position = "relative";
-            this.style.transform = "translateY(30vh)";
+            this.style.transform = `translateY(calc(${window.innerHeight / 2}px - 50%))`;
         }
     }
 

@@ -19,8 +19,14 @@ export class FriendsPortal extends ListenerComponent {
     async connectedCallback() {
         await super.connectedCallback();
 
-        this.shadowRoot.getElementById("friend-list").setStatusAccepted(["friends"]);
-        this.shadowRoot.getElementById("not-friend-list").setStatusAccepted(["pending", "requested"]);
+        this._friendList = this.shadowRoot.getElementById("friend-list");
+        this._notFriendList = this.shadowRoot.getElementById("not-friend-list");
+
+        await this._friendList.whenConnected;
+        await this._notFriendList.whenConnected;
+
+        this._friendList.setStatusAccepted(["friends"]);
+        this._notFriendList.setStatusAccepted(["pending", "requested"]);
 
         this.initialize();
         notificationService.removeFriendsNotifications();
@@ -28,17 +34,17 @@ export class FriendsPortal extends ListenerComponent {
 
     initialize() {
         this.shadowRoot.getElementById("friends-part").style.display = "flex";
-        this.shadowRoot.getElementById("friend-list").setFriendsList(userService.user.friends);
-        this.shadowRoot.getElementById("not-friend-list").setFriendsList(userService.user.friends);
+        this._friendList.setFriendsList(userService.user.friends);
+        this._notFriendList.setFriendsList(userService.user.friends);
     }
 
     friendUpdateEvent() {
-        this.shadowRoot.getElementById("friend-list")?.setFriendsList(userService.user.friends);
-        this.shadowRoot.getElementById("not-friend-list")?.setFriendsList(userService.user.friends);
+        this._friendList?.setFriendsList(userService.user.friends);
+        this._notFriendList?.setFriendsList(userService.user.friends);
     }
 
     deleteFriend(data) {
-        this.shadowRoot.getElementById("friend-list")?.removeFromList(data.id);
-        this.shadowRoot.getElementById("not-friend-list")?.removeFromList(data.id);
+        this._friendList?.removeFromList(data.id);
+        this._notFriendList?.removeFromList(data.id);
     }
 }

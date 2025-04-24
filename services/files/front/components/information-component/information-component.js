@@ -16,6 +16,10 @@ export class InformationComponent extends Component {
         GameTypesPresentationComponent.register();
         InformationsPageComponent.register();
         GameJoystick.register();
+
+        this._touchStartX = 0;
+        this._touchEndX = 0;
+        this._actualSlide = 0;
     }
 
     async connectedCallback() {
@@ -28,11 +32,22 @@ export class InformationComponent extends Component {
 
     _initialize() {
         const shadowRoot = this.shadowRoot;
-        this.totalSlide = shadowRoot.querySelectorAll(".page").length;
+        this._totalSlide = shadowRoot.querySelectorAll(".page").length;
 
-        this.actualSlide = 0;
+        if (mobile) {
+            this.addEventListener("touchstart", (e) => {
+                this._touchStartX = e.changedTouches[0].screenX;
+            });
+
+            this.addEventListener("touchend", (e) => {
+                this._touchEndX = e.changedTouches[0].screenX;
+                this.handleSwipeGesture();
+            });
+        }
+
+
         const indicators = shadowRoot.getElementById("indicators");
-        for (let i = 0; i < this.totalSlide; i++) {
+        for (let i = 0; i < this._totalSlide; i++) {
             const indicator = document.createElement("div");
             indicator.classList.add("indicator");
             this.addAutoCleanListener(indicator, "click", () => this.goToSlide(i));
@@ -40,12 +55,12 @@ export class InformationComponent extends Component {
                 indicators.appendChild(indicator);
             }
         }
-        this.goToSlide(this.actualSlide);
+        this.goToSlide(this._actualSlide);
         const next = shadowRoot.getElementById("next");
         if (next)
-            this.addAutoCleanListener(next, "click", () => this.goToSlide(this.actualSlide + 1));
+            this.addAutoCleanListener(next, "click", () => this.goToSlide(this._actualSlide + 1));
         const previous = shadowRoot.getElementById("previous");
-        this.addAutoCleanListener(previous, "click", () => this.goToSlide(this.actualSlide - 1));
+        this.addAutoCleanListener(previous, "click", () => this.goToSlide(this._actualSlide - 1));
 
         const closeButton = this.shadowRoot.getElementById("close-btn");
         if (closeButton)
@@ -71,13 +86,13 @@ export class InformationComponent extends Component {
     }
 
     goToSlide(i) {
-        this.actualSlide = i;
+        this._actualSlide = i;
         const shadowRoot = this.shadowRoot;
         const next = this.shadowRoot.getElementById("next");
         const previous = this.shadowRoot.getElementById("previous");
         next.style.visibility = "visible";
         previous.style.visibility = "visible";
-        if (i === this.totalSlide - 1)
+        if (i === this._totalSlide - 1)
             next.style.visibility = "hidden";
         else if (i === 0)
             previous.style.visibility = "hidden";
@@ -95,6 +110,20 @@ export class InformationComponent extends Component {
             el.style.setProperty("--flex-direction", "row");
         } else {
             el.style.setProperty("--flex-direction", "column");
+        }
+    }
+
+    handleSwipeGesture() {
+        const diff = this._touchEndX - this._touchStartX;
+
+        this._touchStartX = 0;
+        this._touchEndX = 0;
+        if (Math.abs(diff) < 50) return; // swipe trop petit, on ignore
+
+        if (diff > 0) {
+            this.goToSlide(this._actualSlide === 0 ? this._actualSlide : this._actualSlide - 1);
+        } else {
+            this.goToSlide(this._actualSlide === this._totalSlide - 1 ? this._actualSlide : this._actualSlide + 1);
         }
     }
 }

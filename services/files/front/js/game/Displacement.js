@@ -26,7 +26,7 @@ export class Displacement {
      * Returns the value associated with this displacement.
      * @returns {*} The displacement value.
      */
-    value() {
+    get value() {
         return this._value;
     }
 

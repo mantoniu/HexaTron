@@ -1,4 +1,5 @@
 :host {
+    display: flex;
     margin-top: 20px;
     justify-content: center;
     flex-direction: column;
@@ -12,19 +13,12 @@ submit-button {
     flex: 1 1 0;
 }
 
-#buttonSendMessage {
+submit-button > div {
     display: flex;
     flex-direction: row;
-    width: 100%;
+    align-items: center;
     justify-content: center;
-    gap: 20px;
-}
-
-#buttonChallenge {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
+    height: 100%;
     gap: 20px;
 }
 
@@ -47,4 +41,27 @@ image-button {
     height: 30px;
     width: 30px;
     margin: auto 0 auto 0;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+image-button:hover {
+    transform: scale(1.1);
+    filter: brightness(0.9);
+}
+
+@media screen and (max-height: 600px) {
+    :host {
+        margin-top: 0;
+        flex-direction: row;
+    }
+
+    submit-button {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    submit-button > div {
+        height: 40px;
+    }
 }

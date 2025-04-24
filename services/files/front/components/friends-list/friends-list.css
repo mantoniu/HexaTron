@@ -12,9 +12,6 @@
     font-weight: bold;
     font-size: 18px;
     margin: 0;
-    position: sticky;
-    top: 0;
-    z-index: 1;
     text-align: center;
 }
 
@@ -32,4 +29,10 @@ friend-list-element {
     color: gray;
     font-style: italic;
     margin: 20px 0;
+}
+
+#list {
+    height: calc(100% - 44px);
+    max-height: fit-content;
+    overflow-y: auto;
 }

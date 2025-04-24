@@ -20,10 +20,10 @@ export class GameHeader extends ListenerComponent {
         await super.connectedCallback();
 
         this._canvas = this.shadowRoot.getElementById("header");
-        this._canvas.width = window.screen.width / 5;
-        this._canvas.height = window.screen.height / 5;
+        this._canvas.width = 3840;
+        this._canvas.height = 2160;
         this.context = this._canvas.getContext("2d");
-        this.context.lineWidth = 5;
+        this.context.lineWidth = 60;
         this.context.lineJoin = "round";
         this.context.strokeStyle = "#4e5256";
 
@@ -62,10 +62,11 @@ export class GameHeader extends ListenerComponent {
     }
 
     calculateUtils() {
-        const width = this.context.canvas.width;
+        let width = this.context.canvas.width;
         const height = this.context.canvas.height;
-        const pxSize = convertRemToPixels(4);
+        const pxSize = convertRemToPixels(40);
         this.context.font = pxSize + "px serif";
+
         const size = width / 7;
         const position = [(this.context.lineWidth + Math.sqrt(3) * size) / 2, width / 2, width - (this.context.lineWidth + Math.sqrt(3) * size) / 2];
         return [height, size, position];

@@ -7,6 +7,7 @@ import {ResultScreen} from "../result-screen/result-screen.js";
 import {userService} from "../../services/user-service.js";
 import {GameJoystick} from "../game-joystick/game-joystick.js";
 import {GameType} from "../../js/game/Game.js";
+import {hapticVibration} from "../../js/config.js";
 
 export class GameComponent extends ListenerComponent {
     constructor() {
@@ -23,6 +24,8 @@ export class GameComponent extends ListenerComponent {
         const gameBoard = this.shadowRoot.querySelector("game-board");
         if (gameBoard)
             gameBoard.style.display = "none";
+
+        this.shadowRoot.querySelectorAll("game-joystick")?.forEach(joystick => joystick.style.display = "none");
 
         const result_screen = this.shadowRoot.getElementById("game").querySelector("result-screen");
         if (result_screen) {
@@ -49,7 +52,7 @@ export class GameComponent extends ListenerComponent {
         gameService.startGame(gameType, params);
 
         this._gameDiv = this.shadowRoot.getElementById("game");
-        this.hideLoader = () => {
+        this.hideLoader = () => hapticVibration().then(() => {
             if (this._loader)
                 this._loader.style.display = "none";
             if (this._gameDiv) {
@@ -58,7 +61,7 @@ export class GameComponent extends ListenerComponent {
                 this._gameDiv.style.transition = "opacity 0.5s ease-in-out";
                 this._gameDiv.querySelector("result-screen").setAttribute("end", "false");
             }
-        };
+        });
 
         if (Capacitor.isNativePlatform())
             this._addJoySticks();

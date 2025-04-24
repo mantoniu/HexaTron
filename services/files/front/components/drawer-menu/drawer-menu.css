@@ -51,12 +51,6 @@
     width: 100%;
 }
 
-@media screen and (max-width: 750px) {
-    #drawer {
-        width: calc(100% - var(--sidebar-width));
-    }
-}
-
 #drawer a {
     text-decoration: none;
     font-size: 25px;
@@ -92,16 +86,6 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-@media screen and (max-height: 450px) {
-    #drawer {
-        padding-top: 15px;
-    }
-
-    #drawer a {
-        font-size: 18px;
-    }
-}
-
 #content {
     box-sizing: border-box;
     padding: 70px;
@@ -112,6 +96,17 @@
     opacity: 0;
     transform: translateY(-20px);
     width: 100%;
+}
+
+#content > * {
+    max-width: 100%;
+    width: 100%;
+}
+
+#content > leaderboard-portal,
+#content > notifications-portal,
+#content > settings-portal {
+    max-width: 400px;
 }
 
 #content.animate {
@@ -147,4 +142,24 @@
 :host(.open) #drawer #close-btn {
     display: block;
     z-index: 2;
+}
+
+@media screen and (max-height: 600px) {
+    #drawer {
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    #content {
+        padding: 0 60px 25px 60px;
+    }
+
+    #drawer a {
+        font-size: 18px;
+    }
+
+    #close-btn {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+    }
 }

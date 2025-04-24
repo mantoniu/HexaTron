@@ -19,7 +19,7 @@ export class AbsoluteDisplacement extends Displacement {
      * @returns {AbsoluteDisplacement} A new instance with the inverted displacement.
      */
     invert() {
-        const invertedValue = (this.value + 3) % 6;
+        const invertedValue = ((this.value * 5) + 1) % 6;
         return new AbsoluteDisplacement(invertedValue);
     }
 }
