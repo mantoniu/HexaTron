@@ -124,7 +124,7 @@ image-button {
 
 @media screen and (max-height: 600px) {
     :host {
-        padding-top: 0.5rem;
+        padding-top: 0;
     }
 
     .nav-links {
