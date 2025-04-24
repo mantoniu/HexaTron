@@ -78,8 +78,9 @@ export class FriendsList extends Component {
     }
 
     removeFromList(id) {
-        if (this.shadowRoot.getElementById(id))
-            this.shadowRoot.removeChild(this.shadowRoot.getElementById(id));
+        const element = this.shadowRoot.getElementById(id);
+        if (element)
+            this.shadowRoot.getElementById("list").removeChild(element);
 
         this.setupList();
     }
