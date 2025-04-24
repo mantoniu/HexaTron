@@ -8,8 +8,11 @@
 #content {
     display: flex;
     justify-content: center;
-    height: 100%;
     width: 100%;
+}
+
+profile-header {
+    flex: 1;
 }
 
 user-friend-part {

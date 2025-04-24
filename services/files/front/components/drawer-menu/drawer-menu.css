@@ -99,13 +99,14 @@
 }
 
 #content > * {
-    max-width: 400px;
+    max-width: 100%;
     width: 100%;
 }
 
-#content > chat-portal,
-#content > friends-portal {
-    max-width: 100%;
+#content > leaderboard-portal,
+#content > notifications-portal,
+#content > settings-portal {
+    max-width: 400px;
 }
 
 #content.animate {
