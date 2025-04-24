@@ -252,6 +252,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _setInitialState(type) {
+        this._closeBtn.classList.remove("back");
         this._closeBtn.innerHTML = `&times;`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {
@@ -265,6 +266,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _replaceCloseWithBack() {
+        this._closeBtn.classList.add("back");
         this._closeBtn.innerHTML = `&larr;`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {

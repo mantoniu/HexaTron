@@ -99,10 +99,11 @@ image-button {
     background-color: var(--red);
     color: white;
     border-radius: 20px;
-    height: 1.5rem;
-    width: 1.5rem;
+    height: 20px;
+    width: 20px;
     font-size: 1rem;
     text-align: center;
+    line-height: 22px;
 }
 
 .bounce-animation {
@@ -140,11 +141,5 @@ image-button {
     image-button {
         width: 20px;
         height: 20px;
-    }
-
-    #numberNotRead {
-        height: 1.2rem;
-        width: 1.2rem;
-        font-size: 0.8rem;
     }
 }
