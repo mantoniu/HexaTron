@@ -158,6 +158,11 @@ export class DrawerMenu extends ListenerComponent {
             });
         });
 
+        this.addAutoCleanListener(this, "setReturnOnSameContent", () => {
+            this._replaceCloseWithBack();
+            this.current = DRAWER_CONTENT.VOID;
+        });
+
         this._drawer.addEventListener("scroll", () => {
             this._closeBtn.classList.toggle("scrolled", this._drawer.scrollTop > 0);
         });

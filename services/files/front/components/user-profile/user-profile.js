@@ -32,6 +32,12 @@ export class UserProfile extends Component {
         } else
             this.user = userService.user;
 
+        this._profileHeader.addEventListener("open-settings",
+            () => this._openSettings());
+
+        this._profileHeader.addEventListener("logout",
+            () => this._handleLogout());
+
         this._updateProfileHeader(isOtherUser);
         this._loadContent(isOtherUser);
     }
@@ -105,6 +111,16 @@ export class UserProfile extends Component {
 
     async _handleLogout() {
         await userService.logout();
+    }
+
+    _openSettings() {
+        this._profileHeader.style.display = "none";
+        this.shadowRoot.querySelector("account-information").style.display = "block";
+
+        this.dispatchEvent(new CustomEvent("setReturnOnSameContent", {
+            bubbles: true,
+            composed: true
+        }));
     }
 
     _createModalPopup() {
