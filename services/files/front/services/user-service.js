@@ -471,6 +471,7 @@ class UserService extends EventEmitter {
      * @private
      */
     _clearLocalStorage() {
+        localStorage.removeItem("notificationToken");
         localStorage.removeItem("user");
         localStorage.removeItem("connected");
         localStorage.setItem("information", true);
