@@ -243,14 +243,12 @@ class UserService extends EventEmitter {
      * @return {Promise<void>} - Resolves when the update is complete.
      */
     async updateNotificationToken(notificationToken) {
-        console.log("antoniu", notificationToken);
         if (!this.isConnected() || !notificationToken || this._notificationToken === notificationToken)
             return;
 
         this._notificationToken = notificationToken;
         localStorage.setItem("notificationToken", notificationToken);
         const response = await apiClient.request("PATCH", `api/user/me/notification-tokens`, {notificationToken});
-        console.log("antoniu => ", response);
 
         if (!response.success)
             console.error("Error while updating the notification token");
