@@ -139,7 +139,6 @@ export class DrawerMenu extends ListenerComponent {
                 this._loadContent(DRAWER_CONTENT.PROFILE);
             } else {
                 this.current = DRAWER_CONTENT.VOID;
-                this.current = DRAWER_CONTENT.PROFILE;
                 this._content.innerHTML = `<user-profile 
                                    user='${JSON.stringify(event.detail.player)}'>
                                </user-profile>`;
