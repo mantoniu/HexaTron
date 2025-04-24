@@ -1,16 +1,18 @@
 import {Component} from "../component/component.js";
 import {POSITION} from "./tooltip-positions.js";
 
+/**
+ * HTML attributes usable on this component:
+ * - default-activated: boolean - Whether the tooltip is always activated or only on hover
+ * - message: string - The message displayed inside the tooltip
+ * - space: number - The space between the tooltip and the target element
+ * - position: string - One of the positions defined in tooltip-position.js
+ * - width: number - The width of the component
+ * - height: number - The height of the component
+ * - wrap: string - The wrap attribute applied to the tooltip's text
+ * - arrow: boolean - Whether an arrow is displayed or not
+ */
 export class TooltipComponent extends Component {
-    constructor() {
-        super();
-
-    }
-
-    static get observedAttributes() {
-        return ["default-activated", "message", "space", "position", "width", "height", "wrap", "arrow"];
-    }
-
     async connectedCallback() {
         await super.connectedCallback();
         this._tooltip = this.shadowRoot.getElementById("tooltip");
@@ -24,7 +26,6 @@ export class TooltipComponent extends Component {
         }
 
         const message = this.getAttribute("message");
-        console.log(message);
         if (message === "null") {
             this.style.display = "none";
             return;
