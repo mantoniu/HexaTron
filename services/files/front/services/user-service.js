@@ -109,7 +109,7 @@ class UserService extends EventEmitter {
             this._socket = socketService.connectFriendSocket();
             this._setupFriendSocketListeners();
         }
-
+        localStorage.setItem("information", true);
         UserService._instance = this;
     }
 
@@ -231,6 +231,7 @@ class UserService extends EventEmitter {
         } else {
             Object.entries(newData).forEach(([key, value]) => this._user[key] = value);
             localStorage.setItem("user", JSON.stringify(this._user));
+            return {success: true, ...newData};
         }
     }
 
@@ -442,6 +443,7 @@ class UserService extends EventEmitter {
     _saveToLocalStorage() {
         localStorage.setItem("user", JSON.stringify(this._user));
         localStorage.setItem("connected", this._connected);
+        localStorage.setItem("information", false);
     }
 
     /**
@@ -452,6 +454,7 @@ class UserService extends EventEmitter {
     _clearLocalStorage() {
         localStorage.removeItem("user");
         localStorage.removeItem("connected");
+        localStorage.setItem("information", true);
     }
 
     /**

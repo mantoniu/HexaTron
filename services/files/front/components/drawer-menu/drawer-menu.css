@@ -28,7 +28,7 @@
     position: fixed;
     right: var(--sidebar-width);
     display: flex;
-    z-index: 2;
+    z-index: 3;
     transition: width 0.3s ease;
 }
 

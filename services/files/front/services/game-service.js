@@ -289,6 +289,8 @@ class GameService extends EventEmitter {
      * @param {Object} params - The games parameters
      */
     startGame(gameType, params = {}) {
+        localStorage.setItem("information", false);
+
         if (this.game?.id)
             return;
 

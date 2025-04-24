@@ -1,8 +1,12 @@
 import {Component} from "../component/component.js";
+import {TooltipComponent} from "../tooltip-component/tooltip-component.js";
 
 export class CustomButton extends Component {
     constructor() {
         super();
+
+        TooltipComponent.register();
+
         this.locked = false;
         this.backgroundColor = "white";
         this.padding = "1rem 1.5rem";
@@ -54,6 +58,6 @@ export class CustomButton extends Component {
         if (lockIcon)
             lockIcon.style.display = this.locked ? "inline" : "none";
         if (tooltip)
-            tooltip.innerText = this.getAttribute("tooltip-message");
+            tooltip.setAttribute("message", this.getAttribute("tooltip-message"));
     }
 }

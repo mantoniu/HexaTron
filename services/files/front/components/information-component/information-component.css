@@ -10,6 +10,7 @@
     display: flex;
     justify-content: center;
     align-content: center;
+    --flex-direction: column;
 }
 
 .information-content {
@@ -77,13 +78,12 @@ image-button:hover {
 #controls {
     display: flex;
     min-height: 150px;
-    max-height: 50%;
+    max-height: 250px;
 }
 
 img {
-    min-height: 150px;
     max-height: 65%;
-    max-width: 50%;
+    max-width: 100%;
 }
 
 p {
@@ -107,6 +107,7 @@ p {
     background-color: var(--red);
     font-weight: bold;
     color: var(--card-bg);
+    padding: 0 0 2px 0;
 }
 
 .close-btn:hover {
@@ -115,9 +116,35 @@ p {
 }
 
 #game-types {
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     width: 100%;
-    height: fit-content;
     gap: 10px;
+    margin-top: 10px;
+}
+
+#computer {
+    display: none;
+}
+
+#mobile {
+    display: none;
+}
+
+#joystick {
+    position: relative;
+    left: -10vmax;
+    top: -3vmax;
+}
+
+game-joystick {
+    scale: 0.5;
+    bottom: unset;
+}
+
+#content {
+    display: flex;
+    height: fit-content;
+    flex-direction: column;
+    margin: auto;
 }
