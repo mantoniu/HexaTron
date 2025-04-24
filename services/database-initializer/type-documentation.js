@@ -123,6 +123,12 @@ const User = {
                     }
                 }
             }
+        },
+        notificationTokens: {
+            bsonType: "array",
+            items: {
+                bsonType: "string"
+            }
         }
     }
 };

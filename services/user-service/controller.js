@@ -15,7 +15,7 @@ const {
     leaderboard,
     getRank,
     getUserByID,
-    getFriendStatus
+    getFriendStatus, addNotificationToken, removeNotificationToken
 } = require("./database");
 const {getIDInRequest, HttpError, NOTIFICATION_TYPE, sendNotification} = require("../utils/controller-utils");
 const bcrypt = require("bcrypt");
@@ -145,6 +145,7 @@ exports.update = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
         const userData = await updateUser(req.body, userID);
+
         res.writeHead(200, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User successfully updated.", user: userData}));
         await notifyFriendOfEvent(userID);
@@ -163,6 +164,34 @@ exports.update = async (req, res) => {
     }
 };
 
+/**
+ * Updates the user's notification tokens by adding a new token if it's not already present.
+ *
+ * @param {Object} req - The request object, expecting `notificationToken` in the body.
+ * @param {Object} res - The response object used to send back the result.
+ * @return {Promise<void>} - Sends a 200 response if the update is successful.
+ * @throws {HttpError} - Throws specific HttpErrors on failure.
+ */
+exports.updateNotificationTokens = async (req, res) => {
+    try {
+        const userID = getIDInRequest(req);
+        const {notificationToken} = req.body;
+
+        await addNotificationToken(userID, notificationToken);
+        res.writeHead(200, {"Content-Type": "application/json"});
+        res.end(JSON.stringify({message: "Notification tokens successfully updated."}));
+    } catch (error) {
+        if (error instanceof HttpError)
+            throw error;
+
+        if (error.message === DATABASE_ERRORS.USER_NOT_FOUND)
+            throw new HttpError(404, "User not found");
+        if (error.message === DATABASE_ERRORS.VALIDATION_FAILED)
+            throw new HttpError(400, "Invalid data format");
+
+        throw new HttpError(500, "Internal server error during notification tokens update");
+    }
+};
 
 /**
  * Updates a user's profile picture by uploading the file and saving the new file path in the database.
@@ -298,7 +327,11 @@ exports.refreshToken = async (req, res) => {
 exports.disconnect = async (req, res) => {
     try {
         const userID = getIDInRequest(req);
+        const {notificationToken} = req.body;
+
         await deleteToken(userID);
+        if (notificationToken)
+            await removeNotificationToken(userID, notificationToken);
 
         res.writeHead(204, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "User has been successfully disconnected."}));

@@ -175,6 +175,11 @@ const routes = [
         handler: controller.updateProfilePicture
     },
     {
+        method: "PATCH",
+        path: ["me", "notification-tokens"],
+        handler: controller.updateNotificationTokens
+    },
+    {
         /**
          * @swagger
          * /api/user/me:

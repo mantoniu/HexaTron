@@ -154,6 +154,20 @@ async function startService() {
                 }
 
                 console.log(`Collection ${collName} created successfully.`);
+            } else {
+                // If it already exists, update the validator with collMod
+                await db.command({
+                    collMod: collName,
+                    validator: {
+                        $jsonSchema: {
+                            ...schema,
+                            additionalProperties: false
+                        }
+                    },
+                    validationLevel: "strict"
+                });
+
+                console.log(`Validator for collection ${collName} updated.`);
             }
         }
     } catch (error) {

@@ -3,9 +3,9 @@ const {readData} = require("../utils/api-utils");
 const {
     addNotification,
     deleteNotificationsWithUser,
-    deleteNotificationWithObjectId
+    deleteNotificationWithObjectId, getNotificationTokens
 } = require("./database");
-const {DATABASE_ERRORS} = require("./utils");
+const {DATABASE_ERRORS, sendPushNotification} = require("./utils");
 const eventBus = require("./event-bus");
 const {parse} = require("node:url");
 
@@ -69,6 +69,10 @@ exports.addNotification = async (req, res) => {
         const notification = await addNotification(notificationData);
         eventBus.emit("new-notification", {notification});
 
+        const notificationTokens = await getNotificationTokens(notification.userId);
+        notificationTokens?.forEach((notificationToken) =>
+            sendPushNotification(notification, notificationToken));
+
         res.writeHead(201, {"Content-Type": "application/json"});
         res.end(JSON.stringify({message: "Notification successfully created"}));
     } catch (error) {
@@ -92,7 +96,7 @@ exports.addNotification = async (req, res) => {
  * @function
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @event new-notification
+ * @event delete-notification
  * @event error - Emitted if an error occurs during notification creation.
  */
 exports.delete = async (req, res) => {

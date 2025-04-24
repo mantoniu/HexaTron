@@ -215,11 +215,30 @@ async function deleteNotificationsWithUser(userId) {
     return Object.fromEntries(friendNotificationsToDelete.map(notification => [notification.userId, notification._id.toHexString()]));
 }
 
+/**
+ * Retrieves the notification tokens of a user by their user ID.
+ *
+ * @async
+ * @function getNotificationToken
+ * @param {string} userId - The ID of the user (as a string).
+ * @returns {Promise<string[]|null>} The user's notification tokens (`notificationTokens`) if found, otherwise `null`.
+ */
+async function getNotificationTokens(userId) {
+    return await mongoOperation(async () => {
+        const result = await db.collection(userCollection).findOne(
+            {_id: new ObjectId(userId)},
+            {projection: {notificationTokens: 1, _id: 0}}
+        );
+        return result?.notificationTokens || null;
+    });
+}
+
 module.exports = {
     addNotification,
     getNotifications,
     deleteNotification,
     markNotificationAsRead,
     deleteNotificationsWithUser,
-    deleteNotificationWithObjectId
+    deleteNotificationWithObjectId,
+    getNotificationTokens
 };

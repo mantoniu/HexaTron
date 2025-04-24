@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "914799738762",
+    "project_id": "hexatron-a94fd",
+    "storage_bucket": "hexatron-a94fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914799738762:android:bea5c1ce66e3d1bd251273",
+        "android_client_info": {
+          "package_name": "ps8.hexatron.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTmzmxMTiTSSoNsC6WAcEpKL1C8fCI2iY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
