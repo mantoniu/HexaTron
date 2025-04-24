@@ -51,12 +51,6 @@
     width: 100%;
 }
 
-#drawer a {
-    text-decoration: none;
-    font-size: 2rem;
-    color: #818181;
-}
-
 .back {
     line-height: 55px;
 }
@@ -68,8 +62,8 @@
 #close-btn {
     margin: 15px 0 0 15px;
     position: fixed;
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     text-align: center;
     border-radius: 50%;
     background-color: var(--card-bg);
@@ -155,22 +149,5 @@
 
     #content {
         padding: 0 60px 25px 60px;
-    }
-
-    #drawer a:not(.back-computer):not(.back-mobile) {
-        font-size: 3rem;
-    }
-
-    #close-btn {
-        width: 40px;
-        height: 40px;
-    }
-
-    .back-computer {
-        line-height: 43px;
-    }
-
-    .back-mobile {
-        line-height: 33px;
     }
 }

@@ -12,7 +12,6 @@ import {ListenerComponent} from "../component/listener-component.js";
 import {CHAT_EVENTS, chatService} from "../../services/chat-service.js";
 import {NotificationsPortal} from "../notifications-portal/notifications-portal.js";
 import {NOTIFICATIONS_EVENTS, NOTIFICATIONS_TYPE, notificationService} from "../../services/notifications-service.js";
-import {mobile} from "../../js/config.js";
 
 export const DRAWER_CONTENT = Object.freeze({
     PROFILE: "profile",
@@ -252,11 +251,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _setInitialState(type) {
-        if (mobile)
-            this._closeBtn.classList.remove("back-mobile");
-        else
-            this._closeBtn.classList.remove("back-computer");
-        this._closeBtn.innerHTML = `&times;`;
+        this._closeBtn.src = `../../assets/cancel.svg`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {
                 bubbles: true,
@@ -269,11 +264,7 @@ export class DrawerMenu extends ListenerComponent {
     }
 
     _replaceCloseWithBack() {
-        if (mobile)
-            this._closeBtn.classList.add("back-mobile");
-        else
-            this._closeBtn.classList.add("back-computer");
-        this._closeBtn.innerHTML = `&larr;`;
+        this._closeBtn.src = `../../assets/back.svg`;
         this._closeBtn.onclick = () => {
             this.dispatchEvent(new CustomEvent("drawerChanged", {
                 bubbles: true,
