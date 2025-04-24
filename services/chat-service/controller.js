@@ -3,7 +3,7 @@ const {getIDInRequest, HttpError, sendNotification, NOTIFICATION_TYPE} = require
 const {
     getUserConversationsWithLastMessage,
     getConversationWithMessagesBeforeDate,
-    deleteUser, saveMessage
+    deleteUser, saveMessage, getParticipants
 } = require("./database");
 const {DATABASE_ERRORS} = require("./utils");
 const {readData} = require("../utils/api-utils");
@@ -79,15 +79,28 @@ exports.deleteUser = async (req, res) => {
 /**
  * Saves a message and sends a notification to all friends.
  *
- *
  * @param {Object} message - The message object to be saved.
  * @param {string} senderId - The ID of the sender.
- * @param {string[]} friendsId - An array of friend IDs to notify.
  */
-exports.saveMessage = async (message, senderId, friendsId) => {
+exports.saveMessage = async (message, senderId) => {
     const messageId = await saveMessage(message);
-    if (message.conversationId.toString() !== process.env.GLOBAL_CONVERSATION_ID)
-        friendsId.map(async friendId => await sendNotification(friendId, NOTIFICATION_TYPE.NEW_MESSAGE, senderId, [message.conversationId, messageId]));
+    const conversationId = message.conversationId;
+
+    const participants = (await getParticipants(conversationId))
+        .filter(userId => userId !== senderId);
+
+    if (!Array.isArray(participants) || participants.length === 0)
+        return;
+
+    if (conversationId.toString() !== process.env.GLOBAL_CONVERSATION_ID)
+        participants.map(async (friendId) =>
+            await sendNotification(
+                friendId,
+                NOTIFICATION_TYPE.NEW_MESSAGE,
+                senderId,
+                [message.conversationId, messageId]
+            )
+        );
 };
 
 /**
