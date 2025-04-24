@@ -140,3 +140,10 @@ game-joystick {
     scale: 0.5;
     bottom: unset;
 }
+
+#content {
+    display: flex;
+    height: fit-content;
+    flex-direction: column;
+    margin: auto;
+}
