@@ -55,7 +55,6 @@
     text-decoration: none;
     font-size: 2rem;
     color: #818181;
-    transition: 0.3s;
 }
 
 .back {
@@ -154,13 +153,20 @@
         padding: 0 60px 25px 60px;
     }
 
-    #drawer a {
+    #drawer a:not(.back-computer):not(.back-mobile) {
         font-size: 3rem;
     }
 
     #close-btn {
         width: 40px;
         height: 40px;
-        line-height: 45px;
+    }
+
+    .back-computer {
+        line-height: 43px;
+    }
+
+    .back-mobile {
+        line-height: 33px;
     }
 }
