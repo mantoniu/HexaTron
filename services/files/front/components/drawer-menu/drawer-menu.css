@@ -144,6 +144,10 @@
     z-index: 2;
 }
 
+.back-computer {
+    line-height: 53px;
+}
+
 @media screen and (max-height: 600px) {
     #drawer {
         width: calc(100% - var(--sidebar-width));
