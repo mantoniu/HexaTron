@@ -290,4 +290,12 @@ export class DrawerMenu extends ListenerComponent {
             }
         }
     }
+
+    get open() {
+        return this._opened;
+    }
+
+    get closeButton() {
+        return this._closeBtn;
+    }
 }
