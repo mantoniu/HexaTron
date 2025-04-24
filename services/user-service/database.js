@@ -662,6 +662,45 @@ async function getFriendStatus(userId, friendId) {
     return user.length > 0 ? user[0].status : null;
 }
 
+/**
+ * Adds a notification token to the user's `notificationTokens` array, ensuring no duplicates.
+ *
+ * @param {string} userId - The ID of the user to update.
+ * @param {string} notificationToken - The notification token to add.
+ * @return {Promise<void>} - Resolves when the operation is complete.
+ * @throws {Error} - Throws an error if the MongoDB operation fails.
+ */
+async function addNotificationToken(userId, notificationToken) {
+    if (!notificationToken)
+        return;
+
+    await mongoOperation(() =>
+        db.collection(userCollection).updateOne(
+            {_id: new ObjectId(userId)},
+            {$addToSet: {notificationTokens: notificationToken}}
+        )
+    );
+}
+
+/**
+ * Removes a notification token from the user's `notificationTokens` array, if it exists.
+ *
+ * @param {string} userId - The ID of the user to update.
+ * @param {string} notificationToken - The notification token to remove.
+ * @return {Promise<void>} - Resolves when the operation is complete.
+ * @throws {Error} - Throws an error if the MongoDB operation fails.
+ */
+async function removeNotificationToken(userId, notificationToken) {
+    if (!notificationToken) return;
+
+    await mongoOperation(() =>
+        db.collection(userCollection).updateOne(
+            {_id: new ObjectId(userId)},
+            {$pull: {notificationTokens: notificationToken}}
+        )
+    );
+}
+
 module.exports = {
     deleteToken,
     addUser,
@@ -680,5 +719,7 @@ module.exports = {
     removeFriend,
     searchFroFriends,
     getUserByID,
-    getFriendStatus
+    getFriendStatus,
+    addNotificationToken,
+    removeNotificationToken
 };

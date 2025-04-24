@@ -102,6 +102,7 @@ class UserService extends EventEmitter {
 
         this._user = JSON.parse(localStorage.getItem("user")) || new User("0", "Player 1", DEFAULT_PARAMS, []);
         this._connected = localStorage.getItem("connected") || false;
+        this._notificationToken = localStorage.getItem("notificationToken");
 
         if (!this._connected)
             localStorage.setItem("user", JSON.stringify(this._user));
@@ -236,6 +237,24 @@ class UserService extends EventEmitter {
     }
 
     /**
+     * Updates the user's notification token on the server if the user is connected and a valid token is provided.
+     *
+     * @param {string} notificationToken - The notification token to be sent to the server.
+     * @return {Promise<void>} - Resolves when the update is complete.
+     */
+    async updateNotificationToken(notificationToken) {
+        if (!this.isConnected() || !notificationToken || this._notificationToken === notificationToken)
+            return;
+
+        this._notificationToken = notificationToken;
+        localStorage.setItem("notificationToken", notificationToken);
+        const response = await apiClient.request("PATCH", `api/user/me/notification-tokens`, {notificationToken});
+
+        if (!response.success)
+            console.error("Error while updating the notification token");
+    }
+
+    /**
      * Updates the user's profile picture.
      * Sends the new profile picture file to the backend for processing, and updates the user's profile with the new image.
      *
@@ -306,7 +325,7 @@ class UserService extends EventEmitter {
      * Logs out the current user.
      */
     async logout() {
-        await apiClient.request("POST", "api/user/disconnect");
+        await apiClient.request("POST", "api/user/disconnect", {notificationToken: this._notificationToken});
 
         this._reset();
     }
@@ -452,6 +471,7 @@ class UserService extends EventEmitter {
      * @private
      */
     _clearLocalStorage() {
+        localStorage.removeItem("notificationToken");
         localStorage.removeItem("user");
         localStorage.removeItem("connected");
         localStorage.setItem("information", true);
